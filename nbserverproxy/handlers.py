@@ -12,7 +12,7 @@ class LocalProxyHandler(IPythonHandler):
     proxy_uri = "http://localhost"
 
     @tornado.web.asynchronous
-    def get(self, port):
+    def get(self, port, add_path=''):
         logger.info('%s request to %s', self.request.method, self.request.uri)
 
         def handle_response(response):
@@ -66,7 +66,9 @@ class LocalProxyHandler(IPythonHandler):
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
-    route_pattern = url_path_join(web_app.settings['base_url'],
-        '/proxy/([0-9]+)')
-    web_app.add_handlers(host_pattern, [(route_pattern, LocalProxyHandler)])
+    for p in ['/proxy/([0-9]+)/?','/proxy/([0-9]+)/(.*)']:
+        route_pattern = url_path_join(web_app.settings['base_url'], p)
+        web_app.add_handlers(host_pattern, [
+            (route_pattern, LocalProxyHandler),
+        ])
     logger.info('Added handler for route %s', route_pattern)
