@@ -1,5 +1,5 @@
+#vim: set et ts=4 sw=4:
 import logging
-
 import tornado.httpclient
 
 from notebook.utils import url_path_join
@@ -13,7 +13,7 @@ class LocalProxyHandler(IPythonHandler):
 
     @tornado.web.asynchronous
     def get(self, port):
-        logger.debug('%s request to %s', self.request.method, self.request.uri)
+        logger.info('%s request to %s', self.request.method, self.request.uri)
 
         def handle_response(response):
             if (response.error and not
@@ -43,10 +43,15 @@ class LocalProxyHandler(IPythonHandler):
         body = self.request.body
         if not body: body = None
 
-        uri = self.proxy_uri + ':' + port
+        # self.request.uri is /user/username/port/([0-9]+)/something and
+        # we need to strip off the first four elements.
+        new_path = '/'.join(self.request.uri.split('/')[5:])
+        if new_path != '': new_path = '/' + new_path
+        uri = self.proxy_uri + ':' + port + new_path
         client = tornado.httpclient.AsyncHTTPClient()
 
         try:
+            logger.info('Requesting %s', uri)
             req = tornado.httpclient.HTTPRequest(
                 uri, method=self.request.method, body=body,
                 headers=self.request.headers, follow_redirects=False)
@@ -64,5 +69,4 @@ def setup_handlers(web_app):
     route_pattern = url_path_join(web_app.settings['base_url'],
         '/proxy/([0-9]+)')
     web_app.add_handlers(host_pattern, [(route_pattern, LocalProxyHandler)])
-
-#vim: set et ts=4 sw=4:
+    logger.info('Added handler for route %s', route_pattern)
