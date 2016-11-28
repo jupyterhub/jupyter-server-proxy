@@ -9,6 +9,7 @@ logger = logging.getLogger('nbserverproxy')
 
 # From https://github.com/senko/tornado-proxy
 class LocalProxyHandler(IPythonHandler):
+    SUPPORTED_METHODS = ['GET', 'POST']
     proxy_uri = "http://localhost"
 
     @tornado.web.asynchronous
@@ -63,6 +64,11 @@ class LocalProxyHandler(IPythonHandler):
                 self.set_status(500)
                 self.write('Internal server error:\n' + str(e))
                 self.finish()
+
+    @tornado.web.asynchronous
+    def post(self, port, add_path=''):
+        logger.info('%s request to %s', self.request.method, self.request.uri)
+        return self.get(port)
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
