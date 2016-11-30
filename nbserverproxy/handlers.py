@@ -67,7 +67,6 @@ class LocalProxyHandler(IPythonHandler):
 
     @tornado.web.asynchronous
     def post(self, port, add_path=''):
-        logger.info('%s request to %s', self.request.method, self.request.uri)
         return self.get(port)
 
 def setup_handlers(web_app):
