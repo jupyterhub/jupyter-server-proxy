@@ -13,8 +13,10 @@ logger = logging.getLogger('nbrsessionproxy')
 class RSessionProxyHandler(IPythonHandler):
 
     rsession_port = 8005
-    rsession_path = '/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin'
-    rsession_ld_lib_path = '/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server'
+    rsession_paths = {
+        'PATH':'/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin',
+        'LD_LIBRARY_PATH':'/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server'
+    }
 
     rsession_env = {
         'R_DOC_DIR':'/usr/share/R/doc', 
@@ -46,10 +48,11 @@ class RSessionProxyHandler(IPythonHandler):
         # Seed RStudio's R and RSTUDIO variables
         server_env.update(self.rsession_env)
 
-        # Prepend RStudio's PATH and LD_LIBRARY_PATH
-        server_env['PATH'] = self.rsession_path + ':' + server_env['PATH']
-        server_env['LD_LIBRARY_PATH'] = \
-            self.rsession_ld_lib_path + ':' + server_env['LD_LIBRARY_PATH']
+        # Prepend RStudio's requisite paths
+        for env_var in self.rsession_paths.keys():
+            path = server_env.get(env_var, '')
+            if path != '': path = ':' + path
+            server_env[env_var] = self.rsession_paths[env_var] + path
 
         # Runs rsession in background since we do not need stdout/stderr
         self.proc = sp.Popen(self.rsession_cmd, env=server_env)
