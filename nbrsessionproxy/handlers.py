@@ -43,7 +43,7 @@ class RSessionProxyHandler(IPythonHandler):
 
         cmd = self.rsession_cmd + [
             '--user-identity=' + self.current_user,
-            '--www-port=' + self.rsession_port
+            '--www-port=' + str(self.rsession_port)
         ]
 
         server_env = os.environ.copy()
