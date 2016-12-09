@@ -12,7 +12,7 @@ logger = logging.getLogger('nbrsessionproxy')
 
 class RSessionProxyHandler(IPythonHandler):
 
-    rsession_port = 8005
+    rsession_port = 8787
     rsession_paths = {
         'PATH':'/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin',
         'LD_LIBRARY_PATH':'/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server'
@@ -33,7 +33,6 @@ class RSessionProxyHandler(IPythonHandler):
         '--standalone=1',
         '--program-mode=server',
         '--log-stderr=1',
-        '--www-port={}'.format(rsession_port),
     ]
 
     proc = None
@@ -42,7 +41,11 @@ class RSessionProxyHandler(IPythonHandler):
     def post(self):
         logger.info('%s request to %s', self.request.method, self.request.uri)
 
-        self.rsession_cmd.append('--user-identity=' + self.current_user)
+        cmd = self.rsession_cmd + [
+            '--user-identity=' + self.current_user,
+            '--www-port=' + self.rsession_port
+        ]
+
         server_env = os.environ.copy()
 
         # Seed RStudio's R and RSTUDIO variables
@@ -55,7 +58,7 @@ class RSessionProxyHandler(IPythonHandler):
             server_env[env_var] = self.rsession_paths[env_var] + path
 
         # Runs rsession in background since we do not need stdout/stderr
-        self.proc = sp.Popen(self.rsession_cmd, env=server_env)
+        self.proc = sp.Popen(cmd, env=server_env)
 
         if self.proc.poll() == 0:
             raise web.HTTPError(reason='rsession terminated', status_code=500)
