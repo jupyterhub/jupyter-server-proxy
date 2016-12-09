@@ -17,7 +17,7 @@ jupyter nbextension     enable  --py nbrsessionproxy
 Install the extensions for all users on the system:
 ```
 pip install git+https://github.com/ryanlovett/nbrsessionproxy
-jupyter serverextension enable  --py --sys-prefix --system nbrsessionproxy
-jupyter nbextension     install --py --sys-prefix --system nbrsessionproxy
-jupyter nbextension     enable  --py --sys-prefix --system nbrsessionproxy
+jupyter serverextension enable  --py --sys-prefix nbrsessionproxy
+jupyter nbextension     install --py --sys-prefix nbrsessionproxy
+jupyter nbextension     enable  --py --sys-prefix nbrsessionproxy
 ```
