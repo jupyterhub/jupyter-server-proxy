@@ -34,7 +34,6 @@ class RSessionProxyHandler(IPythonHandler):
         '--program-mode=server',
         '--log-stderr=1',
         '--www-port={}'.format(rsession_port),
-        '--user-identity={}'.format(os.environ.get('USER', '')),
     ]
 
     proc = None
@@ -43,6 +42,7 @@ class RSessionProxyHandler(IPythonHandler):
     def post(self):
         logger.info('%s request to %s', self.request.method, self.request.uri)
 
+        self.rsession_cmd.append('--user-identity=' + self.current_user)
         server_env = os.environ.copy()
 
         # Seed RStudio's R and RSTUDIO variables
