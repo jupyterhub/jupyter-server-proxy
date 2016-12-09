@@ -74,9 +74,7 @@ class RSessionProxyHandler(IPythonHandler):
     @web.authenticated
     def get(self):
         if not self.proc:
-            self.set_status(500)
-            self.write('rsession not yet started')
-            self.finish()
+            raise web.HTTPError(reason='rsession not yet started', status_code=500)
         self.finish(self.proc.poll())
  
     def delete(self):
