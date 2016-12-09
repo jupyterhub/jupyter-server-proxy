@@ -32,7 +32,7 @@ class RSessionProxyHandler(IPythonHandler):
         '--program-mode=server',
         '--log-stderr=1',
         '--www-port={}'.format(rsession_port),
-        '--user-identity={}'.format(os.environ['USER']),
+        '--user-identity={}'.format(os.environ.get('USER', '')),
     ]
 
     proc = None
