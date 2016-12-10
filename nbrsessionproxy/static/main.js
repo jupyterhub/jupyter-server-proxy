@@ -1,4 +1,7 @@
-define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, namespace, utils) {
+define(function(require) {
+    var $ = require('jquery');
+    var Jupyter = require('base/js/namespace');
+    var utils = require('base/js/utils');
 
     var base_url = utils.get_body_data('baseUrl');
 
@@ -17,7 +20,7 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, namespace, 
 
     function load() {
         console.log("nbrsessionproxy loading");
-        if (!namespace.notebook_list) return;
+        if (!Jupyter.notebook_list) return;
 
         /* the url we POST to to start rsession */
         var rsp_url = base_url + 'rsessionproxy';
@@ -54,11 +57,7 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, namespace, 
         menu.append(rsession_item);
     }
 
-    var load_ipython_extension = function () {
-        load();      
-    };
-
     return {
-        load_ipython_extension: load_ipython_extension,
+        load_ipython_extension: load
     };
 });
