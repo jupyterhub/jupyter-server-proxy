@@ -48,7 +48,7 @@ define(function(require) {
             .attr('tabindex', '-1')
             .text('RStudio Session')
             .on('click', function() {
-                $.post(rsp_url, {}, open_rsession);
+                $.post(rsp_url, {}, open_rsession, 'json');
             });
 
         /* add the link to the item and
