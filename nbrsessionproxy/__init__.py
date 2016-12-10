@@ -11,7 +11,7 @@ def _jupyter_nbextension_paths():
         "section": "notebook",
         "dest": "nbrsessionproxy",
         "src": "static",
-        "require": "nbrsessionproxy/main"
+        "require": "nbrsessionproxy/tree"
     }]
 
 def load_jupyter_server_extension(nbapp):
