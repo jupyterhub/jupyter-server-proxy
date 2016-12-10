@@ -46,6 +46,7 @@ define(function(require) {
         var rsession_link = $('<a>')
             .attr('role', 'menuitem')
             .attr('tabindex', '-1')
+            .attr('href', '#')
             .text('RStudio Session')
             .on('click', function() {
                 $.post(rsp_url, {}, open_rsession, 'json');
