@@ -6,6 +6,8 @@ import subprocess as sp
 
 from tornado import web
 
+from traitlets import List, Dict
+
 from notebook.utils import url_path_join as ujoin
 from notebook.base.handlers import IPythonHandler
 
@@ -21,13 +23,17 @@ def random_port():
     return port
 
 class RSessionProxyHandler(IPythonHandler):
+    '''Manage an RStudio rsession instance.'''
 
-    rsession_paths = {
+    # rsession's environment will vary depending on how it was compiled.
+    # Configure the env and cmd as required; values here work on Ubuntu.
+
+    rsession_paths = Dict({
         'PATH':'/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin',
         'LD_LIBRARY_PATH':'/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server'
-    }
+    })
 
-    rsession_env = {
+    rsession_env = Dict({
         'R_DOC_DIR':'/usr/share/R/doc', 
         'R_HOME':'/usr/lib/R', 
         'R_INCLUDE_DIR':'/usr/share/R/include', 
@@ -36,13 +42,16 @@ class RSessionProxyHandler(IPythonHandler):
         'RSTUDIO_DEFAULT_R_VERSION_HOME':'/usr/lib/R', 
         'RSTUDIO_LIMIT_RPC_CLIENT_UID':'998', 
         'RSTUDIO_MINIMUM_USER_ID':'500', 
-    }
-    rsession_cmd = [
+    })
+
+    # This command will be added to later on POST
+    rsession_cmd = List([
         '/usr/lib/rstudio-server/bin/rsession',
         '--standalone=1',
         '--program-mode=server',
         '--log-stderr=1',
-    ]
+        '--session-timeout-minutes=0',
+    ])
 
     port = random_port()
 
