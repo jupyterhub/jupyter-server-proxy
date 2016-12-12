@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import socket
 import subprocess as sp
 
 from tornado import web
@@ -10,9 +11,17 @@ from notebook.base.handlers import IPythonHandler
 
 logger = logging.getLogger('nbrsessionproxy')
 
+# from jupyterhub.utils
+def random_port():
+    """get a single random port"""
+    sock = socket.socket()
+    sock.bind(('', 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return port
+
 class RSessionProxyHandler(IPythonHandler):
 
-    rsession_port = 8787
     rsession_paths = {
         'PATH':'/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin',
         'LD_LIBRARY_PATH':'/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server'
@@ -35,6 +44,8 @@ class RSessionProxyHandler(IPythonHandler):
         '--log-stderr=1',
     ]
 
+    port = random_port()
+
     proc = None
 
     @web.authenticated
@@ -43,7 +54,7 @@ class RSessionProxyHandler(IPythonHandler):
 
         cmd = self.rsession_cmd + [
             '--user-identity=' + self.current_user,
-            '--www-port=' + str(self.rsession_port)
+            '--www-port=' + str(self.port)
         ]
 
         server_env = os.environ.copy()
@@ -66,7 +77,7 @@ class RSessionProxyHandler(IPythonHandler):
 
         response = {
             'pid':self.proc.pid,
-            'url':'{}proxy/{}/'.format(self.base_url, self.rsession_port),
+            'url':'{}proxy/{}/'.format(self.base_url, self.port),
         }
 
         self.finish(json.dumps(response))
