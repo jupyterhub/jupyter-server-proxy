@@ -1,5 +1,7 @@
 # nbrsessionproxy
-Jupyter extensions to proxy RStudio's rsession. Requires [nbserverproxy](https://github.com/ryanlovett/nbrsessionproxy).
+![Screenshot](screenshot.png)
+
+Jupyter extensions to proxy RStudio's rsession. Requires [nbserverproxy](https://github.com/ryanlovett/nbrsessionproxy) and currently assumes an Ubuntu environment.
 
 ## Installation
 Install the library:
