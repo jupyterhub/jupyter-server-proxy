@@ -5,8 +5,6 @@ import tornado.httpclient
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
 
-logger = logging.getLogger('nbserverproxy')
-
 # From https://github.com/senko/tornado-proxy
 class LocalProxyHandler(IPythonHandler):
     SUPPORTED_METHODS = ['GET', 'POST']
@@ -14,7 +12,7 @@ class LocalProxyHandler(IPythonHandler):
 
     @tornado.web.asynchronous
     def get(self, port, add_path=''):
-        logger.info('%s request to %s', self.request.method, self.request.uri)
+        self.log.info('%s request to %s', self.request.method, self.request.uri)
 
         def handle_response(response):
             if (response.error and not
@@ -44,15 +42,17 @@ class LocalProxyHandler(IPythonHandler):
         body = self.request.body
         if not body: body = None
 
-        # self.request.uri is /user/username/port/([0-9]+)/something and
-        # we need to strip off the first four elements.
-        new_path = '/'.join(self.request.uri.split('/')[5:])
-        if new_path != '': new_path = '/' + new_path
-        uri = self.proxy_uri + ':' + port + new_path
+        # self.request.uri is /user/username/proxy/([0-9]+)/something.
+        # We want pass everything after {base_url}proxy/{port} onto
+        # the proxied service.
+        strip_len = len(self.base_url) + len('proxy') + 1 + len(port)
+        new_path = self.request.uri[strip_len:]
+
+        uri = self.proxy_uri + ':' + port + '/' + new_path
         client = tornado.httpclient.AsyncHTTPClient()
 
         try:
-            logger.info('Requesting %s', uri)
+            self.log.info('Requesting %s', uri)
             req = tornado.httpclient.HTTPRequest(
                 uri, method=self.request.method, body=body,
                 headers=self.request.headers, follow_redirects=False)
@@ -76,4 +76,4 @@ def setup_handlers(web_app):
         web_app.add_handlers(host_pattern, [
             (route_pattern, LocalProxyHandler),
         ])
-    logger.info('Added handler for route %s', route_pattern)
+    self.log.info('Added handler for route %s', route_pattern)
