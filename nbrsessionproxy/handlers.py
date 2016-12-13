@@ -60,10 +60,54 @@ class RSessionProxyHandler(IPythonHandler):
     def initialize(self, state):
         self.state = state
 
+    def gen_response(self, proc, port):
+        response = {
+            'pid': proc.pid,
+            'url':'{}proxy/{}/'.format(self.base_url, port),
+        }
+        return response
+        
+    def still_running(self):
+        '''Check if our proxied process is still running.'''
+
+        if 'proc' not in self.state:
+            return False
+
+        # Check if the process is still around
+        proc = self.state['proc']
+        if proc.poll() == 0:
+            del(self.state['proc'])
+            self.log.debug('Cannot poll on process.')
+            return False
+        
+        # Check if it is still bound to the port
+        port = self.state['port']
+        sock = socket.socket()
+        try:
+            self.log.debug('Binding on port {}.'.format(port))
+            sock.bind(('', port))
+        except OSError as e:
+            self.log.debug('Bind error: {}'.format(str(e)))
+            return True
+        else:
+            sock.close()
+        del(self.state['port'])
+
+        return False
+
     @web.authenticated
     def post(self):
-        self.log.debug('%s request to %s', self.request.method, self.request.uri)
+        '''Start a new rsession.'''
 
+        if self.still_running():
+            proc = self.state['proc']
+            port = self.state['port']
+            self.log.info('Resuming process on port {}'.format(port))
+            response = self.gen_response(proc, port)
+            self.finish(json.dumps(response))
+            return
+
+        self.log.debug('No existing process')
         port = random_port()
 
         cmd = self.rsession_context.cmd + [
@@ -73,7 +117,7 @@ class RSessionProxyHandler(IPythonHandler):
 
         server_env = os.environ.copy()
 
-        # Seed RStudio's R and RSTUDIO variables
+        # Seed RStudio's R and RSTUDIO env variables
         server_env.update(self.rsession_context.env)
 
         # Prepend RStudio's requisite paths
@@ -82,20 +126,18 @@ class RSessionProxyHandler(IPythonHandler):
             if path != '': path = ':' + path
             server_env[env_var] = self.rsession_context.paths[env_var] + path
 
-        # Runs rsession in background since we do not need stdout/stderr
+        # Runs rsession in background
         proc = sp.Popen(cmd, env=server_env)
 
         if proc.poll() == 0:
             raise web.HTTPError(reason='rsession terminated', status_code=500)
             self.finish()
 
-        response = {
-            'pid':proc.pid,
-            'url':'{}proxy/{}/'.format(self.base_url, port),
-        }
+        response = self.gen_response(proc, port)
 
         # Store our process
         self.state['proc'] = proc
+        self.state['port'] = port
 
         self.finish(json.dumps(response))
 
