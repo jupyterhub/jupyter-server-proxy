@@ -1,5 +1,3 @@
-#vim: set et ts=4 sw=4:
-import logging
 import tornado.httpclient
 
 from notebook.utils import url_path_join
@@ -11,8 +9,15 @@ class LocalProxyHandler(IPythonHandler):
     proxy_uri = "http://localhost"
 
     @tornado.web.asynchronous
-    def get(self, port, add_path=''):
-        self.log.info('%s request to %s', self.request.method, self.request.uri)
+    def proxy(self, port, add_path):
+        '''
+        While self.request.uri is
+            (hub)    /user/username/proxy/([0-9]+)/something.
+            (single) /proxy/([0-9]+)/something
+        This serverextension is given {port}/{everything/after}.
+        '''
+        self.log.debug('%s request: %s', self.request.method, self.request.uri)
+        self.log.debug('add_path: {}'.format(add_path))
 
         def handle_response(response):
             if (response.error and not
@@ -42,13 +47,8 @@ class LocalProxyHandler(IPythonHandler):
         body = self.request.body
         if not body: body = None
 
-        # self.request.uri is /user/username/proxy/([0-9]+)/something.
-        # We want pass everything after {base_url}proxy/{port} onto
-        # the proxied service.
-        strip_len = len(self.base_url) + len('proxy') + 1 + len(port)
-        new_path = self.request.uri[strip_len:]
+        uri = self.proxy_uri + ':' + port + '/' + add_path
 
-        uri = self.proxy_uri + ':' + port + '/' + new_path
         client = tornado.httpclient.AsyncHTTPClient()
 
         try:
@@ -66,8 +66,12 @@ class LocalProxyHandler(IPythonHandler):
                 self.finish()
 
     @tornado.web.asynchronous
+    def get(self, port, add_path=''):
+        return self.proxy(port, add_path)
+
+    @tornado.web.asynchronous
     def post(self, port, add_path=''):
-        return self.get(port)
+        return self.proxy(port, add_path)
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
@@ -76,3 +80,4 @@ def setup_handlers(web_app):
         web_app.add_handlers(host_pattern, [
             (route_pattern, LocalProxyHandler),
         ])
+#vim: set et ts=4 sw=4:
