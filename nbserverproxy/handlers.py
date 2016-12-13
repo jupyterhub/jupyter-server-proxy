@@ -76,4 +76,3 @@ def setup_handlers(web_app):
         web_app.add_handlers(host_pattern, [
             (route_pattern, LocalProxyHandler),
         ])
-    self.log.info('Added handler for route %s', route_pattern)
