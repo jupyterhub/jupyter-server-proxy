@@ -5,6 +5,12 @@ define(function(require) {
 
     var base_url = utils.get_body_data('baseUrl');
 
+	/* http://www.tornadoweb.org/en/stable/guide/security.html */
+	function getCookie(name) {
+		var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+		return r ? r[1] : undefined;
+	}
+
     function open_rsession(data) {
         console.log("response: " + data);
         var proxy_url;
@@ -23,6 +29,7 @@ define(function(require) {
         if (!Jupyter.notebook_list) return;
 
         /* the url we POST to to start rsession */
+		var xsrf_cookie = getCookie("_xsrf");
         var rsp_url = base_url + 'rsessionproxy';
         console.log("nbrsessionproxy: url: " + rsp_url);
 
@@ -49,7 +56,7 @@ define(function(require) {
             .attr('href', '#')
             .text('RStudio Session')
             .on('click', function() {
-                $.post(rsp_url, {}, open_rsession, 'json');
+                $.post(rsp_url, { "_xsrf":xsrf_cookie }, open_rsession, 'json');
             });
 
         /* add the link to the item and
