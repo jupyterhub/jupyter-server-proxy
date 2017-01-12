@@ -60,14 +60,51 @@ class RSessionProxyHandler(IPythonHandler):
     def initialize(self, state):
         self.state = state
 
-    def gen_response(self, proc, port):
+    def rsession_uri(self):
+        return '{}proxy/{}/'.format(self.base_url, self.state['port'])
+
+    def gen_response(self, proc):
         response = {
             'pid': proc.pid,
-            'url':'{}proxy/{}/'.format(self.base_url, port),
+            'url':self.rsession_uri(),
         }
         return response
         
-    def still_running(self):
+    def get_client_id(self):
+        '''Returns either None or the value of 'active-client-id' from
+           ~/.rstudio/session-persistent-state.'''
+
+        client_id = None
+
+        # Assume the contents manager is local
+        #root_dir = self.settings['contents_manager'].root_dir
+        #root_dir = self.config.FileContentsManager.root_dir
+        root_dir = os.getcwd()
+
+        self.log.debug('client_id: root_dir: {}'.format(root_dir))
+        path = os.path.join(root_dir, '.rstudio', 'session-persistent-state')
+        if not os.path.exists(path):
+            self.log.debug('client_id: No such file: {}'.format(path))
+            return client_id
+
+        try:
+            buf = open(path).read()
+        except Exception as e:
+            self.log.debug("client_id: could not read {}: {}".format(path, e))
+            return client_id
+
+        self.log.debug("client_id: read {} bytes".format(len(buf)))
+        config_key = 'active-client-id'
+        for line in buf.split():
+            if line.startswith(config_key + '='):
+                # remove the key, '=', and leading and trailing quotes
+                client_id = line[len(config_key)+1+1:-1]
+                self.log.debug('client_id: read: {}'.format(client_id))
+                break
+
+        return client_id 
+        
+    def is_running(self):
         '''Check if our proxied process is still running.'''
 
         if 'proc' not in self.state:
@@ -88,22 +125,34 @@ class RSessionProxyHandler(IPythonHandler):
             sock.bind(('', port))
         except OSError as e:
             self.log.debug('Bind error: {}'.format(str(e)))
-            return True
-        else:
-            sock.close()
+            if e.strerror != 'Address already in use':
+                return False
+
+        sock.close()
         del(self.state['port'])
 
-        return False
+        return True
 
+    def is_available(self):
+        pass
+
+    def rpc(self, path):
+        clientid = self.get_client_id()
+        if not clientid:
+            return False
+
+        uri = self.rsession_uri()
+        
+        
     @web.authenticated
     def post(self):
         '''Start a new rsession.'''
 
-        if self.still_running():
+        if self.is_running():
             proc = self.state['proc']
             port = self.state['port']
             self.log.info('Resuming process on port {}'.format(port))
-            response = self.gen_response(proc, port)
+            response = self.gen_response(proc)
             self.finish(json.dumps(response))
             return
 
@@ -133,20 +182,26 @@ class RSessionProxyHandler(IPythonHandler):
             raise web.HTTPError(reason='rsession terminated', status_code=500)
             self.finish()
 
-        response = self.gen_response(proc, port)
-
         # Store our process
         self.state['proc'] = proc
         self.state['port'] = port
 
+        response = self.gen_response(proc)
+
+        client_id = self.get_client_id()
+        self.log.debug('post: client_id: {}'.format(client_id))
         self.finish(json.dumps(response))
 
     @web.authenticated
     def get(self):
-        if 'proc' not in self.state:
-            raise web.HTTPError(reason='no rsession running', status_code=500)
-        proc = self.state['proc']
-        self.finish(str(proc.pid))
+        if self.is_running():
+            proc = self.state['proc']
+            port = self.state['port']
+            self.log.info('Process exists on port {}'.format(port))
+            response = self.gen_response(proc)
+            self.finish(json.dumps(response))
+            return
+        self.finish(json.dumps({}))
  
     @web.authenticated
     def delete(self):
