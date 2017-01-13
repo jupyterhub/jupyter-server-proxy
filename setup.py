@@ -7,7 +7,5 @@ setuptools.setup(
     author="Ryan Lovett",
     description="Jupyter server extension to proxy web services",
     packages=setuptools.find_packages(),
-    install_requires=[
-        'tornado',
-    ],
+    install_requires=[ 'tornado', 'notebook' ],
 )
