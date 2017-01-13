@@ -73,6 +73,14 @@ class LocalProxyHandler(IPythonHandler):
     def post(self, port, add_path=''):
         return self.proxy(port, add_path)
 
+    def check_xsrf_cookie(self):
+        '''
+        http://www.tornadoweb.org/en/stable/guide/security.html
+
+        Defer to proxied apps.
+        '''
+        pass
+
 def setup_handlers(web_app):
     host_pattern = '.*$'
     for p in ['/proxy/([0-9]+)/?','/proxy/([0-9]+)/(.*)']:
