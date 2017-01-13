@@ -3,13 +3,9 @@ define(function(require) {
     var Jupyter = require('base/js/namespace');
     var utils = require('base/js/utils');
 
-    var base_url = utils.get_body_data('baseUrl');
+    var ajax = utils.ajax || $.ajax;
 
-	/* http://www.tornadoweb.org/en/stable/guide/security.html */
-	function getCookie(name) {
-		var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
-		return r ? r[1] : undefined;
-	}
+    var base_url = utils.get_body_data('baseUrl');
 
     function open_rsession(data) {
         console.log("response: " + data);
@@ -17,8 +13,8 @@ define(function(require) {
         if ("url" in data) {
             proxy_url = data['url'];
         } else {
-            /* debug hack */
-            proxy_url = base_url + 'proxy/8001/';
+            /* FIXME: visit some template */
+            return;
         }
         var w = window.open(proxy_url, "_blank");
         w.focus();
@@ -29,7 +25,6 @@ define(function(require) {
         if (!Jupyter.notebook_list) return;
 
         /* the url we POST to to start rsession */
-		var xsrf_cookie = getCookie("_xsrf");
         var rsp_url = base_url + 'rsessionproxy';
         console.log("nbrsessionproxy: url: " + rsp_url);
 
@@ -49,6 +44,15 @@ define(function(require) {
             .attr('role', 'presentation')
             .addClass('new-rsessionproxy');
 
+        /* prepare ajax */
+        var settings = {
+            type: "POST",
+            data: {},
+            dataType: "json",
+            success: open_rsession,
+            error : utils.log_ajax_error,
+        }
+
         /* create our list item's link */
         var rsession_link = $('<a>')
             .attr('role', 'menuitem')
@@ -56,7 +60,7 @@ define(function(require) {
             .attr('href', '#')
             .text('RStudio Session')
             .on('click', function() {
-                $.post(rsp_url, { "_xsrf":xsrf_cookie }, open_rsession, 'json');
+                ajax(rsp_url, settings);
             });
 
         /* add the link to the item and
