@@ -107,9 +107,8 @@ class RSessionProxyHandler(IPythonHandler):
     def is_running(self):
         '''Check if our proxied process is still running.'''
 
-        if 'proc' not in self.state:
+        if 'proc' not in self.state or 'port' not in self.state:
             return False
-
         # Check if the process is still around
         proc = self.state['proc']
         if proc.poll() == 0:
