@@ -159,8 +159,10 @@ class RSessionProxyHandler(IPythonHandler):
         self.log.debug('No existing process')
         port = random_port()
 
+        username = os.environ.get('JPY_USER', default='jovyan')
+
         cmd = self.rsession_context.cmd + [
-            '--user-identity=' + self.current_user,
+            '--user-identity=' + username,
             '--www-port=' + str(port)
         ]
 
