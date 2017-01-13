@@ -1,6 +1,7 @@
 import os
 import json
 import socket
+import time
 import subprocess as sp
 
 from tornado import web
@@ -184,6 +185,18 @@ class RSessionProxyHandler(IPythonHandler):
         if proc.poll() == 0:
             raise web.HTTPError(reason='rsession terminated', status_code=500)
             self.finish()
+
+        # Wait for rsession to be available
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        rsession_attempts = 0
+        while rsession_attempts < 5:
+            try:
+                sock.connect(('', port))
+                break
+            except socket.error as e:
+                print('sleeping: {}'.format(e))
+                time.sleep(2)
+                rsession_attempts += 1
 
         # Store our process
         self.state['proc'] = proc
