@@ -8,7 +8,7 @@ Note that [RStudio Server Pro](https://www.rstudio.com/products/rstudio-server-p
 ## Installation
 Install the library:
 ```
-pip install git+https://github.com/ryanlovett/nbrsessionproxy
+pip install git+https://github.com/jupyterhub/nbrsessionproxy
 ```
 
 Install the extensions for the user:
@@ -20,7 +20,6 @@ jupyter nbextension     enable  --py nbrsessionproxy
 
 Install the extensions for all users on the system:
 ```
-pip install git+https://github.com/ryanlovett/nbrsessionproxy
 jupyter serverextension enable  --py --sys-prefix nbrsessionproxy
 jupyter nbextension     install --py --sys-prefix nbrsessionproxy
 jupyter nbextension     enable  --py --sys-prefix nbrsessionproxy
