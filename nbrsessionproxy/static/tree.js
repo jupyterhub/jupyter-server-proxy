@@ -7,26 +7,31 @@ define(function(require) {
 
     var base_url = utils.get_body_data('baseUrl');
 
-    function open_rsession(data) {
-        console.log("response: " + data);
-        var proxy_url;
-        if ("url" in data) {
-            proxy_url = data['url'];
-        } else {
-            /* FIXME: visit some template */
-            return;
+    function open_rsession(w) {
+        /* the url we POST to to start rsession */
+        var rsp_url = base_url + 'rsessionproxy';
+
+        /* prepare ajax */
+        var settings = {
+            type: "POST",
+            data: {},
+            dataType: "json",
+            success: function(data) {
+                if (!("url" in data)) {
+                    /* FIXME: visit some template */
+                    return;
+                }
+                w.location = data['url'];
+            },
+            error : utils.log_ajax_error,
         }
-        var w = window.open(proxy_url, "_blank");
-        w.focus();
+
+        ajax(rsp_url, settings);
     }
 
     function load() {
         console.log("nbrsessionproxy loading");
         if (!Jupyter.notebook_list) return;
-
-        /* the url we POST to to start rsession */
-        var rsp_url = base_url + 'rsessionproxy';
-        console.log("nbrsessionproxy: url: " + rsp_url);
 
         /* locate the right-side dropdown menu of apps and notebooks */
         var menu = $('.tree-buttons').find('.dropdown-menu');
@@ -44,15 +49,6 @@ define(function(require) {
             .attr('role', 'presentation')
             .addClass('new-rsessionproxy');
 
-        /* prepare ajax */
-        var settings = {
-            type: "POST",
-            data: {},
-            dataType: "json",
-            success: open_rsession,
-            error : utils.log_ajax_error,
-        }
-
         /* create our list item's link */
         var rsession_link = $('<a>')
             .attr('role', 'menuitem')
@@ -60,7 +56,8 @@ define(function(require) {
             .attr('href', '#')
             .text('RStudio Session')
             .on('click', function() {
-                ajax(rsp_url, settings);
+                var w = window.open(undefined, Jupyter._target);
+                open_rsession(w);
             });
 
         /* add the link to the item and
