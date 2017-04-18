@@ -46,7 +46,7 @@ class RSessionContext(Configurable):
     }, help="R and RStudio environment variables required by rsession.")
 
     cmd = List([
-        '/usr/lib/rstudio-server/bin/rsession',
+        '/usr/lib/rstudio/bin/rsession',
         '--standalone=1',
         '--program-mode=server',
         '--log-stderr=1',
