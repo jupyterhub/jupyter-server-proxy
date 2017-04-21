@@ -6,11 +6,33 @@ import subprocess as sp
 
 from tornado import web
 
-from traitlets import List, Dict
-from traitlets.config import Configurable
-
 from notebook.utils import url_path_join as ujoin
 from notebook.base.handlers import IPythonHandler
+
+
+def detectR():
+    '''Detect R's version, R_HOME, and various other directories that rsession
+       requires.
+
+       Via rstudio's src/cpp/core/r_util/REnvironmentPosix.cpp'''
+
+    cmd = ['R', '--slave', '--vanilla', '-e',
+             'cat(paste(R.home("home"),R.home("share"),R.home("include"),R.home("doc"),getRversion(),sep=":"))']
+
+    p = sp.run(cmd, check=True, stdout=sp.PIPE, stderr=sp.PIPE)
+    if p.returncode != 0:
+        raise Exception('Error detecting R')
+    R_HOME, R_SHARE_DIR, R_INCLUDE_DIR, R_DOC_DIR, version = \
+        p.stdout.decode().split(':')
+
+    return {
+        'R_DOC_DIR': R_DOC_DIR,
+        'R_HOME': R_HOME,
+        'R_INCLUDE_DIR': R_INCLUDE_DIR,
+        'R_SHARE_DIR': R_SHARE_DIR,
+        'RSTUDIO_DEFAULT_R_VERSION_HOME': R_HOME,
+        'RSTUDIO_DEFAULT_R_VERSION': version,
+    }
 
 # from jupyterhub.utils
 def random_port():
@@ -24,39 +46,24 @@ def random_port():
 # Data shared between handler requests
 state_data = dict()
 
-class RSessionContext(Configurable):
+class RSessionProxyHandler(IPythonHandler):
+    '''Manage an RStudio rsession instance.'''
 
-    # rsession's environment will vary depending on how it was compiled.
-    # Configure the env and cmd as required; values here work on Ubuntu.
-
-    paths = Dict({
-        'PATH':'/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/bin',
-        'LD_LIBRARY_PATH':'/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server:/opt/conda/lib/R/lib'
-    }, help="Executable and dynamic linker paths required by rsession.")
-
-    env = Dict({
-        'R_DOC_DIR':'/usr/share/R/doc', 
-        'R_HOME':'/usr/lib/R', 
-        'R_INCLUDE_DIR':'/usr/share/R/include', 
-        'R_SHARE_DIR':'/usr/share/R/share', 
-        'RSTUDIO_DEFAULT_R_VERSION':'3.3.0', 
-        'RSTUDIO_DEFAULT_R_VERSION_HOME':'/usr/lib/R', 
+    # R and RStudio environment variables required by rsession.
+    env = {
         'RSTUDIO_LIMIT_RPC_CLIENT_UID':'998', 
         'RSTUDIO_MINIMUM_USER_ID':'500', 
-    }, help="R and RStudio environment variables required by rsession.")
+    }
 
-    cmd = List([
-        '/usr/lib/rstudio/bin/rsession',
+    # rsession command. Augmented with user-identity and www-port.
+    cmd = [
+        'rsession',
         '--standalone=1',
         '--program-mode=server',
         '--log-stderr=1',
         '--session-timeout-minutes=0',
-    ], help="rsession command. Augmented with user-identity and www-port")
+    ]
 
-class RSessionProxyHandler(IPythonHandler):
-    '''Manage an RStudio rsession instance.'''
-
-    rsession_context = RSessionContext()
 
     def initialize(self, state):
         self.state = state
@@ -159,11 +166,11 @@ class RSessionProxyHandler(IPythonHandler):
             return
 
         self.log.debug('No existing process')
-        port = random_port()
 
         username = os.environ.get('JPY_USER', default='jovyan')
+        port = random_port()
 
-        cmd = self.rsession_context.cmd + [
+        cmd = self.cmd + [
             '--user-identity=' + username,
             '--www-port=' + str(port)
         ]
@@ -171,13 +178,14 @@ class RSessionProxyHandler(IPythonHandler):
         server_env = os.environ.copy()
 
         # Seed RStudio's R and RSTUDIO env variables
-        server_env.update(self.rsession_context.env)
+        server_env.update(self.env)
 
-        # Prepend RStudio's requisite paths
-        for env_var in self.rsession_context.paths.keys():
-            path = server_env.get(env_var, '')
-            if path != '': path = ':' + path
-            server_env[env_var] = self.rsession_context.paths[env_var] + path
+        try:
+            r_vars = detectR()
+            server_env.update(r_vars)
+        except:
+            raise web.HTTPError(reason='could not detect R', status_code=500)
+            self.finish()
 
         # Runs rsession in background
         proc = sp.Popen(cmd, env=server_env)
