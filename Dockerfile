@@ -24,7 +24,7 @@ USER $NB_USER
 RUN pip install git+https://github.com/jupyterhub/nbserverproxy.git
 RUN jupyter serverextension enable --sys-prefix --py nbserverproxy
 
-RUN pip install git+https://github.com/jupyterhub/nbrsessionproxy.git@detect_r
+RUN pip install git+https://github.com/jupyterhub/nbrsessionproxy.git
 RUN jupyter serverextension enable --sys-prefix --py nbrsessionproxy
 RUN jupyter nbextension install    --sys-prefix --py nbrsessionproxy
 RUN jupyter nbextension enable     --sys-prefix --py nbrsessionproxy
