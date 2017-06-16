@@ -29,4 +29,13 @@ jupyter nbextension     install --py --sys-prefix nbrsessionproxy
 jupyter nbextension     enable  --py --sys-prefix nbrsessionproxy
 ```
 
+For JupyterLab first clone this repository to a known location and
+install from the directory.
+```
+git clone https://github.com/jupyterhub/nbserverproxy /opt/nbserverproxy
+pip install -e /opt/nbserverproxy
+juptyer serverextension enable --py nbrsessionproxy
+jupyter labextension link /opt/nbrsessionproxy/jupyterlab-rsessionproxy
+```
+
 The Dockerfile contains an example installation on top of [jupyter/r-notebook](https://github.com/jupyter/docker-stacks/tree/master/r-notebook).
