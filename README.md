@@ -34,7 +34,7 @@ install from the directory.
 ```
 git clone https://github.com/jupyterhub/nbserverproxy /opt/nbserverproxy
 pip install -e /opt/nbserverproxy
-juptyer serverextension enable --py nbrsessionproxy
+jupyter serverextension enable --py nbrsessionproxy
 jupyter labextension link /opt/nbrsessionproxy/jupyterlab-rsessionproxy
 ```
 
