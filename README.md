@@ -12,7 +12,7 @@ The service is proxied off of `/proxy/` at https://address.of.notebook.server/us
 ## Installation
 Run
 ```
-pip install git+https://github.com/ryanlovett/nbserverproxy
+pip install git+https://github.com/jupyterhub/nbserverproxy
 jupyter serverextension enable --py nbserverproxy
 ```
 
