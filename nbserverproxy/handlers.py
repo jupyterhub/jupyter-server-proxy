@@ -47,7 +47,9 @@ class LocalProxyHandler(IPythonHandler):
         body = self.request.body
         if not body: body = None
 
-        uri = self.proxy_uri + ':' + port + '/' + add_path
+        query_string = '?' + self.request.query if self.request.query else ''
+
+        uri = self.proxy_uri + ':' + port + '/' + add_path + query_string
 
         client = tornado.httpclient.AsyncHTTPClient()
 
