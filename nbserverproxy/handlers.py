@@ -28,21 +28,21 @@ class LocalProxyHandler(IPythonHandler):
                 self.set_status(response.code, response.reason)
                 # clear tornado default header
                 self._headers = tornado.httputil.HTTPHeaders()
-                
+
                 for header, v in response.headers.get_all():
                     if header not in ('Content-Length', 'Transfer-Encoding',
                         'Content-Encoding', 'Connection'):
                         # some header appear multiple times, eg 'Set-Cookie'
                         self.add_header(header, v)
-                
-                if response.body:                   
+
+                if response.body:
                     self.set_header('Content-Length', len(response.body))
                     self.write(response.body)
 
             self.finish()
 
         if 'Proxy-Connection' in self.request.headers:
-            del self.request.headers['Proxy-Connection'] 
+            del self.request.headers['Proxy-Connection']
 
         body = self.request.body
         if not body: body = None
