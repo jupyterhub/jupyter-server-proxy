@@ -138,9 +138,8 @@ function activate(app: JupyterLab, palette: ICommandPalette,
       let req = {
         url: settings.baseUrl + 'rsessionproxy',
         method: 'POST',
-        data: {}
       };
-      ServerConnection.makeRequest(req, settings).then(resp => {
+      ServerConnection.makeRequest(req, settings).then((resp:ServerConnection.IResponse) => {
         console.log("Started RStudio... ", resp.data.url);
         window.open(resp.data.url, 'RStudio Session');
         // let iframe = newClosableIFrame(resp.data.url, 'Rstudio Session');
