@@ -86,4 +86,3 @@ const plugin: JupyterLabPlugin<void> = {
  * Export the plugin as default.
  */
 export default plugin;
-
