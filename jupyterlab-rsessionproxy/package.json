@@ -1,0 +1,52 @@
+{
+  "name": "@jupyterlab/rsessionproxy-extension",
+  "version": "0.1.2",
+  "description": "JupyterLab - RSession Proxy Extension",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/*.d.ts",
+    "lib/*.js",
+    "style/images/*.*",
+    "style/*.css"
+  ],
+  "directories": {
+    "lib": "lib/"
+  },
+  "jupyterlab": {
+    "extension": true
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^0.7.0",
+    "@jupyterlab/apputils": "^0.7.0",
+    "@jupyterlab/coreutils": "^0.7.0",
+    "@jupyterlab/launcher": "^0.7.0",
+    "@jupyterlab/services": "^0.46.0",
+    "@phosphor/messaging": "^1.2.1",
+    "@phosphor/widgets": "^1.3.0"
+  },
+  "devDependencies": {
+    "rimraf": "^2.5.2",
+    "typescript": "~2.2.0"
+  },
+  "keywords": [
+    "jupyter",
+    "jupyterlab"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "prepublish": "npm run build",
+    "watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jupyterhub/nbrsessionproxy.git"
+  },
+  "author": "Project Jupyter",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/jupyterhub/nbrsessionproxy/issues"
+  },
+  "homepage": "https://github.com/jupyterhub/nbrsessionproxy"
+}
