@@ -26,9 +26,7 @@ Or install the nbserverproxy extensions for all users on the system:
 jupyter serverextension enable --py --sys-prefix nbserverproxy
 ```
 #### Install rstudio
-```
-conda install rstudio
-```
+Use conda `conda install rstudio` or [download](https://www.rstudio.com/products/rstudio/download-server/) the corresponding package for your platform 
 
 ### Install nbrsessionproxy 
 Install the library:
