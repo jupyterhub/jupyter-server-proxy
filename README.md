@@ -10,6 +10,25 @@ Note that [RStudio Server Pro](https://www.rstudio.com/products/rstudio-server-p
 
 ## Installation
 
+### Pre-reqs
+#### Install [nbserverproxy](https://github.com/jupyterhub/nbserverproxy)
+```
+pip install git+https://github.com/jupyterhub/nbserverproxy
+```
+
+Either install the nbserverproxy extensions for the user:
+```
+jupyter serverextension enable --py nbserverproxy
+```
+
+Or install the nbserverproxy extensions for all users on the system:
+```
+jupyter serverextension enable --py --sys-prefix nbserverproxy
+```
+#### Install rstudio
+Use conda `conda install rstudio` or [download](https://www.rstudio.com/products/rstudio/download-server/) the corresponding package for your platform 
+
+### Install nbrsessionproxy 
 Install the library:
 ```
 pip install git+https://github.com/jupyterhub/nbrsessionproxy
