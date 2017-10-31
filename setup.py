@@ -9,7 +9,7 @@ setuptools.setup(
     license="BSD 3-Clause",
     description="Jupyter server extension to proxy web services",
     packages=setuptools.find_packages(),
-    install_requires=[ 'tornado', 'notebook' ],
+    install_requires=['notebook'],
     classifiers=[
         'Framework :: Jupyter',
     ]
