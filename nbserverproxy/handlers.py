@@ -1,79 +1,72 @@
-import tornado.httpclient
+"""
+Authenticated HTTP proxy for Jupyter Notebooks
+
+Some original inspiration from https://github.com/senko/tornado-proxy
+"""
+from tornado import gen, web, httpclient, httputil
 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
 
-# From https://github.com/senko/tornado-proxy
+
 class LocalProxyHandler(IPythonHandler):
     SUPPORTED_METHODS = ['GET', 'POST']
     proxy_uri = "http://localhost"
 
-    @tornado.web.asynchronous
-    def proxy(self, port, add_path):
+    @web.authenticated
+    @gen.coroutine
+    def proxy(self, port, proxied_path):
         '''
         While self.request.uri is
             (hub)    /user/username/proxy/([0-9]+)/something.
             (single) /proxy/([0-9]+)/something
         This serverextension is given {port}/{everything/after}.
         '''
-        self.log.debug('%s request: %s', self.request.method, self.request.uri)
-        self.log.debug('add_path: {}'.format(add_path))
-
-        def handle_response(response):
-            if (response.error and not
-                    isinstance(response.error, tornado.httpclient.HTTPError)):
-                self.set_status(500)
-                self.write('Internal server error:\n' + str(response.error))
-            else:
-                self.set_status(response.code, response.reason)
-                # clear tornado default header
-                self._headers = tornado.httputil.HTTPHeaders()
-
-                for header, v in response.headers.get_all():
-                    if header not in ('Content-Length', 'Transfer-Encoding',
-                        'Content-Encoding', 'Connection'):
-                        # some header appear multiple times, eg 'Set-Cookie'
-                        self.add_header(header, v)
-
-                if response.body:
-                    self.set_header('Content-Length', len(response.body))
-                    self.write(response.body)
-
-            self.finish()
 
         if 'Proxy-Connection' in self.request.headers:
             del self.request.headers['Proxy-Connection']
 
         body = self.request.body
-        if not body: body = None
+        if not body:
+            body = None
 
-        query_string = '?' + self.request.query if self.request.query else ''
+        client_uri = self.proxy_uri + ':' + port + proxied_path
+        if self.request.query:
+            client_url += '?' + self.request.query
 
-        uri = self.proxy_uri + ':' + port + '/' + add_path + query_string
+        client = httpclient.AsyncHTTPClient()
 
-        client = tornado.httpclient.AsyncHTTPClient()
+        req = httpclient.HTTPRequest(
+            client_uri, method=self.request.method, body=body,
+            headers=self.request.headers, follow_redirects=False)
 
-        try:
-            self.log.info('Requesting %s', uri)
-            req = tornado.httpclient.HTTPRequest(
-                uri, method=self.request.method, body=body,
-                headers=self.request.headers, follow_redirects=False)
-            client.fetch(req, handle_response, raise_error=False)
-        except tornado.httpclient.HTTPError as e:
-            if hasattr(e, 'response') and e.response:
-                handle_response(e.response)
-            else:
-                self.set_status(500)
-                self.write('Internal server error:\n' + str(e))
-                self.finish()
+        response = yield client.fetch(req, raise_error=False)
 
-    @tornado.web.asynchronous
-    def get(self, port, add_path=''):
-        return self.proxy(port, add_path)
+        # For all non http errors...
+        if response.error and type(response.error) is not httpclient.HTTPError:
+            self.set_status(500)
+            self.write(str(response.error))
+        else:
+            self.set_status(response.code, response.reason)
 
-    @tornado.web.asynchronous
-    def post(self, port, add_path=''):
-        return self.proxy(port, add_path)
+            # clear tornado default header
+            self._headers = httputil.HTTPHeaders()
+
+            for header, v in response.headers.get_all():
+                if header not in ('Content-Length', 'Transfer-Encoding',
+                    'Content-Encoding', 'Connection'):
+                    # some header appear multiple times, eg 'Set-Cookie'
+                    self.add_header(header, v)
+
+
+            if response.body:
+                self.write(response.body)
+
+    def get(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
+
+    def post(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
 
     def check_xsrf_cookie(self):
         '''
@@ -85,9 +78,7 @@ class LocalProxyHandler(IPythonHandler):
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
-    for p in ['/proxy/([0-9]+)/?','/proxy/([0-9]+)/(.*)']:
-        route_pattern = url_path_join(web_app.settings['base_url'], p)
-        web_app.add_handlers(host_pattern, [
-            (route_pattern, LocalProxyHandler),
-        ])
+    web_app.add_handlers('.*', [
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
+    ])
 #vim: set et ts=4 sw=4:
