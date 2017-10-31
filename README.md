@@ -1,5 +1,5 @@
 # nbserverproxy
-Jupyter notebook server extension to proxy web services. This enables users to reach arbitrary web services running within their spawned Jupyter server and is probably most appropriate for services which can't readily be converted into extensions. GET and POST are supported.
+Jupyter notebook server extension to proxy web services. This enables users to reach arbitrary web services running within their spawned Jupyter server and is probably most appropriate for services which can't readily be converted into extensions.
 
 ## Example
 A user starts a web service via `New > Terminal`:

@@ -10,7 +10,6 @@ from notebook.base.handlers import IPythonHandler
 
 
 class LocalProxyHandler(IPythonHandler):
-    SUPPORTED_METHODS = ['GET', 'POST']
     proxy_uri = "http://localhost"
 
     @web.authenticated
@@ -62,10 +61,26 @@ class LocalProxyHandler(IPythonHandler):
             if response.body:
                 self.write(response.body)
 
+    # support all the methods that torando does by default!
     def get(self, port, proxy_path=''):
         return self.proxy(port, proxy_path)
 
     def post(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
+
+    def put(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
+
+    def delete(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
+
+    def head(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
+
+    def patch(self, port, proxy_path=''):
+        return self.proxy(port, proxy_path)
+
+    def options(self, port, proxy_path=''):
         return self.proxy(port, proxy_path)
 
     def check_xsrf_cookie(self):
