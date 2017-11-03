@@ -1,5 +1,6 @@
 import os
 import json
+import getpass
 import socket
 import time
 import subprocess as sp
@@ -75,7 +76,7 @@ class RSessionProxyHandler(IPythonHandler):
             del(self.state['proc'])
             self.log.debug('Cannot poll on process.')
             return False
-        
+
         # Check if it is still bound to the port
         sock = socket.socket()
         try:
@@ -102,10 +103,8 @@ class RSessionProxyHandler(IPythonHandler):
 
         self.log.debug('No existing process')
 
-        username = os.environ.get('USER', default='jovyan')
-
         cmd = self.cmd + [
-            '--user-identity=' + username,
+            '--user-identity=' + getpass.getuser(),
             '--www-port=' + str(self.port)
         ]
 
