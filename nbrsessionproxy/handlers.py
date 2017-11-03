@@ -129,7 +129,7 @@ class RSessionProxyHandler(IPythonHandler):
         return self.redirect(self.rsession_uri())
 
 def setup_handlers(web_app):
-    route_pattern = ujoin(web_app.settings['base_url'], '/rsessionproxy/?')
+    route_pattern = ujoin(web_app.settings['base_url'], '/rstudio/?')
     web_app.add_handlers('.*', [
         (route_pattern, RSessionProxyHandler, dict(state={}))
     ])

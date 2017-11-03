@@ -7,7 +7,6 @@ define(function(require) {
 
 
     function load() {
-        console.log("nbrsessionproxy loading");
         if (!Jupyter.notebook_list) return;
 
         /* locate the right-side dropdown menu of apps and notebooks */
@@ -24,13 +23,13 @@ define(function(require) {
         /* create our list item */
         var rsession_item = $('<li>')
             .attr('role', 'presentation')
-            .addClass('new-rsessionproxy');
+            .addClass('new-rstudio');
 
         /* create our list item's link */
         var rsession_link = $('<a>')
             .attr('role', 'menuitem')
             .attr('tabindex', '-1')
-            .attr('href', base_url + 'rsessionproxy')
+            .attr('href', base_url + 'rstudio')
             .attr('target', '_blank')
             .text('RStudio Session');
 
