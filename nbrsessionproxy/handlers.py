@@ -34,15 +34,6 @@ def detectR():
         'RSTUDIO_DEFAULT_R_VERSION': version,
     }
 
-# from jupyterhub.utils
-def random_port():
-    """get a single random port"""
-    sock = socket.socket()
-    sock.bind(('', 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
-
 # Data shared between handler requests
 state_data = dict()
 
@@ -67,9 +58,10 @@ class RSessionProxyHandler(IPythonHandler):
 
     def initialize(self, state):
         self.state = state
+        self.port = 9797
 
     def rsession_uri(self):
-        return '{}proxy/{}/'.format(self.base_url, self.state['port'])
+        return '{}proxy/{}/'.format(self.base_url, self.port)
 
     def gen_response(self, proc):
         response = {
@@ -77,7 +69,7 @@ class RSessionProxyHandler(IPythonHandler):
             'url':self.rsession_uri(),
         }
         return response
-        
+
     def get_client_id(self):
         '''Returns either None or the value of 'active-client-id' from
            ~/.rstudio/session-persistent-state.'''
@@ -110,14 +102,11 @@ class RSessionProxyHandler(IPythonHandler):
                 self.log.debug('client_id: read: {}'.format(client_id))
                 break
 
-        return client_id 
-        
+        return client_id
     def is_running(self):
         '''Check if our proxied process is still running.'''
 
         if 'proc' not in self.state:
-            return False
-        elif 'port' not in self.state:
             return False
 
         # Check if the process is still around
@@ -128,11 +117,10 @@ class RSessionProxyHandler(IPythonHandler):
             return False
         
         # Check if it is still bound to the port
-        port = self.state['port']
         sock = socket.socket()
         try:
-            self.log.debug('Binding on port {}.'.format(port))
-            sock.bind(('', port))
+            self.log.debug('Binding on port {}.'.format(self.port))
+            sock.bind(('', self.port))
         except OSError as e:
             self.log.debug('Bind error: {}'.format(str(e)))
             if e.strerror != 'Address already in use':
@@ -142,37 +130,25 @@ class RSessionProxyHandler(IPythonHandler):
 
         return True
 
-    def is_available(self):
-        pass
 
-    def rpc(self, path):
-        clientid = self.get_client_id()
-        if not clientid:
-            return False
-
-        uri = self.rsession_uri()
-        
-        
     @web.authenticated
     def post(self):
         '''Start a new rsession.'''
 
         if self.is_running():
             proc = self.state['proc']
-            port = self.state['port']
-            self.log.info('Resuming process on port {}'.format(port))
+            self.log.info('Resuming process on port {}'.format(self.port))
             response = self.gen_response(proc)
             self.finish(json.dumps(response))
             return
 
         self.log.debug('No existing process')
 
-        username = os.environ.get('JPY_USER', default='jovyan')
-        port = random_port()
+        username = os.environ.get('USER', default='jovyan')
 
         cmd = self.cmd + [
             '--user-identity=' + username,
-            '--www-port=' + str(port)
+            '--www-port=' + str(self.port)
         ]
 
         server_env = os.environ.copy()
@@ -199,7 +175,7 @@ class RSessionProxyHandler(IPythonHandler):
         rsession_attempts = 0
         while rsession_attempts < 5:
             try:
-                sock.connect(('', port))
+                sock.connect(('', self.port))
                 break
             except socket.error as e:
                 print('sleeping: {}'.format(e))
@@ -208,7 +184,6 @@ class RSessionProxyHandler(IPythonHandler):
 
         # Store our process
         self.state['proc'] = proc
-        self.state['port'] = port
 
         response = self.gen_response(proc)
 
@@ -220,8 +195,7 @@ class RSessionProxyHandler(IPythonHandler):
     def get(self):
         if self.is_running():
             proc = self.state['proc']
-            port = self.state['port']
-            self.log.info('Process exists on port {}'.format(port))
+            self.log.info('Process exists on port {}'.format(self.port))
             response = self.gen_response(proc)
             self.finish(json.dumps(response))
             return
