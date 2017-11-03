@@ -63,46 +63,6 @@ class RSessionProxyHandler(IPythonHandler):
     def rsession_uri(self):
         return '{}proxy/{}/'.format(self.base_url, self.port)
 
-    def gen_response(self, proc):
-        response = {
-            'pid': proc.pid,
-            'url':self.rsession_uri(),
-        }
-        return response
-
-    def get_client_id(self):
-        '''Returns either None or the value of 'active-client-id' from
-           ~/.rstudio/session-persistent-state.'''
-
-        client_id = None
-
-        # Assume the contents manager is local
-        #root_dir = self.settings['contents_manager'].root_dir
-        #root_dir = self.config.FileContentsManager.root_dir
-        root_dir = os.getcwd()
-
-        self.log.debug('client_id: root_dir: {}'.format(root_dir))
-        path = os.path.join(root_dir, '.rstudio', 'session-persistent-state')
-        if not os.path.exists(path):
-            self.log.debug('client_id: No such file: {}'.format(path))
-            return client_id
-
-        try:
-            buf = open(path).read()
-        except Exception as e:
-            self.log.debug("client_id: could not read {}: {}".format(path, e))
-            return client_id
-
-        self.log.debug("client_id: read {} bytes".format(len(buf)))
-        config_key = 'active-client-id'
-        for line in buf.split():
-            if line.startswith(config_key + '='):
-                # remove the key, '=', and leading and trailing quotes
-                client_id = line[len(config_key)+1+1:-1]
-                self.log.debug('client_id: read: {}'.format(client_id))
-                break
-
-        return client_id
     def is_running(self):
         '''Check if our proxied process is still running.'''
 
@@ -132,15 +92,13 @@ class RSessionProxyHandler(IPythonHandler):
 
 
     @web.authenticated
-    def post(self):
+    def get(self):
         '''Start a new rsession.'''
 
         if self.is_running():
             proc = self.state['proc']
             self.log.info('Resuming process on port {}'.format(self.port))
-            response = self.gen_response(proc)
-            self.finish(json.dumps(response))
-            return
+            return self.redirect(self.rsession_uri())
 
         self.log.debug('No existing process')
 
@@ -185,29 +143,7 @@ class RSessionProxyHandler(IPythonHandler):
         # Store our process
         self.state['proc'] = proc
 
-        response = self.gen_response(proc)
-
-        client_id = self.get_client_id()
-        self.log.debug('post: client_id: {}'.format(client_id))
-        self.finish(json.dumps(response))
-
-    @web.authenticated
-    def get(self):
-        if self.is_running():
-            proc = self.state['proc']
-            self.log.info('Process exists on port {}'.format(self.port))
-            response = self.gen_response(proc)
-            self.finish(json.dumps(response))
-            return
-        self.finish(json.dumps({}))
- 
-    @web.authenticated
-    def delete(self):
-        if 'proc' not in self.state:
-            raise web.HTTPError(reason='no rsession running', status_code=500)
-        proc = self.state['proc']
-        proc.kill()
-        self.finish()
+        return self.redirect(self.rsession_uri())
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
