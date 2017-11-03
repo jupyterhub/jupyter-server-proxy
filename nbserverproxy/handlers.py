@@ -31,7 +31,7 @@ class LocalProxyHandler(IPythonHandler):
 
         client_uri = self.proxy_uri + ':' + port + proxied_path
         if self.request.query:
-            client_url += '?' + self.request.query
+            client_uri += '?' + self.request.query
 
         client = httpclient.AsyncHTTPClient()
 
