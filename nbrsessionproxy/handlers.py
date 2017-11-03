@@ -32,8 +32,6 @@ def detectR():
         'RSTUDIO_DEFAULT_R_VERSION': version,
     }
 
-# Data shared between handler requests
-state_data = dict()
 
 class RSessionProxyHandler(IPythonHandler):
     '''Manage an RStudio rsession instance.'''
@@ -131,10 +129,9 @@ class RSessionProxyHandler(IPythonHandler):
         return self.redirect(self.rsession_uri())
 
 def setup_handlers(web_app):
-    host_pattern = '.*$'
     route_pattern = ujoin(web_app.settings['base_url'], '/rsessionproxy/?')
-    web_app.add_handlers(host_pattern, [
-        (route_pattern, RSessionProxyHandler, dict(state=state_data))
+    web_app.add_handlers('.*', [
+        (route_pattern, RSessionProxyHandler, dict(state={}))
     ])
 
 # vim: set et ts=4 sw=4:
