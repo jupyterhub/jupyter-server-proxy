@@ -1,11 +1,8 @@
 import os
-import json
 import getpass
-import socket
-import time
 import subprocess as sp
 
-from tornado import web
+from tornado import web, gen, httpclient
 
 from notebook.utils import url_path_join as ujoin
 from notebook.base.handlers import IPythonHandler
@@ -64,6 +61,7 @@ class RSessionProxyHandler(IPythonHandler):
     def rsession_uri(self):
         return '{}proxy/{}/'.format(self.base_url, self.port)
 
+    @gen.coroutine
     def is_running(self):
         '''Check if our proxied process is still running.'''
 
@@ -73,32 +71,28 @@ class RSessionProxyHandler(IPythonHandler):
         # Check if the process is still around
         proc = self.state['proc']
         if proc.poll() == 0:
-            del(self.state['proc'])
             self.log.debug('Cannot poll on process.')
             return False
 
-        # Check if it is still bound to the port
-        sock = socket.socket()
-        try:
-            self.log.debug('Binding on port {}.'.format(self.port))
-            sock.bind(('', self.port))
-        except OSError as e:
-            self.log.debug('Bind error: {}'.format(str(e)))
-            if e.strerror != 'Address already in use':
-                return False
+        client = httpclient.AsyncHTTPClient()
+        req = httpclient.HTTPRequest('http://localhost:{}'.format(self.port))
 
-        sock.close()
+        try:
+            yield client.fetch(req)
+            self.log.debug('Got positive response from rstudio server')
+        except:
+            return False
 
         return True
 
 
+    @gen.coroutine
     @web.authenticated
     def get(self):
         '''Start a new rsession.'''
 
-        if self.is_running():
-            proc = self.state['proc']
-            self.log.info('Resuming process on port {}'.format(self.port))
+        if (yield self.is_running()):
+            self.log.info('R process on port {}'.format(self.port))
             return self.redirect(self.rsession_uri())
 
         self.log.debug('No existing process')
@@ -118,29 +112,21 @@ class RSessionProxyHandler(IPythonHandler):
             server_env.update(r_vars)
         except:
             raise web.HTTPError(reason='could not detect R', status_code=500)
-            self.finish()
 
         # Runs rsession in background
         proc = sp.Popen(cmd, env=server_env)
-
-        if proc.poll() == 0:
-            raise web.HTTPError(reason='rsession terminated', status_code=500)
-            self.finish()
-
-        # Wait for rsession to be available
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        rsession_attempts = 0
-        while rsession_attempts < 5:
-            try:
-                sock.connect(('', self.port))
-                break
-            except socket.error as e:
-                print('sleeping: {}'.format(e))
-                time.sleep(2)
-                rsession_attempts += 1
-
-        # Store our process
         self.state['proc'] = proc
+
+        for i in range(5):
+            if (yield self.is_running()):
+                self.log.info('rsession startup complete')
+                break
+            # Simple exponential backoff
+            wait_time = max(1.4 ** i, 5)
+            self.log.debug('Waiting {} before checking if rstudio is up'.format(wait_time))
+            yield gen.sleep(wait_time)
+        else:
+            raise web.HTTPError('could not start rsession in time', status_code=500)
 
         return self.redirect(self.rsession_uri())
 
