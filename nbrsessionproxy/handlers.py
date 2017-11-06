@@ -1,5 +1,6 @@
 import os
 import getpass
+import socket
 import subprocess as sp
 
 from tornado import web, gen, httpclient
@@ -54,7 +55,18 @@ class RSessionProxyHandler(IPythonHandler):
 
     def initialize(self, state):
         self.state = state
-        self.port = 9797
+
+    @property
+    def port(self):
+        """
+        Allocate a random empty port for use by rstudio
+        """
+        if not hasattr(self, '_port'):
+            sock = socket.socket()
+            sock.bind(('', 0))
+            self._port = sock.getsockname()[1]
+            sock.close()
+        return self._port
 
     def rsession_uri(self):
         return '{}proxy/{}/'.format(self.base_url, self.port)
