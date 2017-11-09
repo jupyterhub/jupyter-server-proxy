@@ -2,6 +2,7 @@ import os
 import getpass
 import socket
 import subprocess
+from urllib.parse import urlunparse, urlparse
 
 from tornado import web, gen, httpclient, process, ioloop
 
@@ -35,6 +36,13 @@ def detectR():
         'RSTUDIO_DEFAULT_R_VERSION': version,
     }
 
+class AddSlashHandler(IPythonHandler):
+    """Handler for adding trailing slash to URLs that need them"""
+    @web.authenticated
+    def get(self, *args):
+        src = urlparse(self.request.uri)
+        dest = src._replace(path=src.path + '/')
+        self.redirect(urlunparse(dest))
 
 class RSessionProxyHandler(LocalProxyHandler):
     '''Manage an RStudio rsession instance.'''
@@ -184,9 +192,9 @@ class RSessionProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 def setup_handlers(web_app):
-    route_pattern = ujoin(web_app.settings['base_url'], 'rstudio/(.*)')
     web_app.add_handlers('.*', [
-        (route_pattern, RSessionProxyHandler, dict(state={}))
+        (ujoin(web_app.settings['base_url'], 'rstudio/(.*)'), RSessionProxyHandler, dict(state={})),
+        (ujoin(web_app.settings['base_url'], 'rstudio'), AddSlashHandler)
     ])
 
 # vim: set et ts=4 sw=4:
