@@ -112,49 +112,53 @@ class RSessionProxyHandler(LocalProxyHandler):
         """
         Start the rstudio process
         """
-        cmd = self.cmd + [
-            '--user-identity=' + getpass.getuser(),
-            '--www-port=' + str(self.port)
-        ]
 
-        server_env = os.environ.copy()
-
-        # Seed RStudio's R and RSTUDIO env variables
-        server_env.update(self.env)
-
+        self.state['starting'] = True
         try:
-            r_vars = detectR()
-            server_env.update(r_vars)
-        except:
-            raise web.HTTPError(reason='could not detect R', status_code=500)
+            cmd = self.cmd + [
+                '--user-identity=' + getpass.getuser(),
+                '--www-port=' + str(self.port)
+            ]
 
-        @gen.coroutine
-        def exit_callback(code):
-            """
-            Callback when the rsessionproxy dies
-            """
-            self.log.info('rsession process died with code {}'.format(code))
-            del self.state['proc']
-            if code != 0:
-                yield self.start_process()
+            server_env = os.environ.copy()
 
-        # Runs rsession in background
-        proc = process.Subprocess(cmd, env=server_env)
-        self.log.info('Starting rsession process...')
-        self.state['proc'] = proc
-        proc.set_exit_callback(exit_callback)
+            # Seed RStudio's R and RSTUDIO env variables
+            server_env.update(self.env)
 
-        for i in range(5):
-            if (yield self.is_running()):
-                self.log.info('rsession startup complete')
-                break
-            # Simple exponential backoff
-            wait_time = max(1.4 ** i, 5)
-            self.log.debug('Waiting {} before checking if rstudio is up'.format(wait_time))
-            yield gen.sleep(wait_time)
-        else:
-            raise web.HTTPError('could not start rsession in time', status_code=500)
+            try:
+                r_vars = detectR()
+                server_env.update(r_vars)
+            except:
+                raise web.HTTPError(reason='could not detect R', status_code=500)
 
+            @gen.coroutine
+            def exit_callback(code):
+                """
+                Callback when the rsessionproxy dies
+                """
+                self.log.info('rsession process died with code {}'.format(code))
+                del self.state['proc']
+                if code != 0:
+                    yield self.start_process()
+
+            # Runs rsession in background
+            proc = process.Subprocess(cmd, env=server_env)
+            self.log.info('Starting rsession process...')
+            self.state['proc'] = proc
+            proc.set_exit_callback(exit_callback)
+
+            for i in range(5):
+                if (yield self.is_running()):
+                    self.log.info('rsession startup complete')
+                    break
+                # Simple exponential backoff
+                wait_time = max(1.4 ** i, 5)
+                self.log.debug('Waiting {} before checking if rstudio is up'.format(wait_time))
+                yield gen.sleep(wait_time)
+            else:
+                raise web.HTTPError('could not start rsession in time', status_code=500)
+        finally:
+            self.state['starting'] = False
 
 
     @gen.coroutine
@@ -162,6 +166,17 @@ class RSessionProxyHandler(LocalProxyHandler):
     def proxy(self, port, path):
         if not path.startswith('/'):
             path = '/' + path
+
+        # if we're in 'starting' let's wait a while
+        for i in range(5):
+            if not self.state.get('starting', False):
+                break
+            # Simple exponential backoff
+            wait_time = max(1.4 ** i, 5)
+            self.log.debug('Waiting {} before checking if rstudio is up'.format(wait_time))
+            yield gen.sleep(wait_time)
+        else:
+            raise web.HTTPError('could not start rsession in time', status_code=500)
 
         # FIXME: try to not start multiple processes at a time with some locking here
         if 'proc' not in self.state:
