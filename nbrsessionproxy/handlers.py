@@ -8,6 +8,8 @@ from tornado import web, gen, httpclient, process, ioloop
 from notebook.utils import url_path_join as ujoin
 from notebook.base.handlers import IPythonHandler
 
+from nbserverproxy.handlers import LocalProxyHandler
+
 
 def detectR():
     '''Detect R's version, R_HOME, and various other directories that rsession
@@ -34,7 +36,7 @@ def detectR():
     }
 
 
-class RSessionProxyHandler(IPythonHandler):
+class RSessionProxyHandler(LocalProxyHandler):
     '''Manage an RStudio rsession instance.'''
 
     # R and RStudio environment variables required by rsession.
@@ -61,12 +63,12 @@ class RSessionProxyHandler(IPythonHandler):
         """
         Allocate a random empty port for use by rstudio
         """
-        if not hasattr(self, '_port'):
+        if 'port' not in self.state:
             sock = socket.socket()
             sock.bind(('', 0))
-            self._port = sock.getsockname()[1]
+            self.state['port'] = sock.getsockname()[1]
             sock.close()
-        return self._port
+        return self.state['port']
 
     def rsession_uri(self):
         return '{}proxy/{}/'.format(self.base_url, self.port)
@@ -81,7 +83,7 @@ class RSessionProxyHandler(IPythonHandler):
         # Check if the process is still around
         proc = self.state['proc']
         if proc.proc.poll() == 0:
-            self.log.debug('Cannot poll on process.')
+            self.log.info('Cannot poll on process.')
             return False
 
         client = httpclient.AsyncHTTPClient()
@@ -91,6 +93,7 @@ class RSessionProxyHandler(IPythonHandler):
             yield client.fetch(req)
             self.log.debug('Got positive response from rstudio server')
         except:
+            self.log.debug('Got negative response from rstudio server')
             return False
 
         return True
@@ -117,10 +120,15 @@ class RSessionProxyHandler(IPythonHandler):
         except:
             raise web.HTTPError(reason='could not detect R', status_code=500)
 
+        @gen.coroutine
         def exit_callback(code):
-            self.log.info('rsession process died with code {}, restarting...'.format(code))
+            """
+            Callback when the rsessionproxy dies
+            """
+            self.log.info('rsession process died with code {}'.format(code))
+            del self.state['proc']
             if code != 0:
-                ioloop.IOLoop.current().add_callback(self.start_process)
+                yield self.start_process()
 
         # Runs rsession in background
         proc = process.Subprocess(cmd, env=server_env)
@@ -140,24 +148,43 @@ class RSessionProxyHandler(IPythonHandler):
             raise web.HTTPError('could not start rsession in time', status_code=500)
 
 
+
     @gen.coroutine
     @web.authenticated
-    def get(self):
-        '''Start a new rsession.'''
+    def proxy(self, port, path):
+        if not path.startswith('/'):
+            path = '/' + path
 
-        if (yield self.is_running()):
-            self.log.info('R process on port {}'.format(self.port))
-            return self.redirect(self.rsession_uri())
+        # FIXME: try to not start multiple processes at a time with some locking here
+        if 'proc' not in self.state:
+            self.log.info('No existing process rsession process found')
+            yield self.start_process()
 
-        self.log.debug('No existing process')
+        return (yield super().proxy(self.port, path))
 
-        yield self.start_process()
+    def get(self, path):
+        return self.proxy(self.port, path)
 
-        return self.redirect(self.rsession_uri())
+    def post(self, path):
+        return self.proxy(self.port, path)
 
+    def put(self, path):
+        return self.proxy(self.port, path)
+
+    def delete(self, path):
+        return self.proxy(self.port, path)
+
+    def head(self, path):
+        return self.proxy(self.port, path)
+
+    def patch(self, path):
+        return self.proxy(self.port, path)
+
+    def options(self, path):
+        return self.proxy(self.port, path)
 
 def setup_handlers(web_app):
-    route_pattern = ujoin(web_app.settings['base_url'], '/rstudio/?')
+    route_pattern = ujoin(web_app.settings['base_url'], 'rstudio/(.*)')
     web_app.add_handlers('.*', [
         (route_pattern, RSessionProxyHandler, dict(state={}))
     ])
