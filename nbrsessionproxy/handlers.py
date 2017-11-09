@@ -1,9 +1,9 @@
 import os
 import getpass
 import socket
-import subprocess as sp
+import subprocess
 
-from tornado import web, gen, httpclient
+from tornado import web, gen, httpclient, process, ioloop
 
 from notebook.utils import url_path_join as ujoin
 from notebook.base.handlers import IPythonHandler
@@ -18,7 +18,7 @@ def detectR():
     cmd = ['R', '--slave', '--vanilla', '-e',
              'cat(paste(R.home("home"),R.home("share"),R.home("include"),R.home("doc"),getRversion(),sep=":"))']
 
-    p = sp.run(cmd, check=True, stdout=sp.PIPE, stderr=sp.PIPE)
+    p = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode != 0:
         raise Exception('Error detecting R')
     R_HOME, R_SHARE_DIR, R_INCLUDE_DIR, R_DOC_DIR, version = \
@@ -80,7 +80,7 @@ class RSessionProxyHandler(IPythonHandler):
 
         # Check if the process is still around
         proc = self.state['proc']
-        if proc.poll() == 0:
+        if proc.proc.poll() == 0:
             self.log.debug('Cannot poll on process.')
             return False
 
@@ -97,16 +97,10 @@ class RSessionProxyHandler(IPythonHandler):
 
 
     @gen.coroutine
-    @web.authenticated
-    def get(self):
-        '''Start a new rsession.'''
-
-        if (yield self.is_running()):
-            self.log.info('R process on port {}'.format(self.port))
-            return self.redirect(self.rsession_uri())
-
-        self.log.debug('No existing process')
-
+    def start_process(self):
+        """
+        Start the rstudio process
+        """
         cmd = self.cmd + [
             '--user-identity=' + getpass.getuser(),
             '--www-port=' + str(self.port)
@@ -123,9 +117,16 @@ class RSessionProxyHandler(IPythonHandler):
         except:
             raise web.HTTPError(reason='could not detect R', status_code=500)
 
+        def exit_callback(code):
+            self.log.info('rsession process died with code {}, restarting...'.format(code))
+            if code != 0:
+                ioloop.IOLoop.current().add_callback(self.start_process)
+
         # Runs rsession in background
-        proc = sp.Popen(cmd, env=server_env)
+        proc = process.Subprocess(cmd, env=server_env)
+        self.log.info('Starting rsession process...')
         self.state['proc'] = proc
+        proc.set_exit_callback(exit_callback)
 
         for i in range(5):
             if (yield self.is_running()):
@@ -138,7 +139,22 @@ class RSessionProxyHandler(IPythonHandler):
         else:
             raise web.HTTPError('could not start rsession in time', status_code=500)
 
+
+    @gen.coroutine
+    @web.authenticated
+    def get(self):
+        '''Start a new rsession.'''
+
+        if (yield self.is_running()):
+            self.log.info('R process on port {}'.format(self.port))
+            return self.redirect(self.rsession_uri())
+
+        self.log.debug('No existing process')
+
+        yield self.start_process()
+
         return self.redirect(self.rsession_uri())
+
 
 def setup_handlers(web_app):
     route_pattern = ujoin(web_app.settings['base_url'], '/rstudio/?')
