@@ -29,7 +29,7 @@ define(function(require) {
         var rsession_link = $('<a>')
             .attr('role', 'menuitem')
             .attr('tabindex', '-1')
-            .attr('href', base_url + 'rstudio')
+            .attr('href', base_url + 'rstudio/')
             .attr('target', '_blank')
             .text('RStudio Session');
 
