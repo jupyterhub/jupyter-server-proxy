@@ -29,7 +29,11 @@ class LocalProxyHandler(IPythonHandler):
         if not body:
             body = None
 
-        client_uri = self.proxy_uri + ':' + port + proxied_path
+        client_uri = '{uri}:{port}{path}'.format(
+            uri=self.proxy_uri,
+            port=port,
+            path=proxied_path
+        )
         if self.request.query:
             client_uri += '?' + self.request.query
 
