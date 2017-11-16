@@ -54,7 +54,7 @@ function activate(app: JupyterLab, palette: ICommandPalette, launcher: ILauncher
       // Start up the rserver
       let settings = ServerConnection.makeSettings();
       let req = {
-        url: settings.baseUrl + 'rsessionproxy',
+        url: settings.baseUrl + 'rstudio',
         method: 'POST',
       };
       ServerConnection.makeRequest(req, settings).then((resp:ServerConnection.IResponse) => {
