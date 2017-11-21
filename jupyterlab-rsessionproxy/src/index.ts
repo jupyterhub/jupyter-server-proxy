@@ -6,20 +6,20 @@ import {
 } from '@jupyterlab/application';
 
 import {
-  ICommandPalette/*, IFrame, InstanceTracker*/
+  ICommandPalette, IMainMenu/*, IFrame, InstanceTracker*/
 } from '@jupyterlab/apputils';
-
-import {
-    ServerConnection
-} from '@jupyterlab/services';
-
-import {
-  ILauncher
-} from '@jupyterlab/launcher';
 
 import {
   Message
 } from '@phosphor/messaging';
+
+import {
+  Menu
+} from '@phosphor/widgets';
+
+import {
+  PageConfig, URLExt
+} from '@jupyterlab/coreutils';
 
 import '../style/index.css';
 
@@ -40,7 +40,7 @@ const RSTUDIO_ICON_CLASS = 'jp-RStudioIcon';
 /**
  * Activate the rsession extension.
  */
-function activate(app: JupyterLab, palette: ICommandPalette, launcher: ILauncher): void {
+function activate(app: JupyterLab, palette: ICommandPalette, mainMenu: IMainMenu): void {
   let counter = 0;
   const category = 'RStudio';
   const namespace = 'rsession-proxy';
@@ -48,32 +48,23 @@ function activate(app: JupyterLab, palette: ICommandPalette, launcher: ILauncher
   const { commands, shell } = app;
 
   commands.addCommand(command, {
-    label: 'New Rstudio Session',
+    label: 'Launch RStudio',
     caption: 'Start a new Rstudio Session',
     execute: () => {
-      // Start up the rserver
-      let settings = ServerConnection.makeSettings();
-      let req = {
-        url: settings.baseUrl + 'rstudio',
-        method: 'POST',
-      };
-      ServerConnection.makeRequest(req, settings).then((resp:ServerConnection.IResponse) => {
-        console.log("Started RStudio... ", resp.data.url);
-        window.open(resp.data.url, 'RStudio Session');
-      });
+        window.open(PageConfig.getBaseUrl() + 'rstudio/', 'RStudio Session');
     }
   });
 
-  // Add a launcher item if the launcher is available.
-  launcher.add({
-    displayName: 'RStudio',
-    iconClass: RSTUDIO_ICON_CLASS,
-    callback: () => {
-      return commands.execute(command);
-    }
+  // Add commands and menu itmes.
+  let menu = new Menu({ commands });
+  menu.title.label = category;
+  [
+    CommandIDs.launch,
+  ].forEach(command => {
+    palette.addItem({ command, category });
+    menu.addItem({ command });
   });
-
-  palette.addItem({ command, category });
+  mainMenu.addMenu(menu, {rank: 98});
 }
 
 /**
@@ -82,7 +73,7 @@ function activate(app: JupyterLab, palette: ICommandPalette, launcher: ILauncher
 const plugin: JupyterLabPlugin<void> = {
   id: 'jupyterlab_rsessionproxy',
   autoStart: true,
-  requires: [ICommandPalette, ILauncher],
+  requires: [ICommandPalette, IMainMenu],
   activate: activate,
 };
 
