@@ -14,8 +14,8 @@ import {
 } from '@jupyterlab/mainmenu';
 
 import {
-  Message
-} from '@phosphor/messaging';
+  PageConfig, URLExt
+} from '@jupyterlab/coreutils';
 
 import {
   Menu
