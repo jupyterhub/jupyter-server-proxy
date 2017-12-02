@@ -11,7 +11,7 @@ setuptools.setup(
 	classifiers=['Framework :: Jupyter'],
     install_requires=[
         'notebook',
-        'nbserverproxy >= 0.3.2'
+        'nbserverproxy >= 0.4'
     ],
     package_data={'nbrsessionproxy': ['static/*']},
 )
