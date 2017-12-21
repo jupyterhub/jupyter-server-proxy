@@ -6,8 +6,12 @@ import {
 } from '@jupyterlab/application';
 
 import {
-  ICommandPalette, IMainMenu/*, IFrame, InstanceTracker*/
+  ICommandPalette
 } from '@jupyterlab/apputils';
+
+import {
+  IMainMenu
+} from '@jupyterlab/mainmenu';
 
 import {
   Message
