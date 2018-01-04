@@ -3,7 +3,9 @@ Authenticated HTTP proxy for Jupyter Notebooks
 
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
-from tornado import gen, web, httpclient, httputil
+import socket
+import os
+from tornado import gen, web, httpclient, httputil, process
 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
@@ -94,6 +96,143 @@ class LocalProxyHandler(IPythonHandler):
         Defer to proxied apps.
         '''
         pass
+
+
+class SuperviseAndProxyHandler(LocalProxyHandler):
+    '''Manage a given process and requests to it '''
+
+    def initialize(self, state):
+        self.state = state
+
+    name = 'process'
+
+    @property
+    def port(self):
+        """
+        Allocate a random empty port for use by application
+        """
+        if 'port' not in self.state:
+            sock = socket.socket()
+            sock.bind(('', 0))
+            self.state['port'] = sock.getsockname()[1]
+            sock.close()
+        return self.state['port']
+
+    @gen.coroutine
+    def is_running(self, proc):
+        '''Check if our proxied process is still running.'''
+
+        # Check if the process is still around
+        if proc.proc.poll() == 0:
+            self.log.info('Poll failed for', self.name)
+            return False
+
+        client = httpclient.AsyncHTTPClient()
+        req = httpclient.HTTPRequest('http://localhost:{}'.format(self.port))
+
+        try:
+            yield client.fetch(req)
+            self.log.debug('Got positive response from proxied', self.name)
+        except:
+            self.log.debug('Got negative response from proxied', self.name)
+            return False
+
+        return True
+
+
+    @gen.coroutine
+    def start_process(self):
+        """
+        Start the process
+        """
+        if 'starting' in self.state:
+            raise Exception("Process {} start already pending, can not start again".format(self.name))
+        if 'proc' in self.state:
+            raise Exception("Process {} already running, can not start".format(self.name))
+        self.state['starting'] = True
+        cmd = self.get_cmd()
+
+        server_env = os.environ.copy()
+
+        # Set up extra environment variables for process
+        server_env.update(self.get_env())
+
+        @gen.coroutine
+        def exit_callback(code):
+            """
+            Callback when the process dies
+            """
+            self.log.info('{} died with code {}'.format(self.name, code))
+            del self.state['proc']
+            if code != 0 and not 'starting' in self.state:
+                yield self.start_process()
+
+        # Runs process in background
+        proc = process.Subprocess(cmd, env=server_env)
+        self.log.info('Starting process...')
+        proc.set_exit_callback(exit_callback)
+
+        for i in range(5):
+            if (yield self.is_running(proc)):
+                self.log.info('{} startup complete'.format(self.name))
+                break
+            # Simple exponential backoff
+            wait_time = max(1.4 ** i, 5)
+            self.log.debug('Waiting {} before checking if {} is up'.format(wait_time, self.name))
+            yield gen.sleep(wait_time)
+        else:
+            raise web.HTTPError('could not start {} in time'.format(self.name), status_code=500)
+
+        # add proc to state only after we are sure it has started
+        self.state['proc'] = proc
+
+        del self.state['starting']
+
+    @gen.coroutine
+    @web.authenticated
+    def proxy(self, port, path):
+        if not path.startswith('/'):
+            path = '/' + path
+
+        if 'starting' in self.state:
+            self.log.info('{} already starting, waiting for it to start...'.format(self.name))
+            for i in range(5):
+                if 'proc' in self.state:
+                    self.log.info('{} startup complete'.format(self.name))
+                    break
+                # Simple exponential backoff
+                wait_time = max(1.4 ** i, 5)
+                self.log.debug('Waiting {} before checking if process is up'.format(wait_time))
+                yield gen.sleep(wait_time)
+            else:
+                raise web.HTTPError('{} did not start in time'.format(self.name), status_code=500)
+        else:
+            if 'proc' not in self.state:
+                self.log.info('No existing {} found'.format(self.name))
+                yield self.start_process()
+
+        return (yield super().proxy(self.port, path))
+
+    def get(self, path):
+        return self.proxy(self.port, path)
+
+    def post(self, path):
+        return self.proxy(self.port, path)
+
+    def put(self, path):
+        return self.proxy(self.port, path)
+
+    def delete(self, path):
+        return self.proxy(self.port, path)
+
+    def head(self, path):
+        return self.proxy(self.port, path)
+
+    def patch(self, path):
+        return self.proxy(self.port, path)
+
+    def options(self, path):
+        return self.proxy(self.port, path)
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
