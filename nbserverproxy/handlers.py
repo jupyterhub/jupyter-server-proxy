@@ -109,7 +109,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     @property
     def port(self):
         """
-        Allocate a random empty port for use by rstudio
+        Allocate a random empty port for use by application
         """
         if 'port' not in self.state:
             sock = socket.socket()
@@ -143,7 +143,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     @gen.coroutine
     def start_process(self):
         """
-        Start the rstudio process
+        Start the process
         """
         if 'starting' in self.state:
             raise Exception("Process {} start already pending, can not start again".format(self.name))
@@ -154,7 +154,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
         server_env = os.environ.copy()
 
-        # Seed RStudio's R and RSTUDIO env variables
+        # Set up extra environment variables for process
         server_env.update(self.get_env())
 
         @gen.coroutine
@@ -167,7 +167,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             if code != 0 and not 'starting' in self.state:
                 yield self.start_process()
 
-        # Runs rsession in background
+        # Runs process in background
         proc = process.Subprocess(cmd, env=server_env)
         self.log.info('Starting process...')
         proc.set_exit_callback(exit_callback)
