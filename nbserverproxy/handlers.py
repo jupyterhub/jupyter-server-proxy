@@ -46,6 +46,12 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     async def open(self, port, proxied_path):
+        """
+        Called when a client opens a websocket connection.
+
+        We establish a websocket connection to the proxied backend &
+        set up a callback to relay messages through.
+        """
         client_uri = '{uri}:{port}{path}'.format(
             uri='ws://localhost',
             port=port,
@@ -55,13 +61,28 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             client_uri += '?' + self.request.query
 
         def cb(message):
+            """
+            Callback when the backend sends messages to us
+
+            We just pass it back to the frontend
+            """
             self.write_message(message)
         self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
 
     async def on_message(self, message):
+        """
+        Called when we receive a message from our client.
+
+        We proxy it to the backend.
+        """
         await self.ws.write_message(message)
 
     async def on_close(self):
+        """
+        Called when the client closes our websocket connection.
+
+        We close our connection to the backend too.
+        """
         self.ws.close()
 
     @web.authenticated
