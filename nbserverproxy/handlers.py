@@ -66,7 +66,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
             We just pass it back to the frontend
             """
-            self.write_message(message)
+            # Websockets support both string (utf-8) and binary data, so let's
+            # make sure we signal that appropriately when proxying
+            self.write_message(message, binary=type(message) is bytes)
         self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
 
     async def on_message(self, message):
