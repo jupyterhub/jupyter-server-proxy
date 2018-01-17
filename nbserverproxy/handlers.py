@@ -44,6 +44,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         # super get is not async
         super().get(*args, **kwargs)
 
+
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     async def open(self, port, proxied_path):
         """
@@ -104,10 +105,12 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             ws = WebSocketProxyHandler(*self._init_args, **self._init_kwargs)
             return await ws.get(port, proxied_path)
 
-
         body = self.request.body
         if not body:
-            body = None
+            if self.request.method == 'POST':
+                body = b''
+            else:
+                body = None
 
         client_uri = '{uri}:{port}{path}'.format(
             uri='http://localhost',
