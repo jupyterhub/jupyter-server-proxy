@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="nbrsessionproxy",
-    version='0.4.1',
+    version='0.5',
     url="https://github.com/jupyterhub/nbrsessionproxy",
     author="Ryan Lovett",
     description="Jupyter extension to proxy RStudio's rsession",
@@ -11,7 +11,7 @@ setuptools.setup(
 	classifiers=['Framework :: Jupyter'],
     install_requires=[
         'notebook',
-        'nbserverproxy >= 0.3.2'
+        'nbserverproxy >= 0.4'
     ],
     package_data={'nbrsessionproxy': ['static/*']},
 )
