@@ -3,6 +3,7 @@ Authenticated HTTP proxy for Jupyter Notebooks
 
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
+import inspect
 import socket
 import os
 from tornado import gen, web, httpclient, httputil, process, websocket
@@ -17,7 +18,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         super().__init__(*args, **kwargs)
         # since my parent doesn't keep calling the super() constructor,
         # I need to do it myself
-        bases = type(self).__bases__
+        bases = inspect.getmro(type(self))
         assert WebSocketHandlerMixin in bases
         meindex = bases.index(WebSocketHandlerMixin)
         try:
