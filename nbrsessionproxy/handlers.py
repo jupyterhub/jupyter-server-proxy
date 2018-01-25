@@ -67,12 +67,8 @@ class RSessionProxyHandler(SuperviseAndProxyHandler):
     def get_cmd(self):
         # rsession command. Augmented with user-identity and www-port.
         return [
-            'rsession',
-            '--standalone=1',
-            '--program-mode=server',
-            '--log-stderr=1',
-            '--session-timeout-minutes=0',
-            '--user-identity=' + getpass.getuser(),
+            'rserver',
+            '--server-user=' + getpass.getuser(),
             '--www-port=' + str(self.port)
         ]
 
