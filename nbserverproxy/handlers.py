@@ -6,7 +6,7 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 import inspect
 import socket
 import os
-from tornado import gen, web, httpclient, httputil, process, websocket
+from tornado import gen, web, httpclient, httputil, process, websocket, ioloop
 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
@@ -47,15 +47,17 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
 
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
-    async def open(self, port, proxied_path):
+    def open(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
 
         We establish a websocket connection to the proxied backend &
         set up a callback to relay messages through.
         """
+        if not proxied_path.startswith('/'):
+            proxied_path = '/' + proxied_path
         client_uri = '{uri}:{port}{path}'.format(
-            uri='ws://localhost',
+            uri='ws://127.0.0.1',
             port=port,
             path=proxied_path
         )
@@ -70,24 +72,35 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             """
             # Websockets support both string (utf-8) and binary data, so let's
             # make sure we signal that appropriately when proxying
-            self.write_message(message, binary=type(message) is bytes)
-        self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
+            if message is None:
+                self.close()
+            else:
+                self.write_message(message, binary=type(message) is bytes)
 
-    async def on_message(self, message):
+        async def start_websocket_connection():
+            self.log.info('Trying to establish websocket connection to {}', client_uri)
+            self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
+            self.log.info('Websocket connection established to {}', client_uri)
+
+        ioloop.IOLoop.current().add_callback(start_websocket_connection)
+
+    def on_message(self, message):
         """
         Called when we receive a message from our client.
 
         We proxy it to the backend.
         """
-        await self.ws.write_message(message)
+        if hasattr(self, 'ws'):
+            self.ws.write_message(message)
 
-    async def on_close(self):
+    def on_close(self):
         """
         Called when the client closes our websocket connection.
 
         We close our connection to the backend too.
         """
-        self.ws.close()
+        if hasattr(self, 'ws'):
+            self.ws.close()
 
     @web.authenticated
     async def proxy(self, port, proxied_path):
@@ -237,14 +250,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # Set up extra environment variables for process
         server_env.update(self.get_env())
 
-        async def exit_callback(code):
+        def exit_callback(code):
             """
             Callback when the process dies
             """
             self.log.info('{} died with code {}'.format(self.name, code))
             del self.state['proc']
             if code != 0 and not 'starting' in self.state:
-                await self.start_process()
+                ioloop.IOLoop.current().add_callback(self.start_process)
 
         # Runs process in background
         proc = process.Subprocess(cmd, env=server_env)
@@ -293,6 +306,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     async def http_get(self, path):
         return await self.proxy(self.port, path)
+
+    def open(self, path):
+        return super().open(self.port, path)
 
     def post(self, path):
         return self.proxy(self.port, path)
