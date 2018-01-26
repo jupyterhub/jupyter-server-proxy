@@ -26,7 +26,10 @@ class RSessionProxyHandler(SuperviseAndProxyHandler):
 
     def get_env(self):
         env = {}
-        if 'USER' not in os.environ:
+
+        # rserver needs USER to be set to something sensible,
+        # otherwise it'll throw up an authentication page
+        if not os.environ.get('USER', ''):
             env['USER'] = getpass.getuser()
 
         return env
