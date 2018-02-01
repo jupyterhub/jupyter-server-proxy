@@ -1,11 +1,10 @@
 # nbrsessionproxy
 
-**nbrsessionproxy** provides Jupyter server and notebook extensions to proxy an RStudio rsession.
+**nbrsessionproxy** provides Jupyter server and notebook extensions to proxy RStudio.
 
 ![Screenshot](screenshot.png)
 
-If you have a JupyterHub deployment, nbrsessionproxy can take advantage of JupyterHub's existing authenticator and spawner to launch RStudio in users' Jupyter environments. You can also run this from within Jupyter. Requires [nbserverproxy](https://github.com/jupyterhub/nbserverproxy).
-
+If you have a JupyterHub deployment, nbrsessionproxy can take advantage of JupyterHub's existing authenticator and spawner to launch RStudio in users' Jupyter environments. You can also run this from within Jupyter.
 Note that [RStudio Server Pro](https://www.rstudio.com/products/rstudio-server-pro/architecture) has more featureful authentication and spawning than the standard version, in the event that you do not want to use Jupyter's.
 
 ## Installation
@@ -14,6 +13,8 @@ Note that [RStudio Server Pro](https://www.rstudio.com/products/rstudio-server-p
 
 #### Install rstudio
 Use conda `conda install rstudio` or [download](https://www.rstudio.com/products/rstudio/download-server/) the corresponding package for your platform 
+
+Note that rstudio server is needed to work with this extension.
 
 ### Install nbrsessionproxy 
 Install the library:
