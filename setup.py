@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="nbrsessionproxy",
-    version='0.5',
+    version='0.6',
     url="https://github.com/jupyterhub/nbrsessionproxy",
     author="Ryan Lovett",
     description="Jupyter extension to proxy RStudio's rsession",
