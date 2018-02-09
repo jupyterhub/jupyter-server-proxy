@@ -21,6 +21,10 @@ Install the library:
 ```
 pip install git+https://github.com/jupyterhub/nbrsessionproxy
 ```
+or
+```
+conda install -c conda-forge nbrsessionproxy
+```
 
 Either install the extensions for the user:
 ```
