@@ -41,8 +41,20 @@ class RSessionProxyHandler(SuperviseAndProxyHandler):
             '--www-port=' + str(self.port)
         ]
 
+class ShinyProxyHandler(SuperviseAndProxyHandler):
+    '''Manage a Shiny instance.'''
+
+    name = 'shiny'
+    port = '3838'
+
+    def get_cmd(self):
+        # rsession command. Augmented with user-identity and www-port.
+        return [ 'shiny-server' ] 
+
 def setup_handlers(web_app):
     web_app.add_handlers('.*', [
         (ujoin(web_app.settings['base_url'], 'rstudio/(.*)'), RSessionProxyHandler, dict(state={})),
-        (ujoin(web_app.settings['base_url'], 'rstudio'), AddSlashHandler)
+        (ujoin(web_app.settings['base_url'], 'shiny/(.*)'),   ShinyProxyHandler, dict(state={})),
+        (ujoin(web_app.settings['base_url'], 'rstudio'), AddSlashHandler),
+        (ujoin(web_app.settings['base_url'], 'shiny'),   AddSlashHandler)
     ])
