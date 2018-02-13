@@ -47,6 +47,9 @@ class ShinyProxyHandler(SuperviseAndProxyHandler):
     name = 'shiny'
     port = '3838'
 
+    def get_env(self):
+        return {}
+
     def get_cmd(self):
         # rsession command. Augmented with user-identity and www-port.
         return [ 'shiny-server' ] 
