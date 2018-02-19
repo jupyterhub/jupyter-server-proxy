@@ -12,15 +12,7 @@ The service is proxied off of `/proxy/` at https://address.of.notebook.server/us
 ## Installation
 To install:
 ```
-pip install git+https://github.com/jupyterhub/nbserverproxy
-```
-or 
-```
 conda install -c conda-forge nbserverproxy
-```
-Enable extension by running:
-```
-jupyter serverextension enable --py nbserverproxy
 ```
 
 Based on https://github.com/senko/tornado-proxy.
