@@ -1,3 +1,4 @@
+# vim: set et sw=4 ts=4:
 import os
 import getpass
 import pwd
@@ -48,7 +49,7 @@ class ShinyProxyHandler(SuperviseAndProxyHandler):
     '''Manage a Shiny instance.'''
 
     name = 'shiny'
-	conf_tmpl = """run_as {user};
+    conf_tmpl = """run_as {user};
 server {{
   listen {port};
   location / {{
@@ -59,21 +60,21 @@ server {{
 }}
 """
 
-	def write_conf(self, user, port, site_dir):
-		'''Create a configuration file and return its name.'''
-		conf = self.conf_tmpl.format(user=user, port=port, site_dir=site_dir)
-		f = tempfile.NamedTemporaryFile(mode='w', delete=False)
-		f.write(conf)
-		f.close()
-		return f.name
+    def write_conf(self, user, port, site_dir):
+        '''Create a configuration file and return its name.'''
+        conf = self.conf_tmpl.format(user=user, port=port, site_dir=site_dir)
+        f = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        f.write(conf)
+        f.close()
+        return f.name
 
     def get_env(self):
         return {}
 
     def get_cmd(self):
-		user = getpass.getuser()
-		site_dir = pwd.getpwnam(user).pw_dir
-		filename = self.write_conf(user, self.port, site_dir)
+        user = getpass.getuser()
+        site_dir = pwd.getpwnam(user).pw_dir
+        filename = self.write_conf(user, self.port, site_dir)
 
         # shiny command.
         return [ 'shiny-server', filename ] 
