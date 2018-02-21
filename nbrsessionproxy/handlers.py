@@ -1,5 +1,8 @@
 import os
 import getpass
+import pwd
+import tempfile
+
 from urllib.parse import urlunparse, urlparse
 
 from tornado import web
@@ -45,14 +48,35 @@ class ShinyProxyHandler(SuperviseAndProxyHandler):
     '''Manage a Shiny instance.'''
 
     name = 'shiny'
-    port = '3838'
+	conf_tmpl = """run_as {user};
+server {{
+  listen {port};
+  location / {{
+    site_dir {site_dir};
+    log_dir {site_dir}/logs;
+    directory_index on;
+  }}
+}}
+"""
+
+	def write_conf(self, user, port, site_dir):
+		'''Create a configuration file and return its name.'''
+		conf = self.conf_tmpl.format(user=user, port=port, site_dir=site_dir)
+		f = tempfile.NamedTemporaryFile(mode='w', delete=False)
+		f.write(conf)
+		f.close()
+		return f.name
 
     def get_env(self):
         return {}
 
     def get_cmd(self):
-        # rsession command. Augmented with user-identity and www-port.
-        return [ 'shiny-server' ] 
+		user = getpass.getuser()
+		site_dir = pwd.getpwnam(user).pw_dir
+		filename = self.write_conf(user, self.port, site_dir)
+
+        # shiny command.
+        return [ 'shiny-server', filename ] 
 
 def setup_handlers(web_app):
     web_app.add_handlers('.*', [
