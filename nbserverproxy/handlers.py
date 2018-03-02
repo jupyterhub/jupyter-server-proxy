@@ -12,6 +12,14 @@ from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
 
 
+class AddSlashHandler(IPythonHandler):
+    """Add trailing slash to URLs that need them."""
+    @web.authenticated
+    def get(self, *args):
+        src = urlparse(self.request.uri)
+        dest = src._replace(path=src.path + '/')
+        self.redirect(urlunparse(dest))
+
 # from https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
 class WebSocketHandlerMixin(websocket.WebSocketHandler):
     def __init__(self, *args, **kwargs):
