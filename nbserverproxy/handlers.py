@@ -6,6 +6,8 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 import inspect
 import socket
 import os
+from urllib.parse import urlunparse, urlparse
+
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop
 
 from notebook.utils import url_path_join
