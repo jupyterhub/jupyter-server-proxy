@@ -88,9 +88,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
                 self.write_message(message, binary=type(message) is bytes)
 
         async def start_websocket_connection():
-            self.log.info('Trying to establish websocket connection to {}', client_uri)
+            self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
             self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
-            self.log.info('Websocket connection established to {}', client_uri)
+            self.log.info('Websocket connection established to {}'.format(client_uri))
 
         ioloop.IOLoop.current().add_callback(start_websocket_connection)
 
