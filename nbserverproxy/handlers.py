@@ -244,7 +244,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return True
 
 
-    def get_env():
+    def get_env(self):
         '''Set up extra environment variables for process. Typically
            overridden in subclasses.'''
         return {}
