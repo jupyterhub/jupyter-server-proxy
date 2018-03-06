@@ -3,6 +3,7 @@ Authenticated HTTP proxy for Jupyter Notebooks
 
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
+from datetime import datetime
 import inspect
 import socket
 import os
@@ -82,6 +83,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             """
             # Websockets support both string (utf-8) and binary data, so let's
             # make sure we signal that appropriately when proxying
+            self._record_activity()
             if message is None:
                 self.close()
             else:
@@ -89,7 +91,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
+            self._record_activity()
             self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
+            self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
         ioloop.IOLoop.current().add_callback(start_websocket_connection)
@@ -100,6 +104,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         We proxy it to the backend.
         """
+        self._record_activity()
         if hasattr(self, 'ws'):
             self.ws.write_message(message)
 
@@ -112,6 +117,15 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         if hasattr(self, 'ws'):
             self.ws.close()
 
+    def _record_activity(self):
+        """Record proxied activity as API activity
+
+        avoids proxied traffic being ignored by the notebook's
+        internal idle-shutdown mechanism
+        """
+        self.settings['api_last_activity'] = datetime.utcnow()
+
+
     @web.authenticated
     async def proxy(self, port, proxied_path):
         '''
@@ -123,6 +137,8 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         if 'Proxy-Connection' in self.request.headers:
             del self.request.headers['Proxy-Connection']
+
+        self._record_activity()
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
             # We wanna websocket!
@@ -151,6 +167,8 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             headers=self.request.headers, follow_redirects=False)
 
         response = await client.fetch(req, raise_error=False)
+        # record activity at start and end of requests
+        self._record_activity()
 
         # For all non http errors...
         if response.error and type(response.error) is not httpclient.HTTPError:
