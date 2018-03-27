@@ -67,6 +67,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
+
         client_uri = '{uri}:{port}{path}'.format(
             uri='ws://127.0.0.1',
             port=port,
@@ -141,9 +142,12 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self._record_activity()
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
-            # We wanna websocket!
-            ws = WebSocketProxyHandler(*self._init_args, **self._init_kwargs)
-            return await ws.get(port, proxied_path)
+	        # We wanna websocket!
+            # jupyterhub/nbserverproxy@36b3214
+            self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
+            self.set_status(500)
+            #ws = WebSocketProxyHandler(*self._init_args, **self._init_kwargs)
+            #return await ws.get(port, proxied_path)
 
         body = self.request.body
         if not body:
@@ -190,8 +194,11 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             if response.body:
                 self.write(response.body)
 
-    # support all the methods that torando does by default!
+    # Support all the methods that torando does by default except for GET which
+    # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
+
     async def http_get(self, port, proxy_path=''):
+        '''Our non-websocket GET.'''
         return await self.proxy(port, proxy_path)
 
     def post(self, port, proxy_path=''):
@@ -367,4 +374,5 @@ def setup_handlers(web_app):
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
     ])
-#vim: set et ts=4 sw=4:
+
+#vim:set et ts=4 sw=4:
