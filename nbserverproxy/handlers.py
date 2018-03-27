@@ -90,14 +90,27 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             else:
                 self.write_message(message, binary=type(message) is bytes)
 
-        async def start_websocket_connection():
+        async def start_websocket_connection(subprotocols):
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
             self._record_activity()
-            self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
+            if len(subprotocols) > 0:
+                # If the client requested a subprotocol, we request it of the proxied service
+                self.log.info('Requesting subprotocols: {}'.format(subprotocols))
+                headers = httputil.HTTPHeaders(
+                    {'Sec-WebSocket-Protocol': ','.join(subprotocols)}
+                )
+                request = httpclient.HTTPRequest(
+                    url=client_uri, headers=headers
+                )
+            else:
+                request=client_uri
+            self.ws = await websocket.websocket_connect(request, on_message_callback=cb)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
-        ioloop.IOLoop.current().add_callback(start_websocket_connection)
+        subprotocols = self.request.headers.get_list("Sec-WebSocket-Protocol")
+        self.log.info('Client requested subprotocols on open: {}'.format(subprotocols))
+        ioloop.IOLoop.current().add_callback(start_websocket_connection, subprotocols)
 
     def on_message(self, message):
         """
@@ -142,12 +155,10 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self._record_activity()
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
-	        # We wanna websocket!
+            # We wanna websocket!
             # jupyterhub/nbserverproxy@36b3214
             self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
             self.set_status(500)
-            #ws = WebSocketProxyHandler(*self._init_args, **self._init_kwargs)
-            #return await ws.get(port, proxied_path)
 
         body = self.request.body
         if not body:
@@ -190,7 +201,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
-
             if response.body:
                 self.write(response.body)
 
@@ -227,6 +237,12 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         '''
         pass
 
+    def select_subprotocol(self, subprotocols):
+        '''Select a single Sec-WebSocket-Protocol during handshake.'''
+        if type(subprotocols) == list:
+            self.log.info('Client sent subprotocols: {}'.format(subprotocols))
+            return subprotocols[0]
+        return super().select_subprotocol(subprotocols)
 
 class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
