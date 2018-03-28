@@ -75,6 +75,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         )
         if self.request.query:
             client_uri += '?' + self.request.query
+        headers = self.request.headers
 
         def cb(message):
             """
@@ -90,27 +91,17 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             else:
                 self.write_message(message, binary=type(message) is bytes)
 
-        async def start_websocket_connection(subprotocols):
+        async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
+            for (k,v) in sorted(headers.get_all()):
+                self.log.info('%s: %s' % (k,v))
             self._record_activity()
-            if len(subprotocols) > 0:
-                # If the client requested a subprotocol, we request it of the proxied service
-                self.log.info('Requesting subprotocols: {}'.format(subprotocols))
-                headers = httputil.HTTPHeaders(
-                    {'Sec-WebSocket-Protocol': ','.join(subprotocols)}
-                )
-                request = httpclient.HTTPRequest(
-                    url=client_uri, headers=headers
-                )
-            else:
-                request=client_uri
+            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await websocket.websocket_connect(request, on_message_callback=cb)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
-        subprotocols = self.request.headers.get_list("Sec-WebSocket-Protocol")
-        self.log.info('Client requested subprotocols on open: {}'.format(subprotocols))
-        ioloop.IOLoop.current().add_callback(start_websocket_connection, subprotocols)
+        ioloop.IOLoop.current().add_callback(start_websocket_connection)
 
     def on_message(self, message):
         """
