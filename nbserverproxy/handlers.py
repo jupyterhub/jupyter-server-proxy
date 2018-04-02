@@ -75,6 +75,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         )
         if self.request.query:
             client_uri += '?' + self.request.query
+        headers = self.request.headers
 
         def cb(message):
             """
@@ -92,8 +93,11 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
+            for (k,v) in sorted(headers.get_all()):
+                self.log.info('%s: %s' % (k,v))
             self._record_activity()
-            self.ws = await websocket.websocket_connect(client_uri, on_message_callback=cb)
+            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
+            self.ws = await websocket.websocket_connect(request, on_message_callback=cb)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
@@ -142,12 +146,10 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self._record_activity()
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
-	        # We wanna websocket!
+            # We wanna websocket!
             # jupyterhub/nbserverproxy@36b3214
             self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
             self.set_status(500)
-            #ws = WebSocketProxyHandler(*self._init_args, **self._init_kwargs)
-            #return await ws.get(port, proxied_path)
 
         body = self.request.body
         if not body:
@@ -190,7 +192,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
-
             if response.body:
                 self.write(response.body)
 
@@ -227,6 +228,12 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         '''
         pass
 
+    def select_subprotocol(self, subprotocols):
+        '''Select a single Sec-WebSocket-Protocol during handshake.'''
+        if type(subprotocols) == list:
+            self.log.info('Client sent subprotocols: {}'.format(subprotocols))
+            return subprotocols[0]
+        return super().select_subprotocol(subprotocols)
 
 class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
