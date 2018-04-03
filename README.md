@@ -10,17 +10,18 @@ python -m http.server 8001
 The service is proxied off of `/proxy/` at https://address.of.notebook.server/user/theuser/proxy/8001.
 
 ## Installation
-Install via Conda:
+Install via pip:
+```
+pip install nbserverproxy
+```
+
+Or via conda:
 ```
 conda install -c conda-forge nbserverproxy
 ```
 
-or 
-
-Install from git repo:
-
+Then enable:
 ```
-pip install git+https://github.com/jupyterhub/nbserverproxy
 jupyter serverextension enable --py nbserverproxy
 ```
 
