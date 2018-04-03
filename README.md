@@ -10,6 +10,8 @@ python -m http.server 8001
 The service is proxied off of `/proxy/` at https://address.of.notebook.server/user/theuser/proxy/8001.
 
 ## Installation
+nbserverproxy requires python3.
+
 Install via pip:
 ```
 pip install nbserverproxy
