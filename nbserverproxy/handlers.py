@@ -401,4 +401,4 @@ def setup_handlers(web_app):
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
     ])
 
-#vim:set et ts=4 sw=4:
+# vim: set et ts=4 sw=4:
