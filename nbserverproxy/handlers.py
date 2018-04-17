@@ -111,6 +111,23 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         if hasattr(self, 'ws'):
             self.ws.write_message(message)
 
+    def on_ping(self, data):
+        """
+        Called when the client pings our websocket connection.
+
+        We proxy it to the backend.
+        """
+        self.log.info('on_ping: {}'.format(data))
+        self._record_activity()
+        if hasattr(self, 'ws'):
+            self.ws.ping(data)
+
+    def on_pong(self, data):
+        """
+        Called when we receive a ping back.
+        """
+        self.log.info('on_pong: {}'.format(data))
+
     def on_close(self):
         """
         Called when the client closes our websocket connection.
