@@ -58,7 +58,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
 
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
-    def open(self, port, proxied_path=''):
+    async def open(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
 
@@ -333,6 +333,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         if not path.startswith('/'):
             path = '/' + path
 
+        await self.conditional_start()
+
+        return await super().proxy(self.port, path)
+
+    async def conditional_start(self):
         if 'starting' in self.state:
             self.log.info('{} already starting, waiting for it to start...'.format(self.name))
             for i in range(5):
@@ -350,13 +355,12 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 self.log.info('No existing {} found'.format(self.name))
                 await self.start_process()
 
-        return await super().proxy(self.port, path)
-
     async def http_get(self, path):
         return await self.proxy(self.port, path)
 
-    def open(self, path):
-        return super().open(self.port, path)
+    async def open(self, path):
+        await self.conditional_start()
+        return await super().open(self.port, path)
 
     def post(self, path):
         return self.proxy(self.port, path)
