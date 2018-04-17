@@ -93,8 +93,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
-            for (k,v) in sorted(headers.get_all()):
-                self.log.info('%s: %s' % (k,v))
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await websocket.websocket_connect(request, on_message_callback=cb)
