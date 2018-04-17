@@ -58,7 +58,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
 
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
-    def open(self, port, proxied_path=''):
+    async def open(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
 
@@ -93,8 +93,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
-            for (k,v) in sorted(headers.get_all()):
-                self.log.info('%s: %s' % (k,v))
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await websocket.websocket_connect(request, on_message_callback=cb)
@@ -112,6 +110,23 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self._record_activity()
         if hasattr(self, 'ws'):
             self.ws.write_message(message)
+
+    def on_ping(self, data):
+        """
+        Called when the client pings our websocket connection.
+
+        We proxy it to the backend.
+        """
+        self.log.info('on_ping: {}'.format(data))
+        self._record_activity()
+        if hasattr(self, 'ws'):
+            self.ws.ping(data)
+
+    def on_pong(self, data):
+        """
+        Called when we receive a ping back.
+        """
+        self.log.info('on_pong: {}'.format(data))
 
     def on_close(self):
         """
@@ -333,6 +348,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         if not path.startswith('/'):
             path = '/' + path
 
+        await self.conditional_start()
+
+        return await super().proxy(self.port, path)
+
+    async def conditional_start(self):
         if 'starting' in self.state:
             self.log.info('{} already starting, waiting for it to start...'.format(self.name))
             for i in range(5):
@@ -350,13 +370,12 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 self.log.info('No existing {} found'.format(self.name))
                 await self.start_process()
 
-        return await super().proxy(self.port, path)
-
     async def http_get(self, path):
         return await self.proxy(self.port, path)
 
-    def open(self, path):
-        return super().open(self.port, path)
+    async def open(self, path):
+        await self.conditional_start()
+        return await super().open(self.port, path)
 
     def post(self, path):
         return self.proxy(self.port, path)
@@ -382,4 +401,4 @@ def setup_handlers(web_app):
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
     ])
 
-#vim:set et ts=4 sw=4:
+# vim: set et ts=4 sw=4:
