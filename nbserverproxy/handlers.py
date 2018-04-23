@@ -120,7 +120,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self.log.info('on_ping: {}'.format(data))
         self._record_activity()
         if hasattr(self, 'ws'):
-            self.ws.ping(data)
+            self.ws.protocol.write_ping(data)
 
     def on_pong(self, data):
         """
