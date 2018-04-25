@@ -283,9 +283,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
         try:
             await client.fetch(req)
-            self.log.debug('Got positive response from proxied', self.name)
+            self.log.debug('Got positive response from {}'.format(self.name))
         except:
-            self.log.debug('Got negative response from proxied', self.name)
+            self.log.debug('Got negative response from {}'.format(self.name))
             return False
 
         return True
