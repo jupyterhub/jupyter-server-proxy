@@ -5,6 +5,7 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 """
 from datetime import datetime
 import inspect
+import logging
 import socket
 import os
 from urllib.parse import urlunparse, urlparse
@@ -25,6 +26,7 @@ class AddSlashHandler(IPythonHandler):
 
 class PingableWSClientConnection(websocket.WebSocketClientConnection):
     """A WebSocketClientConnection with an on_ping callback."""
+    log = logging.getLogger()
     def __init__(self, *args, **kwargs):
         if 'on_ping_callback' in kwargs:
             self._on_ping_callback = kwargs['on_ping_callback']
