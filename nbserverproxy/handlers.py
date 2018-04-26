@@ -5,7 +5,6 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 """
 from datetime import datetime
 import inspect
-import logging
 import socket
 import os
 from urllib.parse import urlunparse, urlparse
@@ -24,9 +23,9 @@ class AddSlashHandler(IPythonHandler):
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
 
+
 class PingableWSClientConnection(websocket.WebSocketClientConnection):
     """A WebSocketClientConnection with an on_ping callback."""
-    log = logging.getLogger()
     def __init__(self, *args, **kwargs):
         if 'on_ping_callback' in kwargs:
             self._on_ping_callback = kwargs['on_ping_callback']
@@ -34,7 +33,6 @@ class PingableWSClientConnection(websocket.WebSocketClientConnection):
         super().__init__(*args, **kwargs)
 
     def on_ping(self, data):
-        self.log.info('pwscc: on_ping')
         if self._on_ping_callback:
             self._on_ping_callback(data)
 
@@ -170,7 +168,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         We proxy it to the backend.
         """
-        self.log.info('on_ping: {}'.format(data))
+        self.log.debug('nbserverproxy: on_ping: {}'.format(data))
         self._record_activity()
         if hasattr(self, 'ws'):
             self.ws.protocol.write_ping(data)
@@ -179,7 +177,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         Called when we receive a ping back.
         """
-        self.log.info('on_pong: {}'.format(data))
+        self.log.debug('nbserverproxy: on_pong: {}'.format(data))
 
     def on_close(self):
         """
