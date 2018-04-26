@@ -23,6 +23,47 @@ class AddSlashHandler(IPythonHandler):
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
 
+
+class PingableWSClientConnection(websocket.WebSocketClientConnection):
+    """A WebSocketClientConnection with an on_ping callback."""
+    def __init__(self, *args, **kwargs):
+        if 'on_ping_callback' in kwargs:
+            self._on_ping_callback = kwargs['on_ping_callback']
+            del(kwargs['on_ping_callback'])
+        super().__init__(*args, **kwargs)
+
+    def on_ping(self, data):
+        if self._on_ping_callback:
+            self._on_ping_callback(data)
+
+
+def pingable_ws_connect(request, callback=None, connect_timeout=None,
+                      on_message_callback=None, on_ping_callback=None,
+                      compression_options=None, ping_interval=None,
+                      ping_timeout=None, max_message_size=None):
+    """
+    A variation on websocket_connect that returns a PingableWSClientConnection
+    with on_ping_callback.
+    """
+    assert connect_timeout is None
+
+    # Copy and convert the headers dict/object (see comments in
+    # AsyncHTTPClient.fetch)
+    request.headers = httputil.HTTPHeaders(request.headers)
+
+    request = httpclient._RequestProxy(
+        request, httpclient.HTTPRequest._DEFAULTS)
+    conn = PingableWSClientConnection(request,
+                 on_message_callback=on_message_callback,
+                 on_ping_callback=on_ping_callback,
+                 compression_options=compression_options,
+                 ping_interval=ping_interval,
+                 ping_timeout=ping_timeout,
+                 max_message_size=max_message_size)
+    if callback is not None:
+        IOLoop.current().add_future(conn.connect_future, callback)
+    return conn.connect_future
+
 # from https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
 class WebSocketHandlerMixin(websocket.WebSocketHandler):
     def __init__(self, *args, **kwargs):
@@ -77,7 +118,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             client_uri += '?' + self.request.query
         headers = self.request.headers
 
-        def cb(message):
+        def message_cb(message):
             """
             Callback when the backend sends messages to us
 
@@ -91,11 +132,21 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             else:
                 self.write_message(message, binary=type(message) is bytes)
 
+        def ping_cb(data):
+            """
+            Callback when the backend sends pings to us.
+
+            We just pass it back to the frontend.
+            """
+            self._record_activity()
+            self.ping(data)
+
         async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
-            self.ws = await websocket.websocket_connect(request, on_message_callback=cb)
+            self.ws = await pingable_ws_connect(request,
+                on_message_callback=message_cb, on_ping_callback=ping_cb)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
@@ -117,16 +168,16 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         We proxy it to the backend.
         """
-        self.log.info('on_ping: {}'.format(data))
+        self.log.debug('nbserverproxy: on_ping: {}'.format(data))
         self._record_activity()
         if hasattr(self, 'ws'):
-            self.ws.ping(data)
+            self.ws.protocol.write_ping(data)
 
     def on_pong(self, data):
         """
         Called when we receive a ping back.
         """
-        self.log.info('on_pong: {}'.format(data))
+        self.log.debug('nbserverproxy: on_pong: {}'.format(data))
 
     def on_close(self):
         """
@@ -283,9 +334,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
         try:
             await client.fetch(req)
-            self.log.debug('Got positive response from proxied', self.name)
+            self.log.debug('Got positive response from {}'.format(self.name))
         except:
-            self.log.debug('Got negative response from proxied', self.name)
+            self.log.debug('Got negative response from {}'.format(self.name))
             return False
 
         return True
