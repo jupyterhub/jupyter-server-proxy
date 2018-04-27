@@ -9,7 +9,7 @@ import socket
 import os
 from urllib.parse import urlunparse, urlparse
 
-from tornado import gen, web, httpclient, httputil, process, websocket, ioloop
+from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
@@ -26,42 +26,33 @@ class AddSlashHandler(IPythonHandler):
 
 class PingableWSClientConnection(websocket.WebSocketClientConnection):
     """A WebSocketClientConnection with an on_ping callback."""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         if 'on_ping_callback' in kwargs:
             self._on_ping_callback = kwargs['on_ping_callback']
             del(kwargs['on_ping_callback'])
-        super().__init__(*args, **kwargs)
+        # for tornado 4.5.x compatibility
+        if version_info[0] == 4: kwargs['io_loop'] = None
+        super().__init__(**kwargs)
 
     def on_ping(self, data):
         if self._on_ping_callback:
             self._on_ping_callback(data)
 
 
-def pingable_ws_connect(request, callback=None, connect_timeout=None,
-                      on_message_callback=None, on_ping_callback=None,
-                      compression_options=None, ping_interval=None,
-                      ping_timeout=None, max_message_size=None):
+def pingable_ws_connect(request=None, on_message_callback=None,
+                        on_ping_callback=None):
     """
     A variation on websocket_connect that returns a PingableWSClientConnection
     with on_ping_callback.
     """
-    assert connect_timeout is None
-
     # Copy and convert the headers dict/object (see comments in
     # AsyncHTTPClient.fetch)
     request.headers = httputil.HTTPHeaders(request.headers)
-
     request = httpclient._RequestProxy(
         request, httpclient.HTTPRequest._DEFAULTS)
-    conn = PingableWSClientConnection(request,
+    conn = PingableWSClientConnection(request=request,
                  on_message_callback=on_message_callback,
-                 on_ping_callback=on_ping_callback,
-                 compression_options=compression_options,
-                 ping_interval=ping_interval,
-                 ping_timeout=ping_timeout,
-                 max_message_size=max_message_size)
-    if callback is not None:
-        IOLoop.current().add_future(conn.connect_future, callback)
+                 on_ping_callback=on_ping_callback)
     return conn.connect_future
 
 # from https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
@@ -145,7 +136,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
-            self.ws = await pingable_ws_connect(request,
+            self.ws = await pingable_ws_connect(request=request,
                 on_message_callback=message_cb, on_ping_callback=ping_cb)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
