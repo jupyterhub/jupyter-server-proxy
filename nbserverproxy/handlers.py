@@ -30,8 +30,6 @@ class PingableWSClientConnection(websocket.WebSocketClientConnection):
         if 'on_ping_callback' in kwargs:
             self._on_ping_callback = kwargs['on_ping_callback']
             del(kwargs['on_ping_callback'])
-        # for tornado 4.5.x compatibility
-        if version_info[0] == 4: kwargs['io_loop'] = None
         super().__init__(**kwargs)
 
     def on_ping(self, data):
@@ -50,9 +48,18 @@ def pingable_ws_connect(request=None, on_message_callback=None,
     request.headers = httputil.HTTPHeaders(request.headers)
     request = httpclient._RequestProxy(
         request, httpclient.HTTPRequest._DEFAULTS)
-    conn = PingableWSClientConnection(request=request,
-                 on_message_callback=on_message_callback,
-                 on_ping_callback=on_ping_callback)
+
+    # for tornado 4.5.x compatibility
+    if version_info[0] == 4:
+        conn = PingableWSClientConnection(io_loop=ioloop.IOLoop.current(),
+            request=request,
+            on_message_callback=on_message_callback,
+            on_ping_callback=on_ping_callback)
+    else:
+        conn = PingableWSClientConnection(request=request,
+            on_message_callback=on_message_callback,
+            on_ping_callback=on_ping_callback)
+
     return conn.connect_future
 
 # from https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
