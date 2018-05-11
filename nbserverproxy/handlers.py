@@ -3,6 +3,7 @@ Authenticated HTTP proxy for Jupyter Notebooks
 
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
+
 from datetime import datetime
 import inspect
 import socket
@@ -299,6 +300,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             return subprotocols[0]
         return super().select_subprotocol(subprotocols)
 
+
 class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
 
@@ -323,8 +325,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         '''Check if our proxied process is still running.'''
 
         # Check if the process is still around
-        if proc.proc.poll() == 0:
-            self.log.info('Poll failed for', self.name)
+        if proc.proc.poll() is not None:
+            self.log.info('Process exited: %s', self.name)
             return False
 
         client = httpclient.AsyncHTTPClient()
@@ -333,8 +335,15 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         try:
             await client.fetch(req)
             self.log.debug('Got positive response from {}'.format(self.name))
-        except:
-            self.log.debug('Got negative response from {}'.format(self.name))
+        except httpclient.HTTPError as e:
+            if e.response:
+                # server is up because it returned a response
+                return True
+            else:
+                self.log.debug('Got negative response from {}'.format(self.name))
+                return False
+        except Exception:
+            self.log.debug('Failed to connect to {}'.format(self.name))
             return False
 
         return True
@@ -373,7 +382,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             Callback when the process dies
             """
             self.log.info('{} died with code {}'.format(self.name, code))
-            del self.state['proc']
+            self.state.pop('proc', None)
             if code != 0 and not 'starting' in self.state:
                 ioloop.IOLoop.current().add_callback(self.start_process)
 
@@ -382,15 +391,19 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         proc = process.Subprocess(cmd, env=server_env, cwd=self.get_cwd())
         proc.set_exit_callback(exit_callback)
 
-        for i in range(5):
+        for i in range(8):
             if (await self.is_running(proc)):
                 self.log.info('{} startup complete'.format(self.name))
                 break
             # Simple exponential backoff
-            wait_time = max(1.4 ** i, 5)
-            self.log.debug('Waiting {} before checking if {} is up'.format(wait_time, self.name))
+            wait_time = 1.4 ** i
+            self.log.debug('Waiting {} seconds before checking if {} is up'.format(wait_time, self.name))
             await gen.sleep(wait_time)
         else:
+            # clear starting state for failed start
+            self.state.pop('starting', None)
+            # terminate process
+            proc.terminate()
             raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
 
         # add proc to state only after we are sure it has started
