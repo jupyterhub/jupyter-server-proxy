@@ -339,12 +339,18 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
         return True
 
+    def get_cwd(self):
+        """Get the current working directory for our process
+
+        Override in subclass to launch the process in a directory
+        other than the current.
+        """
+        return os.getcwd()
 
     def get_env(self):
         '''Set up extra environment variables for process. Typically
            overridden in subclasses.'''
         return {}
-
 
     async def start_process(self):
         """
@@ -372,8 +378,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 ioloop.IOLoop.current().add_callback(self.start_process)
 
         # Runs process in background
-        proc = process.Subprocess(cmd, env=server_env)
         self.log.info('Starting process...')
+        proc = process.Subprocess(cmd, env=server_env, cwd=self.get_cwd())
         proc.set_exit_callback(exit_callback)
 
         for i in range(5):
