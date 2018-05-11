@@ -385,16 +385,18 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         self.log.info('Starting process...')
         proc.set_exit_callback(exit_callback)
 
-        for i in range(5):
+        for i in range(8):
             if (await self.is_running(proc)):
                 self.log.info('{} startup complete'.format(self.name))
                 break
             # Simple exponential backoff
-            wait_time = max(1.4 ** i, 5)
-            self.log.debug('Waiting {} before checking if {} is up'.format(wait_time, self.name))
+            wait_time = 1.4 ** i
+            self.log.debug('Waiting {} seconds before checking if {} is up'.format(wait_time, self.name))
             await gen.sleep(wait_time)
         else:
+            # clear starting state for failed start
             self.state.pop('starting', None)
+            # terminate process
             proc.terminate()
             raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
 
