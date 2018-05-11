@@ -385,7 +385,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             self.log.debug('Waiting {} before checking if {} is up'.format(wait_time, self.name))
             await gen.sleep(wait_time)
         else:
-            raise web.HTTPError('could not start {} in time'.format(self.name), status_code=500)
+            raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
 
         # add proc to state only after we are sure it has started
         self.state['proc'] = proc
@@ -413,7 +413,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 self.log.debug('Waiting {} before checking if process is up'.format(wait_time))
                 await gen.sleep(wait_time)
             else:
-                raise web.HTTPError('{} did not start in time'.format(self.name), status_code=500)
+                raise web.HTTPError(500, '{} did not start in time'.format(self.name))
         else:
             if 'proc' not in self.state:
                 self.log.info('No existing {} found'.format(self.name))
