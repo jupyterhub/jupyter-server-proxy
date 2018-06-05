@@ -93,12 +93,11 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
     async def get(self, *args, **kwargs):
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
-        # super get is not async
-        super().get(*args, **kwargs)
+        return await self.ws_get(*args, **kwargs)
 
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
-    async def open(self, port, proxied_path=''):
+    async def ws_get(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
 
@@ -144,12 +143,18 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
-            self.ws = await pingable_ws_connect(request=request,
-                on_message_callback=message_cb, on_ping_callback=ping_cb)
-            self._record_activity()
-            self.log.info('Websocket connection established to {}'.format(client_uri))
+            try:
+                self.ws = await pingable_ws_connect(request=request,
+                    on_message_callback=message_cb, on_ping_callback=ping_cb)
+            except Exception:
+                self.set_status(400)
+            else:
+                self._record_activity()
+                self.log.info('Websocket connection established to {}'.format(client_uri))
+                # super get is not async
+                super(WebSocketHandlerMixin, self).get(port, proxied_path)
 
-        ioloop.IOLoop.current().add_callback(start_websocket_connection)
+        return await start_websocket_connection()
 
     def on_message(self, message):
         """
