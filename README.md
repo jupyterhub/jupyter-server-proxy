@@ -19,21 +19,15 @@ Note that rstudio server is needed to work with this extension.
 ### Install nbrsessionproxy 
 Install the library:
 ```
-pip install git+https://github.com/jupyterhub/nbrsessionproxy
+pip install nbrsessionproxy
 ```
 or
 ```
 conda install -c conda-forge nbrsessionproxy
 ```
 
-Either install the extensions for the user:
-```
-jupyter serverextension enable  --py nbrsessionproxy
-jupyter nbextension     install --py nbrsessionproxy
-jupyter nbextension     enable  --py nbrsessionproxy
-```
+If installing via pip, you need to enable the extension.
 
-Or install the extensions for all users on the system:
 ```
 jupyter serverextension enable  --py --sys-prefix nbrsessionproxy
 jupyter nbextension     install --py --sys-prefix nbrsessionproxy
