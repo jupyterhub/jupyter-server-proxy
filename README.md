@@ -37,8 +37,8 @@ jupyter nbextension     enable  --py --sys-prefix nbrsessionproxy
 For JupyterLab first clone this repository to a known location and
 install from the directory.
 ```
-git clone https://github.com/jupyterhub/nbserverproxy /opt/nbserverproxy
-pip install -e /opt/nbserverproxy
+git clone https://github.com/jupyterhub/nbserverproxy /opt/nbrsessionproxy
+pip install -e /opt/nbrsessionproxy
 jupyter serverextension enable --py nbrsessionproxy
 jupyter labextension link /opt/nbrsessionproxy/jupyterlab-rsessionproxy
 ```
