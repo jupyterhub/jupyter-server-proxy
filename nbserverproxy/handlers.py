@@ -59,7 +59,8 @@ def pingable_ws_connect(request=None, on_message_callback=None,
     else:
         conn = PingableWSClientConnection(request=request,
             on_message_callback=on_message_callback,
-            on_ping_callback=on_ping_callback)
+            on_ping_callback=on_ping_callback,
+            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024))
 
     return conn.connect_future
 
@@ -295,7 +296,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
     def select_subprotocol(self, subprotocols):
         '''Select a single Sec-WebSocket-Protocol during handshake.'''
-        if type(subprotocols) == list:
+        if isinstance(subprotocols, list) and subprotocols:
             self.log.info('Client sent subprotocols: {}'.format(subprotocols))
             return subprotocols[0]
         return super().select_subprotocol(subprotocols)
