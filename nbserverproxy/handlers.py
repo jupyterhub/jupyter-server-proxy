@@ -473,7 +473,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 def setup_handlers(web_app):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(?:([a-z0-9]+(?:[\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})/)?(\d+)(.*)'), LocalProxyHandler)
     ])
 
 # vim: set et ts=4 sw=4:
