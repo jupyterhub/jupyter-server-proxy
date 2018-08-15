@@ -99,7 +99,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
 
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
-    async def open(self, host='localhost', port, proxied_path=''):
+    async def open(self, host, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
 
@@ -108,6 +108,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
+
+        if not host:
+            host = 'localhost'
 
         client_uri = 'ws://{host}:{port}{path}'.format(
             host=host,
@@ -198,7 +201,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
 
     @web.authenticated
-    async def proxy(self, host='localhost', port, proxied_path):
+    async def proxy(self, host, port, proxied_path):
         '''
         While self.request.uri is
             (hub)    /user/username/proxy/([0-9]+)/something.
@@ -223,6 +226,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
                 body = b''
             else:
                 body = None
+
+        if not host:
+            host = 'localhost'
 
         client_uri = 'http://{host}:{port}{path}'.format(
             host=host,
@@ -467,7 +473,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 def setup_handlers(web_app):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(?:([a-z0-9]+(?:[\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})/)?(\d+)(.*)'), LocalProxyHandler)
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
     ])
 
 # vim: set et ts=4 sw=4:
