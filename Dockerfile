@@ -7,6 +7,8 @@ RUN apt-get update && \
 		libapparmor1 \
 		libedit2 \
 		lsb-release \
+		psmisc \
+		libssl1.0.0 \
 		;
 
 # You can use rsession from rstudio's desktop package as well.
