@@ -7,7 +7,9 @@ A user starts a web service via `New > Terminal`:
 echo "hello world" > index.html
 python -m http.server 8001
 ```
-The service is proxied off of `/proxy/` at https://address.of.notebook.server/user/theuser/proxy/8001.
+The service is proxied off to `/proxy/` and can be reached at
+* https://address.of.notebook.server/user/theuser/proxy/8001 when running inside a JupyterHub
+* http://localhost:8888/proxy/8001 when running locally
 
 ## Installation
 nbserverproxy requires python3.
