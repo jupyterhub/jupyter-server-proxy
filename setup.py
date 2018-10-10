@@ -10,6 +10,7 @@ setuptools.setup(
     description="Jupyter server extension to proxy web services",
     packages=setuptools.find_packages(),
     install_requires=['notebook'],
+    python_requires='>=3.5',
     classifiers=[
         'Framework :: Jupyter',
     ]
