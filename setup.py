@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="nbserverproxy",
-    version='0.8.3',
+    version='0.8.4',
     url="https://github.com/jupyterhub/nbserverproxy",
     author="Ryan Lovett & Yuvi Panda",
     author_email="rylo@berkeley.edu",
