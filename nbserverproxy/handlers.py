@@ -130,7 +130,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             if message is None:
                 self.close()
             else:
-                self.write_message(message, binary=type(message) is bytes)
+                self.write_message(message, binary=isinstance(message, bytes))
 
         def ping_cb(data):
             """
@@ -160,7 +160,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         self._record_activity()
         if hasattr(self, 'ws'):
-            self.ws.write_message(message)
+            self.ws.write_message(message, binary=isinstance(message, bytes))
 
     def on_ping(self, data):
         """
