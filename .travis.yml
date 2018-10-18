@@ -1,3 +1,14 @@
+language: python
+python:
+- 3.6
+
+branches:
+  only:
+    - master
+
+script:
+  - true
+
 deploy:
   provider: pypi
   user: nbserverproxy
@@ -5,4 +16,5 @@ deploy:
     secure: R06qgVAIrQ9u4D/Z7aiELMGddZypeorBFZ5sj/u0IrrGmrxGekxgV1NtWTzuTBKDHrnBKewNQTKyrwrcdDeU09Q4RgbyBmctX7u1UUQQdLSYfpbIh30SshuP57EiqGOo4wPXHOzBDtQg0SWtTVWqJAogymT0s7m3MOcFzbbVCReIX1uMFiG6X7TWKMB72WFN65rEtDa/Myq4hMvKOgcf+MWGnZzqNdaKFs+BHxfEc7MsJB6NooxQchiBqs0nJ3rfLAKblIPVdRx9ErpaUR0Z+VBuML8Hs0KCJyKh+H9POEBonPp+cVN/sOmFy39tESKhKJ5KNjfBxr/1GS9de8HeFwxwbz4/BVmbCzpXdNpRTD08JUGhia2xda4L8I/wNWGuj/SC0Y80tJ2FmauPrF9eL0AE1VGfwhCoXa4LFClBrzKyFsld0Gr4+mekxBvYrPtswPuTd1hGhhjui0DH62QxRIdQvWT7wWMzvxSH1dROQAu2OhzLKH8v/S/UnstT74wqEmPldH0R5zDVM75viKPpijv4USt0XwjgUwdIPlO1rDK/aRBIqyEb2eAI9U3f0zhGi4PImLlc9hSfXmYLT1TOgU7X/A+I1eBuMBSwg5poZICELCcEYod9wKXP3Xx91hoAksWnFAwUA9yoeu5Tmx7cSXbruIbws8EZRCeeB/ROHRU=
   on:
     tags: true
+    repo: jupyterhub/nbserverproxy
   distributions: sdist bdist_wheel
