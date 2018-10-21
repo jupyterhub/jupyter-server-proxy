@@ -4,7 +4,6 @@ Authenticated HTTP proxy for Jupyter Notebooks
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
 
-from datetime import datetime
 import inspect
 import socket
 import os
@@ -13,7 +12,7 @@ from urllib.parse import urlunparse, urlparse
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
 from notebook.utils import url_path_join
-from notebook.base.handlers import IPythonHandler
+from notebook.base.handlers import IPythonHandler, utcnow
 
 
 class AddSlashHandler(IPythonHandler):
@@ -194,7 +193,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         avoids proxied traffic being ignored by the notebook's
         internal idle-shutdown mechanism
         """
-        self.settings['api_last_activity'] = datetime.utcnow()
+        self.settings['api_last_activity'] = utcnow()
 
 
     @web.authenticated
