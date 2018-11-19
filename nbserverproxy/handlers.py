@@ -235,7 +235,8 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
-            headers=self.request.headers, follow_redirects=False)
+            headers=self.request.headers,
+            **self.proxy_request_options())
 
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
@@ -259,6 +260,11 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
             if response.body:
                 self.write(response.body)
+
+    def proxy_request_options(self):
+        '''A dictionary of options to be used when constructing
+        a tornado.httpclient.HTTPRequest instance for the proxy request.'''
+        return dict(follow_redirects=False)
 
     # Support all the methods that torando does by default except for GET which
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
