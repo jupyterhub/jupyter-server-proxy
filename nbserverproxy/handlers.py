@@ -233,9 +233,11 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         client = httpclient.AsyncHTTPClient()
 
+        headers = self.proxy_request_headers()
+
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
-            headers=self.request.headers,
+            headers=headers,
             **self.proxy_request_options())
 
         response = await client.fetch(req, raise_error=False)
@@ -260,6 +262,11 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
             if response.body:
                 self.write(response.body)
+
+    def proxy_request_headers(self):
+        '''A dictionary of headers to be used when constructing
+        a tornado.httpclient.HTTPRequest instance for the proxy request.'''
+        return self.request.headers.copy()
 
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
