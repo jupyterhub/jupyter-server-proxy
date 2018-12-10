@@ -1,0 +1,14 @@
+language: python
+python:
+- 3.5
+script:
+- true
+deploy:
+  provider: pypi
+  user: nbrsessionproxy
+  password:
+    secure: JilUEN99KU/dZbBtStWLvJ7EdU6gud8/9C58ZhA2p8B7XgGF0GRG9/Sved9wxab1J5AL1GiweazxSn7WJVleBelNaKRmImVyukHcPIw5hS01+eE1KAWMcimPPB3Mp5JxfmupO2vaWJu5C2Lp5VM5MLuRHtxLTqYNW2qUNOmh0fpNrUIF+ATRKaDXaGE5o68FB/UZ9J91FoTK2GUcFFjmTwC4qz10udfHDMTE0YzsgyDBiX8RdeGdDzVLSP2kjdm0k/zORNhTPnzDhUX9wLAaZh5pRxYrS2Wy0C2u55CvcV/YxZiSOq9FY6Eblm8SJSOl+kaQw8sj20J7DFIwVKBpimTa/k2Byh8JrjeCO3wyZ/UfPycmRC73V5nxRBrDcOvr83j8SYhOcD6/6OwN+dnkoYJYak2YGs8EM6d78cuZ5CEl6k0nPsdr6nd3thefBrOGYZN9AehnF9fHFRwAHzKvObfJ0UxB/uyh8VIvSRqYHVxgyBj6U1erXrhkjqWTVcAAvv9mjLnSQG7YePtmaYj3qPreZ5mAj9QaTO8XE1e6oiv+5MDrTXfK7kKocXNijs30+SQBk9M/euuaxzFcXrCe98hKIKMqzzNrC9S/NTQ/13WdgxQL6At/7Tcsxep+rqDHL9T7lsJ6t1ydvXMk4AnZQaA77FZQvq2RCDPmyktYmxI=
+  on:
+    tags: true
+    repo: jupyterhub/nbrsessionproxy
+  distributions: sdist bdist_wheel
