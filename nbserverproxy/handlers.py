@@ -239,7 +239,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         # headers to see if and where they are being proxied from. We set
         # them to be {base_url}/proxy/{port}.
         headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
-            url_path_join(self.base_url, 'proxy', port)
+            url_path_join(self.base_url, 'proxy', str(port))
 
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
@@ -262,7 +262,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
             for header, v in response.headers.get_all():
                 if header not in ('Content-Length', 'Transfer-Encoding',
-                    'Content-Encoding', 'Connection'):
+                                  'Content-Encoding', 'Connection'):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
@@ -481,6 +481,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def options(self, path):
         return self.proxy(self.port, path)
+
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
