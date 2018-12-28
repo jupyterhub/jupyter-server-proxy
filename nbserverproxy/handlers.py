@@ -9,6 +9,7 @@ import socket
 import os
 from urllib.parse import urlunparse, urlparse
 import aiohttp
+from asyncio import Lock
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
@@ -256,6 +257,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def initialize(self, state):
         self.state = state
+        if 'proc_lock' not in state:
+            state['proc_lock'] = Lock()
 
     name = 'process'
 
@@ -299,26 +302,35 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         """
         Start the process
         """
-        if 'proc' not in self.state:
-            # FIXME: Prevent races here
-            # FIXME: Handle graceful exits of spawned processes here
-            cmd = self.get_cmd()
-            server_env = os.environ.copy()
+        # We don't want multiple requests trying to start the process at the same time
+        # FIXME: Make sure this times out properly?
+        # Invariant here should be: when lock isn't being held, either 'proc' is in state &
+        # running, or not.
+        with (await self.state['proc_lock']):
+            if 'proc' not in self.state:
+                # FIXME: Prevent races here
+                # FIXME: Handle graceful exits of spawned processes here
+                cmd = self.get_cmd()
+                server_env = os.environ.copy()
 
-            # Set up extra environment variables for process
-            server_env.update(self.get_env())
+                # Set up extra environment variables for process
+                server_env.update(self.get_env())
 
-            proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, log=self.log)
-            self.state['proc'] = proc
+                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, log=self.log)
+                self.state['proc'] = proc
 
-            await proc.start()
+                try:
+                    await proc.start()
 
-            is_ready = await proc.ready()
+                    is_ready = await proc.ready()
 
-            if not is_ready:
-                await proc.kill()
-                del self.state['proc']
-                raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
+                    if not is_ready:
+                        await proc.kill()
+                        raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
+                except:
+                    # Make sure we remove proc from state in any error condition
+                    del self.state['proc']
+                    raise
 
 
     @web.authenticated
