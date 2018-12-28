@@ -14,6 +14,8 @@ from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler, utcnow
 
+from .websocket import WebSocketHandlerMixin, pingable_ws_connect
+
 
 class AddSlashHandler(IPythonHandler):
     """Add trailing slash to URLs that need them."""
@@ -22,80 +24,6 @@ class AddSlashHandler(IPythonHandler):
         src = urlparse(self.request.uri)
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
-
-
-class PingableWSClientConnection(websocket.WebSocketClientConnection):
-    """A WebSocketClientConnection with an on_ping callback."""
-    def __init__(self, **kwargs):
-        if 'on_ping_callback' in kwargs:
-            self._on_ping_callback = kwargs['on_ping_callback']
-            del(kwargs['on_ping_callback'])
-        super().__init__(**kwargs)
-
-    def on_ping(self, data):
-        if self._on_ping_callback:
-            self._on_ping_callback(data)
-
-
-def pingable_ws_connect(request=None, on_message_callback=None,
-                        on_ping_callback=None):
-    """
-    A variation on websocket_connect that returns a PingableWSClientConnection
-    with on_ping_callback.
-    """
-    # Copy and convert the headers dict/object (see comments in
-    # AsyncHTTPClient.fetch)
-    request.headers = httputil.HTTPHeaders(request.headers)
-    request = httpclient._RequestProxy(
-        request, httpclient.HTTPRequest._DEFAULTS)
-
-    # for tornado 4.5.x compatibility
-    if version_info[0] == 4:
-        conn = PingableWSClientConnection(io_loop=ioloop.IOLoop.current(),
-            request=request,
-            on_message_callback=on_message_callback,
-            on_ping_callback=on_ping_callback)
-    else:
-        conn = PingableWSClientConnection(request=request,
-            on_message_callback=on_message_callback,
-            on_ping_callback=on_ping_callback,
-            max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024))
-
-    return conn.connect_future
-
-# from https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
-class WebSocketHandlerMixin(websocket.WebSocketHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # since my parent doesn't keep calling the super() constructor,
-        # I need to do it myself
-        bases = inspect.getmro(type(self))
-        assert WebSocketHandlerMixin in bases
-        meindex = bases.index(WebSocketHandlerMixin)
-        try:
-            nextparent = bases[meindex + 1]
-        except IndexError:
-            raise Exception("WebSocketHandlerMixin should be followed "
-                            "by another parent to make sense")
-
-        # undisallow methods --- t.ws.WebSocketHandler disallows methods,
-        # we need to re-enable these methods
-        def wrapper(method):
-            def undisallow(*args2, **kwargs2):
-                getattr(nextparent, method)(self, *args2, **kwargs2)
-            return undisallow
-
-        for method in ["write", "redirect", "set_header", "set_cookie",
-                       "set_status", "flush", "finish"]:
-            setattr(self, method, wrapper(method))
-        nextparent.__init__(self, *args, **kwargs)
-
-    async def get(self, *args, **kwargs):
-        if self.request.headers.get("Upgrade", "").lower() != 'websocket':
-            return await self.http_get(*args, **kwargs)
-        # super get is not async
-        super().get(*args, **kwargs)
-
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     async def open(self, port, proxied_path=''):
@@ -320,6 +248,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         return super().select_subprotocol(subprotocols)
 
 
+# FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
 class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
 
@@ -481,7 +410,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def options(self, path):
         return self.proxy(self.port, path)
-
 
 def setup_handlers(web_app):
     host_pattern = '.*$'
