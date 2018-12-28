@@ -1,4 +1,4 @@
-from nbserverproxy.handlers import setup_handlers
+from .handlers import setup_handlers, SuperviseAndProxyHandler
 
 # Jupyter Extension points
 def _jupyter_server_extension_paths():
