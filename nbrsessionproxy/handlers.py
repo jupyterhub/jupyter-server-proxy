@@ -7,6 +7,7 @@ import tempfile
 from urllib.parse import urlunparse, urlparse
 
 from tornado import web
+import subprocess
 
 from notebook.utils import url_path_join as ujoin
 from notebook.base.handlers import IPythonHandler
@@ -22,6 +23,31 @@ class AddSlashHandler(IPythonHandler):
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
 
+def detectR():
+    '''Detect R's version, R_HOME, and various other directories that rsession
+    requires.
+
+    Via rstudio's src/cpp/core/r_util/REnvironmentPosix.cpp'''
+
+    cmd = ['R', '--slave', '--vanilla', '-e',
+            'cat(paste(R.home("home"),R.home("share"),R.home("include"),R.home("doc"),getRversion(),sep=":"))']
+
+    p = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode != 0:
+        raise Exception('Error detecting R')
+    R_HOME, R_SHARE_DIR, R_INCLUDE_DIR, R_DOC_DIR, version = \
+        p.stdout.decode().split(':')
+
+    return {
+        'R_DOC_DIR': R_DOC_DIR,
+        'R_HOME': R_HOME,
+        'R_INCLUDE_DIR': R_INCLUDE_DIR,
+        'R_SHARE_DIR': R_SHARE_DIR,
+        'RSTUDIO_DEFAULT_R_VERSION_HOME': R_HOME,
+        'RSTUDIO_DEFAULT_R_VERSION': version,
+    }
+
+
 
 class RSessionProxyHandler(SuperviseAndProxyHandler):
     '''Manage an RStudio rsession instance.'''
@@ -30,6 +56,11 @@ class RSessionProxyHandler(SuperviseAndProxyHandler):
 
     def get_env(self):
         env = {}
+        try:
+            r_vars = detectR()
+            env.update(r_vars)
+        except:
+            raise web.HTTPError(reason='could not detect R', status_code=500)
 
         # rserver needs USER to be set to something sensible,
         # otherwise it'll throw up an authentication page
@@ -41,7 +72,12 @@ class RSessionProxyHandler(SuperviseAndProxyHandler):
     def get_cmd(self):
         # rsession command. Augmented with user-identity and www-port.
         return [
-            'rserver',
+            'rsession',
+            '--standalone=1',
+            '--program-mode=server',
+            '--log-stderr=1',
+            '--session-timeout-minutes=0',
+            '--user-identity=' + getpass.getuser(),
             '--www-port=' + str(self.port)
         ]
 
