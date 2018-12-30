@@ -8,6 +8,8 @@ import inspect
 import socket
 import os
 from urllib.parse import urlunparse, urlparse
+import aiohttp
+from asyncio import Lock
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
@@ -15,6 +17,7 @@ from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler, utcnow
 
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
+from simpervisor import SupervisedProcess
 
 
 class AddSlashHandler(IPythonHandler):
@@ -254,6 +257,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def initialize(self, state):
         self.state = state
+        if 'proc_lock' not in state:
+            state['proc_lock'] = Lock()
 
     name = 'process'
 
@@ -269,33 +274,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             sock.close()
         return self.state['port']
 
-    async def is_running(self, proc):
-        '''Check if our proxied process is still running.'''
-
-        # Check if the process is still around
-        if proc.proc.poll() is not None:
-            self.log.info('Process exited: %s', self.name)
-            return False
-
-        client = httpclient.AsyncHTTPClient()
-        req = httpclient.HTTPRequest('http://localhost:{}'.format(self.port))
-
-        try:
-            await client.fetch(req)
-            self.log.debug('Got positive response from {}'.format(self.name))
-        except httpclient.HTTPError as e:
-            if e.response:
-                # server is up because it returned a response
-                return True
-            else:
-                self.log.debug('Got negative response from {}'.format(self.name))
-                return False
-        except Exception:
-            self.log.debug('Failed to connect to {}'.format(self.name))
-            return False
-
-        return True
-
     def get_cwd(self):
         """Get the current working directory for our process
 
@@ -309,88 +287,67 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
            overridden in subclasses.'''
         return {}
 
-    async def start_process(self):
+    async def _http_ready_func(self, p):
+        url = f'http://localhost:{self.port}'
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url) as resp:
+                    self.log.debug(f'Got code {resp.status} back from {url}')
+                    return resp.status == 200
+            except aiohttp.ClientConnectionError:
+                self.log.debug(f'Connection to {url} refused')
+                return False
+
+    async def ensure_process(self):
         """
         Start the process
         """
-        if 'starting' in self.state:
-            raise Exception("Process {} start already pending, can not start again".format(self.name))
-        if 'proc' in self.state:
-            raise Exception("Process {} already running, can not start".format(self.name))
-        self.state['starting'] = True
-        cmd = self.get_cmd()
+        # We don't want multiple requests trying to start the process at the same time
+        # FIXME: Make sure this times out properly?
+        # Invariant here should be: when lock isn't being held, either 'proc' is in state &
+        # running, or not.
+        with (await self.state['proc_lock']):
+            if 'proc' not in self.state:
+                # FIXME: Prevent races here
+                # FIXME: Handle graceful exits of spawned processes here
+                cmd = self.get_cmd()
+                server_env = os.environ.copy()
 
-        server_env = os.environ.copy()
+                # Set up extra environment variables for process
+                server_env.update(self.get_env())
 
-        # Set up extra environment variables for process
-        server_env.update(self.get_env())
+                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, log=self.log)
+                self.state['proc'] = proc
 
-        def exit_callback(code):
-            """
-            Callback when the process dies
-            """
-            self.log.info('{} died with code {}'.format(self.name, code))
-            self.state.pop('proc', None)
-            if code != 0 and not 'starting' in self.state:
-                ioloop.IOLoop.current().add_callback(self.start_process)
+                try:
+                    await proc.start()
 
-        # Runs process in background
-        self.log.info('Starting process...')
-        proc = process.Subprocess(cmd, env=server_env, cwd=self.get_cwd())
-        proc.set_exit_callback(exit_callback)
+                    is_ready = await proc.ready()
 
-        for i in range(8):
-            if (await self.is_running(proc)):
-                self.log.info('{} startup complete'.format(self.name))
-                break
-            # Simple exponential backoff
-            wait_time = 1.4 ** i
-            self.log.debug('Waiting {} seconds before checking if {} is up'.format(wait_time, self.name))
-            await gen.sleep(wait_time)
-        else:
-            # clear starting state for failed start
-            self.state.pop('starting', None)
-            # terminate process
-            proc.terminate()
-            raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
+                    if not is_ready:
+                        await proc.kill()
+                        raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
+                except:
+                    # Make sure we remove proc from state in any error condition
+                    del self.state['proc']
+                    raise
 
-        # add proc to state only after we are sure it has started
-        self.state['proc'] = proc
-
-        del self.state['starting']
 
     @web.authenticated
     async def proxy(self, port, path):
         if not path.startswith('/'):
             path = '/' + path
 
-        await self.conditional_start()
+        await self.ensure_process()
 
         return await super().proxy(self.port, path)
 
-    async def conditional_start(self):
-        if 'starting' in self.state:
-            self.log.info('{} already starting, waiting for it to start...'.format(self.name))
-            for i in range(5):
-                if 'proc' in self.state:
-                    self.log.info('{} startup complete'.format(self.name))
-                    break
-                # Simple exponential backoff
-                wait_time = max(1.4 ** i, 5)
-                self.log.debug('Waiting {} before checking if process is up'.format(wait_time))
-                await gen.sleep(wait_time)
-            else:
-                raise web.HTTPError(500, '{} did not start in time'.format(self.name))
-        else:
-            if 'proc' not in self.state:
-                self.log.info('No existing {} found'.format(self.name))
-                await self.start_process()
 
     async def http_get(self, path):
         return await self.proxy(self.port, path)
 
     async def open(self, path):
-        await self.conditional_start()
+        await self.ensure_process()
         return await super().open(self.port, path)
 
     def post(self, path):
