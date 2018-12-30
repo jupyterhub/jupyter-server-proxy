@@ -5,7 +5,66 @@ from notebook.utils import url_path_join as ujoin
 from traitlets import Float, Int, Dict
 from traitlets.config import Configurable
 from nbserverproxy.handlers import SuperviseAndProxyHandler, AddSlashHandler
+import pkg_resources
 
+
+def _make_serverproxy_handler(name, command, environment):
+    """
+    Create a SuperviseAndProxyHandler subclass with given parameters
+    """
+    # FIXME: Set 'name' properly
+    class _Proxy(SuperviseAndProxyHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.name = name
+
+        def _render_template(self, value):
+            args = {
+                'port': self.port
+            }
+            if type(value) is str:
+                return value.format(**args)
+            elif type(value) is list:
+                return [self._render_template(v) for v in value]
+            elif type(value) is dict:
+                return {
+                    self._render_template(k): self._render_template(v)
+                    for k, v in value.items()
+                }
+
+        def get_cmd(self):
+            return self._render_template(command)
+
+        def get_env(self):
+            return self._render_template(environment)
+
+    return _Proxy
+
+
+def get_entrypoint_proxy_servers():
+    proxy_servers = {}
+    for entry_point in pkg_resources.iter_entry_points('jupyter_serverproxy_servers'):
+        proxy_servers[entry_point.name] = entry_point.load()()
+    return proxy_servers
+
+def make_proxyserver_handlers(base_url, proxy_servers):
+    """
+    Get tornado handlers for registered proxy servers to app
+    """
+    handlers = []
+    for name, proxy_server in proxy_servers.items():
+        handler = _make_serverproxy_handler(
+            name,
+            proxy_server['command'],
+            proxy_server.get('environment', {})
+        )
+        handlers.append((
+            ujoin(base_url, f'{name}/(.*)'), handler, dict(state={}),
+        ))
+        handlers.append((
+            ujoin(base_url, name), AddSlashHandler
+        ))
+    return handlers
 
 class ServerProxy(Configurable):
     servers = Dict(
@@ -30,48 +89,3 @@ class ServerProxy(Configurable):
         config=True
     )
 
-    def _make_serverproxy_handler(self, name):
-        """
-        Create a Tornado handler class for server with this name
-        """
-        proxy_server = self.servers[name]
-
-        # FIXME: Set 'name' properly
-        class _Proxy(SuperviseAndProxyHandler):
-            def _render_template(self, value):
-                args = {
-                    'port': self.port
-                }
-                if type(value) is str:
-                    return value.format(**args)
-                elif type(value) is list:
-                    return [self._render_template(v) for v in value]
-                elif type(value) is dict:
-                    return {
-                        self._render_template(k): self._render_template(v)
-                        for k, v in value.items()
-                    }
-
-            def get_cmd(self):
-                return self._render_template(proxy_server['command'])
-            
-            def get_env(self):
-                return self._render_template(proxy_server.get('environment', {}))
-        
-        return _Proxy
-
-
-    def get_handlers(self, base_url):
-        """
-        Get tornado handlers for registered proxy servers to app
-        """
-        handlers = []
-        for name in self.servers:
-            handlers.append((
-                ujoin(base_url, f'{name}/(.*)'), self._make_serverproxy_handler(name), dict(state={}),
-            ))
-            self.log.debug(f'Adding handler for server {name}')
-            handlers.append((
-                ujoin(base_url, name), AddSlashHandler
-            ))
-        return handlers
