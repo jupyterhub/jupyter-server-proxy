@@ -14,4 +14,10 @@ setuptools.setup(
         'nbserverproxy >= 0.8.8'
     ],
     package_data={'nbrsessionproxy': ['static/*']},
+    entry_points={
+        'jupyter_serverproxy_servers': [
+            'rstudio = nbrsessionproxy:setup_rstudio',
+            'shiny = nbrsessionproxy:setup_shiny'
+        ]
+    }
 )
