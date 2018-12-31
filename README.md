@@ -49,5 +49,3 @@ The Dockerfile contains an example installation on top of [jupyter/r-notebook](h
 ### Multiuser Considerations
 
 This extension launches an rstudio server process from the jupyter notebook server. This is fine in JupyterHub deployments where user servers are containerized since other users cannot connect to the rstudio server port. In non-containerized JupyterHub deployments, for example on multiuser systems running LocalSpawner or BatchSpawner, this not secure. Any user may connect to rstudio server and run arbitrary code.
-
-Additionally, rstudio-server expects to write to `/tmp/rstudio-server/secure-cookie-key`, which means without separate mount namespaces for /tmp, only one user can run rstudio server at a time.
