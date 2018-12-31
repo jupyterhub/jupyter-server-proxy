@@ -31,7 +31,8 @@ def setup_shiny():
         return ['shiny-server', f.name]
 
     return {
-        'command': _get_shiny_cmd
+        'command': _get_shiny_cmd,
+        'title': 'Shiny'
     }
 
 def setup_rstudio():
@@ -64,5 +65,6 @@ def setup_rstudio():
             '--user-identity=' + getpass.getuser(),
             '--www-port={port}'
         ],
-        'environment': _get_rsession_env
+        'environment': _get_rsession_env,
+        'title': 'RStudio'
     }
