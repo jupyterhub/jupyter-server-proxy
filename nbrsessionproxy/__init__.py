@@ -35,23 +35,24 @@ def setup_shiny():
     }
 
 def setup_rstudio():
-    # Detect various environment variables rsession requires to run
-    # Via rstudio's src/cpp/core/r_util/REnvironmentPosix.cpp
-    cmd = ['R', '--slave', '--vanilla', '-e',
-            'cat(paste(R.home("home"),R.home("share"),R.home("include"),R.home("doc"),getRversion(),sep=":"))']
+    def _get_rsession_env(port):
+        # Detect various environment variables rsession requires to run
+        # Via rstudio's src/cpp/core/r_util/REnvironmentPosix.cpp
+        cmd = ['R', '--slave', '--vanilla', '-e',
+                'cat(paste(R.home("home"),R.home("share"),R.home("include"),R.home("doc"),getRversion(),sep=":"))']
 
-    r_output = subprocess.check_output(cmd)
-    R_HOME, R_SHARE_DIR, R_INCLUDE_DIR, R_DOC_DIR, version = \
-        r_output.decode().split(':')
+        r_output = subprocess.check_output(cmd)
+        R_HOME, R_SHARE_DIR, R_INCLUDE_DIR, R_DOC_DIR, version = \
+            r_output.decode().split(':')
 
-    environment = {
-        'R_DOC_DIR': R_DOC_DIR,
-        'R_HOME': R_HOME,
-        'R_INCLUDE_DIR': R_INCLUDE_DIR,
-        'R_SHARE_DIR': R_SHARE_DIR,
-        'RSTUDIO_DEFAULT_R_VERSION_HOME': R_HOME,
-        'RSTUDIO_DEFAULT_R_VERSION': version,
-    }
+        return {
+            'R_DOC_DIR': R_DOC_DIR,
+            'R_HOME': R_HOME,
+            'R_INCLUDE_DIR': R_INCLUDE_DIR,
+            'R_SHARE_DIR': R_SHARE_DIR,
+            'RSTUDIO_DEFAULT_R_VERSION_HOME': R_HOME,
+            'RSTUDIO_DEFAULT_R_VERSION': version,
+        }
 
     return {
         'command': [
@@ -63,5 +64,5 @@ def setup_rstudio():
             '--user-identity=' + getpass.getuser(),
             '--www-port={port}'
         ],
-        'environment': environment
+        'environment': _get_rsession_env
     }
