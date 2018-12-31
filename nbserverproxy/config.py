@@ -18,10 +18,14 @@ def _make_serverproxy_handler(name, command, environment):
             super().__init__(*args, **kwargs)
             self.name = name
 
-        def _render_template(self, value):
-            args = {
+        @property
+        def process_args(self):
+            return {
                 'port': self.port
             }
+
+        def _render_template(self, value):
+            args = self.process_args
             if type(value) is str:
                 return value.format(**args)
             elif type(value) is list:
@@ -33,7 +37,10 @@ def _make_serverproxy_handler(name, command, environment):
                 }
 
         def get_cmd(self):
-            return self._render_template(command)
+            if callable(command):
+                return self._render_template(command(**self.process_args))
+            else:
+                return self._render_template(command)
 
         def get_env(self):
             return self._render_template(environment)
@@ -79,6 +86,8 @@ class ServerProxy(Configurable):
           command
             A list of strings that should be the full command to be executed. If {{port}}  is
             present, it'll be substituted with the port the process should listen on.
+
+            Could also be a callable that takes a single argument - port.
 
           environment
             A dictionary of environment variable mappings. {{port}} will be replaced by the port
