@@ -2,7 +2,7 @@
 Traitlets based configuration for nbserverproxy
 """
 from notebook.utils import url_path_join as ujoin
-from traitlets import Float, Int, Dict
+from traitlets import Dict
 from traitlets.config import Configurable
 from nbserverproxy.handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
