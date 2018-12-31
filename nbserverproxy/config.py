@@ -43,7 +43,10 @@ def _make_serverproxy_handler(name, command, environment):
                 return self._render_template(command)
 
         def get_env(self):
-            return self._render_template(environment)
+            if callable(environment):
+                return self._render_template(environment(**self.process_args))
+            else:
+                return self._render_template(environment)
 
     return _Proxy
 
@@ -87,12 +90,16 @@ class ServerProxy(Configurable):
             A list of strings that should be the full command to be executed. If {{port}}  is
             present, it'll be substituted with the port the process should listen on.
 
-            Could also be a callable that takes a single argument - port.
+            Could also be a callable that takes a single argument - port. It should return
+            a dictionary.
 
           environment
             A dictionary of environment variable mappings. {{port}} will be replaced by the port
             the process should listen on. If not explicitly set, a PORT environment variable will
             automatically be set.
+
+            Could also be a callable that takes a single argument - port. It should return
+            a dictionary.
 
         """,
         config=True
