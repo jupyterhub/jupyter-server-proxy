@@ -1,7 +1,7 @@
 from .handlers import setup_handlers, SuperviseAndProxyHandler
 from nbserverproxy.config import ServerProxy, make_proxyserver_handlers, get_entrypoint_proxy_servers
 from notebook.utils import url_path_join as ujoin
-from nbserverproxy.api import LauncherEntriesHandler, LauncherEntry
+from nbserverproxy.api import ServersInfoHandler, LauncherEntry
 
 # Jupyter Extension points
 def _jupyter_server_extension_paths():
@@ -40,5 +40,5 @@ def load_jupyter_server_extension(nbapp):
         launcher_entries.append(LauncherEntry(name=name, title=server.get('title', name)))
 
     nbapp.web_app.add_handlers('.*', [
-        (ujoin(base_url, 'serverproxy/launcher-entries'), LauncherEntriesHandler, {'launcher_entries': launcher_entries})
+        (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'launcher_entries': launcher_entries})
     ])

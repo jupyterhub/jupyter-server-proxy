@@ -8,7 +8,7 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, Jupyter, ut
     function load() {
         if (!Jupyter.notebook_list) return;
 
-        var entries_url = base_url + 'serverproxy/launcher-entries' ;
+        var entries_url = base_url + 'server-proxy/servers-info' ;
         $.get(entries_url, function(data) {
             /* locate the right-side dropdown menu of apps and notebooks */
             var $menu = $('.tree-buttons').find('.dropdown-menu');
