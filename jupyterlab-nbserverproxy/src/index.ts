@@ -16,11 +16,12 @@ function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterLa
           window.open(launch_url, '_blank');
         }
       });
+      let iconUrl = PageConfig.getBaseUrl() + 'server-proxy/icon/' + entry.name;
       launcher.add({
         command: commandId,
         // This is the only way to get icon URLs in here
         category: 'Notebook',
-        kernelIconUrl: 'http://words.yuvi.in/profile.jpg'
+        kernelIconUrl: iconUrl
       })
     }
 }
