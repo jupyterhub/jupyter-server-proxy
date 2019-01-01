@@ -18,5 +18,6 @@ setuptools.setup(
             'rstudio = nbrsessionproxy:setup_rstudio',
             'shiny = nbrsessionproxy:setup_shiny'
         ]
-    }
+    },
+    include_package_data=True
 )
