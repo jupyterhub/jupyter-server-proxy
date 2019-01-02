@@ -98,7 +98,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         We proxy it to the backend.
         """
-        self.log.debug('nbserverproxy: on_ping: {}'.format(data))
+        self.log.debug('jupyter_server_proxy: on_ping: {}'.format(data))
         self._record_activity()
         if hasattr(self, 'ws'):
             self.ws.protocol.write_ping(data)
@@ -107,7 +107,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         Called when we receive a ping back.
         """
-        self.log.debug('nbserverproxy: on_pong: {}'.format(data))
+        self.log.debug('jupyter_server_proxy: on_pong: {}'.format(data))
 
     def on_close(self):
         """
@@ -143,7 +143,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         if self.request.headers.get("Upgrade", "").lower() == 'websocket':
             # We wanna websocket!
-            # jupyterhub/nbserverproxy@36b3214
+            # jupyterhub/jupyter-server-proxy@36b3214
             self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
             self.set_status(500)
 
