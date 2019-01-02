@@ -24,5 +24,6 @@ Contents
 .. toctree::
 
    install
-   arbitrary-ports
    server-process
+   launchers
+   arbitrary-ports
