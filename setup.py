@@ -21,5 +21,4 @@ setuptools.setup(
     package_data={
         'jupyter_rsession_proxy': ['icons/*'],
     },
-    include_package_data=True
 )
