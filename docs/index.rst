@@ -25,3 +25,4 @@ Contents
 
    install
    arbitrary-ports
+   server-process
