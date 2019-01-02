@@ -18,5 +18,8 @@ setuptools.setup(
             'shiny = jupyter_rsession_proxy:setup_shiny'
         ]
     },
+    package_data={
+        'jupyter_rsession_proxy': ['icons/*'],
+    },
     include_package_data=True
 )
