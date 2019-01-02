@@ -1,4 +1,5 @@
 import setuptools
+from glob import glob
 
 setuptools.setup(
     name="nbserverproxy",
@@ -13,5 +14,12 @@ setuptools.setup(
     python_requires='>=3.5',
     classifiers=[
         'Framework :: Jupyter',
-    ]
+    ],
+    data_files=[
+        ('share/jupyter/nbextensions/nbserverproxy', glob('nbserverproxy/static/*')),
+        ('etc/jupyter/jupyter_notebook_config.d', ['nbserverproxy/etc/serverextension.json']),
+        ('etc/jupyter/nbconfig/notebook.d', ['nbserverproxy/etc/nbextension.json'])
+    ],
+    include_package_data=True,
+    zip_safe=False
 )

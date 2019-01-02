@@ -1,0 +1,6 @@
+{
+  "load_extensions": {
+     "nbserverproxy/tree": true
+  }
+}
+
