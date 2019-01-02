@@ -1,5 +1,5 @@
 {
-  "name": "jupyterlab-nbserverproxy",
+  "name": "jupyterlab-server-proxy",
   "version": "0.1.0",
   "description": "Launcher icons for proxied applications",
   "keywords": [
@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/jupyterhub/nbserverproxy",
+  "homepage": "https://github.com/jupyterhub/jupyter-server-proxy",
   "bugs": {
-    "url": "https://github.com/jupyterhub/nbserverproxy/issues"
+    "url": "https://github.com/jupyterhub/jupyter-server-proxy/issues"
   },
   "license": "BSD-3-Clause",
   "author": "Yuvi Panda",
@@ -21,7 +21,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jupyterhub/nbserverproxy.git"
+    "url": "https://github.com/jupyterhub/jupyter-server-proxy.git"
   },
   "scripts": {
     "build": "tsc",

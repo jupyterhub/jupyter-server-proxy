@@ -1,20 +1,20 @@
 from .handlers import setup_handlers, SuperviseAndProxyHandler
-from nbserverproxy.config import ServerProxy, make_proxyserver_handlers, get_entrypoint_proxy_servers
+from .config import ServerProxy, make_proxyserver_handlers, get_entrypoint_proxy_servers
 from notebook.utils import url_path_join as ujoin
-from nbserverproxy.api import ServersInfoHandler, LauncherEntry, IconHandler
+from .api import ServersInfoHandler, LauncherEntry, IconHandler
 
 # Jupyter Extension points
 def _jupyter_server_extension_paths():
     return [{
-        'module': 'nbserverproxy',
+        'module': 'jupyter_server_proxy',
     }]
 
 def _jupyter_nbextension_paths():
     return [{
         "section": "tree",
-        "dest": "nbserverproxy",
+        "dest": "jupyter_server_proxy",
         'src': 'static',
-        "require": "nbserverproxy/tree"
+        "require": "jupyter_server_proxy/tree"
     }]
 
 

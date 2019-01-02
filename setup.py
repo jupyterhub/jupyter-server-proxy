@@ -2,13 +2,13 @@ import setuptools
 from glob import glob
 
 setuptools.setup(
-    name="nbserverproxy",
-    version='0.8.8',
-    url="https://github.com/jupyterhub/nbserverproxy",
+    name="jupyter-server-proxy",
+    version='1.0dev',
+    url="https://github.com/jupyterhub/jupyter-server-proxy",
     author="Ryan Lovett & Yuvi Panda",
     author_email="rylo@berkeley.edu",
     license="BSD 3-Clause",
-    description="Jupyter server extension to proxy web services",
+    description="Jupyter server extension to supervise and proxy web services",
     packages=setuptools.find_packages(),
     install_requires=['notebook', 'simpervisor', 'aiohttp'],
     python_requires='>=3.5',
@@ -16,9 +16,9 @@ setuptools.setup(
         'Framework :: Jupyter',
     ],
     data_files=[
-        ('share/jupyter/nbextensions/nbserverproxy', glob('nbserverproxy/static/*')),
-        ('etc/jupyter/jupyter_notebook_config.d', ['nbserverproxy/etc/serverextension.json']),
-        ('etc/jupyter/nbconfig/notebook.d', ['nbserverproxy/etc/nbextension.json'])
+        ('share/jupyter/nbextensions/jupyter-server-proxy', glob('jupyter_server_proxy/static/*')),
+        ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/serverextension.json']),
+        ('etc/jupyter/nbconfig/notebook.d', ['jupyter_server_proxy/etc/nbextension.json'])
     ],
     include_package_data=True,
     zip_safe=False

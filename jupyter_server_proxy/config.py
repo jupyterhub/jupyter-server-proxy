@@ -1,10 +1,10 @@
 """
-Traitlets based configuration for nbserverproxy
+Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
 from traitlets import Dict
 from traitlets.config import Configurable
-from nbserverproxy.handlers import SuperviseAndProxyHandler, AddSlashHandler
+from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 
 
