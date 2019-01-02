@@ -16,9 +16,9 @@ setuptools.setup(
         'Framework :: Jupyter',
     ],
     data_files=[
-        ('share/jupyter/nbextensions/jupyter-server-proxy', glob('jupyter_server_proxy/static/*')),
+        ('share/jupyter/nbextensions/jupyter_server_proxy', glob('jupyter_server_proxy/static/*')),
         ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/serverextension.json']),
-        ('etc/jupyter/nbconfig/notebook.d', ['jupyter_server_proxy/etc/nbextension.json'])
+        ('etc/jupyter/nbconfig/tree.d', ['jupyter_server_proxy/etc/nbextension.json'])
     ],
     include_package_data=True,
     zip_safe=False
