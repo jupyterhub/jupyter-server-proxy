@@ -74,9 +74,61 @@ if we want tighter control over what process is spawned.
           'command': ['refine', '-p', '{port}']
         }
       }
-   
+
    This will start `OpenRefine <http://openrefine.org/>`_ with the
    ``refine`` command (which must be in $PATH) on a randomly
    generated port, and make it available under ``/openrefine``
-   in your notebook url.
-   
+   in your notebook url. The URL path is specified by the key,
+   but this should be made more configurable in the future.
+
+Specifying config from python packages
+======================================
+
+It is often convenient to provide the Server Process configuration
+as a python package, so users can simply ``pip install`` it.
+This is possible, thanks to `the magic of entrypoints
+<https://amir.rachum.com/blog/2017/07/28/python-entry-points/>`_.
+
+We'll work through it by repeating the OpenRefine example from
+above.
+
+#. Create a python file named ``openrefine.py``
+
+   .. code:: python
+
+    def setup_openrefine():
+      return {
+        'command': ['refine', '-p', '{port}']
+      }
+
+   A simple function that returns a Server Process configuration
+   dictionary when called. This can return any kind of Server
+   Process configuration dictionary, and include functions easily.
+
+#. Make an appropriate ``setup.py``
+
+   .. code:: python
+
+      import setuptools
+
+      setuptools.setup(
+        name="jupyter-openrefine-server",
+        # py_modules rather than packages, since we only have 1 file
+        py_modules=['openrefine'],
+        entry_points={
+            'jupyter_serverproxy_servers': [
+                # name = packagename:function_name
+                'openrefine = openrefine:setup_openrefine',
+            ]
+        },
+      )
+
+   We make an entry for the ``jupyter_serverproxy_servers`` entrypoint.
+   When jupyter-server-proxy starts up, it goes through the list of
+   entrypoint entries from all installed packages & sets itself up
+   with all the Server Process configurations.
+
+#. You can now test this out with ``pip install .``, making sure you
+   are in the same environment as the jupyter notebook process. If you
+   go to ``<notebook-url>/openrefine`` (and have OpenRefine installed
+   and in ``$PATH``!), you should see an instance of OpenRefine!
