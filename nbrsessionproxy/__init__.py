@@ -31,7 +31,9 @@ def setup_shiny():
         return ['shiny-server', f.name]
 
     return {
-        'command': _get_shiny_cmd
+        'command': _get_shiny_cmd,
+        'title': 'Shiny',
+        'icon': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'shiny.svg')
     }
 
 def setup_rstudio():
@@ -64,5 +66,7 @@ def setup_rstudio():
             '--user-identity=' + getpass.getuser(),
             '--www-port={port}'
         ],
-        'environment': _get_rsession_env
+        'environment': _get_rsession_env,
+        'title': 'RStudio',
+        'icon': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'rstudio.svg')
     }
