@@ -58,11 +58,22 @@ def setup_rstudio():
         }
 
     def _get_rsession_cmd(port):
+        # Other paths rsession maybe in
+        other_paths = [
+            # When rstudio-server deb is installed
+            '/usr/lib/rstudio-server/bin/rsession',
+            # When just rstudio deb is installed
+            '/usr/lib/rstudio/bin/rsession',
+        ]
         if shutil.which('rsession'):
             executable = 'rsession'
         else:
-            # Default path for rsession if installed with the deb package
-            executable = '/usr/lib/rstudio-server/bin/rsession'
+            for op in other_paths:
+                if os.path.exists(op):
+                    executable = op
+                    break
+            else:
+                raise FileNotFoundError('Can not find rsession in PATH')
 
         return [
             executable,
