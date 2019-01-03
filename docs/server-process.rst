@@ -43,11 +43,22 @@ pairs.
    * A callable that takes on parameter - ``port``, and returns a dictionary
      of strings that are used & treated same as above.
 
-#. **icon**
+#. **launcher_entry**
 
-   Full path to an icon in SVG format that may be optionally used to
-   represent this server in UI.
+   A dictionary with options on if / how an entry in the classic Jupyter Notebook
+   'New' dropdown or the JupyterLab launcher should be added. It can contain
+   the following keys:
 
+   #. **enabled**
+      Set to True (default) to make an entry in the launchers. Set to False to have no
+      explicit entry.
+
+   #. **icon_path**
+      Full path to an svg icon that could be used with a launcher. Currently only used by the
+      JupyterLab launcher
+
+   #. **title**
+      Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
 Specifying config via traitlets
 ===============================
