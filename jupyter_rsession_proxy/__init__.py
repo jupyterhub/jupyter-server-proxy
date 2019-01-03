@@ -33,8 +33,10 @@ def setup_shiny():
 
     return {
         'command': _get_shiny_cmd,
-        'title': 'Shiny',
-        'icon': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'shiny.svg')
+        'launcher_entry': {
+            'title': 'Shiny',
+            'icon_path': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'shiny.svg')
+        }
     }
 
 def setup_rstudio():
@@ -88,6 +90,8 @@ def setup_rstudio():
     return {
         'command': _get_rsession_cmd,
         'environment': _get_rsession_env,
-        'title': 'RStudio',
-        'icon': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'rstudio.svg')
+        'launcher_entry': {
+            'title': 'RStudio',
+            'icon_path': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'rstudio.svg')
+        }
     }
