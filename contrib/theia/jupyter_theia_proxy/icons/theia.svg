@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+/********************************************************************************
+ * Copyright (C) 2018 TypeFox and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * This Source Code may also be made available under the following Secondary
+ * Licenses when the conditions for such availability set forth in the Eclipse
+ * Public License v. 2.0 are satisfied: GNU General Public License, version 2
+ * with the GNU Classpath Exception which is available at
+ * https://www.gnu.org/software/classpath/license.html.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+ ********************************************************************************/
+-->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0"
+   y="0"
+   preserveAspectRatio="xMinYMin meet"
+   viewBox="0 0 1150 1150.0001"
+   id="svg11"
+   sodipodi:docname="theia.svg"
+   width="1150"
+   height="1150"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata17">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs15" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1066"
+     inkscape:window-height="1099"
+     id="namedview13"
+     showgrid="false"
+     inkscape:zoom="0.41304348"
+     inkscape:cx="174.31579"
+     inkscape:cy="270.29999"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg11" />
+  <g
+     id="Layer_1"
+     style="fill:#000000"
+     transform="translate(0,304.7)">
+    <path
+       d="m 880.199,2.8 c 147.901,0 267.701,119.8 267.701,267.7 0,147.8 -119.8,267.7 -267.7,267.7 H 290.1 c -21.1,0 -38.2,-17.1 -38.2,-38.2 0,-21.1 17.1,-38.2 38.2,-38.2 h 137.5 c 21,0 38.1,-17.1 38.1,-38.2 0,-21.1 -17.1,-38.2 -38.1,-38.2 H 396.999 C 375.9,385.4 358.8,368.3 358.8,347.2 358.8,326.1 375.9,309 397,309 h 91.703 c 21.215,-0.059 37.67,-17.35 38.197,-38.2 0,-21.1 -17.1,-38.2 -38.2,-38.2 H 167.8 c -21.1,0 -38.2,-17.1 -38.2,-38.2 0,-21.1 17.1,-38.2 38.2,-38.2 h 236.804 c 21.214,-0.059 37.669,-17.35 38.196,-38.2 0,-21.1 -17.1,-38.2 -38.2,-38.2 H 351.2 C 330.1,79.8 313,62.7 313,41.6 313,20.5 330.1,2.4 351.2,2.4 Z M 837.4,92 v 0 c -82.2,0 -148.7,66.6 -148.7,148.7 v 59.5 c 0,82.2 66.5,148.7 148.7,148.7 82.1,0 148.7,-66.5 148.7,-148.7 V 240.7 C 986.1,158.6 919.5,92 837.4,92 Z m 50.8,140.6 c 19.8,0 35.9,16.1 35.9,35.9 v 4.6 c 0,19.8 -16.1,35.9 -35.9,35.9 H 776.6 c -19.8,0 -35.9,-16.1 -35.9,-35.9 v -4.6 c 0,-19.8 16.1,-35.9 35.9,-35.9 z"
+       id="path2"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 170.1,461.8 c 19.9,0 35.9,16 35.9,35.9 v 4.6 c 0,19.8 -16,35.9 -35.9,35.9 H 38 C 18.2,538.2 2.1,522.1 2.1,502.3 v -4.6 c 0,-19.9 16.1,-35.9 35.9,-35.9 z"
+       id="path4"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 231.3,3.4 c 19.8,0 35.8,16.1 35.8,35.9 V 44 c 0,19.8 -16,35.8 -35.8,35.8 H 83.8 C 64,79.8 47.9,63.8 47.9,44 V 39.3 C 47.9,19.5 64,3.4 83.8,3.4 Z"
+       id="path6"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 277.1,309 c 19.8,0 35.9,16.1 35.9,35.9 v 4.6 c 0,19.8 -16.1,35.9 -35.9,35.9 h -81 c -19.8,0 -35.9,-16.1 -35.9,-35.9 v -4.6 c 0,-19.8 16.1,-35.9 35.9,-35.9 z"
+       id="path8"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
