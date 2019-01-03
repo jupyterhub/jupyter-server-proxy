@@ -2,6 +2,7 @@ import os
 import tempfile
 import subprocess
 import getpass
+import shutil
 from textwrap import dedent
 
 def setup_shiny():
@@ -56,16 +57,25 @@ def setup_rstudio():
             'RSTUDIO_DEFAULT_R_VERSION': version,
         }
 
-    return {
-        'command': [
-            'rsession',
+    def _get_rsession_cmd(port):
+        if shutil.which('rsession'):
+            executable = 'rsession'
+        else:
+            # Default path for rsession if installed with the deb package
+            executable = '/usr/lib/rstudio-server/bin/rsession'
+
+        return [
+            executable,
             '--standalone=1',
             '--program-mode=server',
             '--log-stderr=1',
             '--session-timeout-minutes=0',
             '--user-identity=' + getpass.getuser(),
-            '--www-port={port}'
-        ],
+            '--www-port=' + str(port)
+        ]
+
+    return {
+        'command': _get_rsession_cmd,
         'environment': _get_rsession_env,
         'title': 'RStudio',
         'icon': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', 'rstudio.svg')
