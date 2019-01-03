@@ -6,17 +6,23 @@ import '../style/index.css';
 
 
 function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterLab) {
-    for (let entry of serverData.launcher.entries) {
+    for (let server_process of serverData.server_processes) {
 
-      let commandId = 'server-proxy:' + entry.name;
+      if (!server_process.launcher_entry.enabled) {
+        continue;
+      }
+
+      let commandId = 'server-proxy:' + server_process.name;
+
       app.commands.addCommand(commandId, {
-        label: entry.title,
+        label: server_process.launcher_entry.title,
         execute: () => {
-          let launch_url = PageConfig.getBaseUrl() + entry.name + '/';
+          let launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
           window.open(launch_url, '_blank');
         }
       });
-      let iconUrl = PageConfig.getBaseUrl() + 'server-proxy/icon/' + entry.name;
+      // FIXME: Send full icon URL with our API call
+      let iconUrl = PageConfig.getBaseUrl() + 'server-proxy/icon/' + server_process.name;
       launcher.add({
         command: commandId,
         // This is the only way to get icon URLs in here

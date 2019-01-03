@@ -3,19 +3,26 @@ import mimetypes
 from notebook.base.handlers import IPythonHandler
 from collections import namedtuple
 
-LauncherEntry = namedtuple('LauncherEntry', ['name', 'title'])
-
 class ServersInfoHandler(IPythonHandler):
-    def initialize(self, launcher_entries):
-        self.launcher_entries = launcher_entries
+    def initialize(self, server_processes):
+        self.server_processes = server_processes
 
     @web.authenticated
     async def get(self):
         data = []
-        for le in self.launcher_entries:
-            data.append({'name': le.name, 'title': le.title})
+        # Pick out and send only metadata
+        # Don't send anything that might be a callable, or leak sensitive info
+        for sp in self.server_processes:
+            # Manually recurse to convert namedtuples into JSONable structures
+            data.append({
+                'name': sp.name,
+                'launcher_entry': {
+                    'enabled': sp.launcher_entry.enabled,
+                    'title': sp.launcher_entry.title
+                }
+            })
 
-        self.write({'launcher': {'entries': data}})
+        self.write({'server_processes': data})
 
 
 # FIXME: Should be a StaticFileHandler subclass
