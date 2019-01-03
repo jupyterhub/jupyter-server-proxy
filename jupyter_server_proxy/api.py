@@ -1,6 +1,7 @@
 from tornado import web
 import mimetypes
 from notebook.base.handlers import IPythonHandler
+from notebook.utils import url_path_join as ujoin
 from collections import namedtuple
 
 class ServersInfoHandler(IPythonHandler):
@@ -14,13 +15,18 @@ class ServersInfoHandler(IPythonHandler):
         # Don't send anything that might be a callable, or leak sensitive info
         for sp in self.server_processes:
             # Manually recurse to convert namedtuples into JSONable structures
-            data.append({
+            item = {
                 'name': sp.name,
                 'launcher_entry': {
                     'enabled': sp.launcher_entry.enabled,
                     'title': sp.launcher_entry.title
                 }
-            })
+            }
+            if sp.launcher_entry.icon_path:
+                icon_url = ujoin(self.base_url, 'server-proxy', 'icon', sp.name)
+                item['launcher_entry']['icon_url'] = icon_url
+
+            data.append(item)
 
         self.write({'server_processes': data})
 

@@ -21,14 +21,14 @@ function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterLa
           window.open(launch_url, '_blank');
         }
       });
-      // FIXME: Send full icon URL with our API call
-      let iconUrl = PageConfig.getBaseUrl() + 'server-proxy/icon/' + server_process.name;
-      launcher.add({
+      let command : ILauncher.IItemOptions = {
         command: commandId,
-        // This is the only way to get icon URLs in here
-        category: 'Notebook',
-        kernelIconUrl: iconUrl
-      })
+        category: 'Notebook'
+      };
+      if (server_process.launcher_entry.icon_url) {
+        command.kernelIconUrl =  server_process.launcher_entry.icon_url;
+      }
+      launcher.add(command);
     }
 }
 /**
