@@ -8,8 +8,8 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, Jupyter, ut
     function load() {
         if (!Jupyter.notebook_list) return;
 
-        var entries_url = base_url + 'server-proxy/servers-info' ;
-        $.get(entries_url, function(data) {
+        var servers_info_url = base_url + 'server-proxy/servers-info' ;
+        $.get(servers_info_url, function(data) {
             /* locate the right-side dropdown menu of apps and notebooks */
             var $menu = $('.tree-buttons').find('.dropdown-menu');
 
@@ -22,7 +22,11 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, Jupyter, ut
             /* add the divider */
             $menu.append($divider);
 
-            $.each(data.launcher.entries, function(_, entry) {
+            $.each(data.server_processes, function(_, server_process) {
+                if (!server_process.launcher_entry.enabled) {
+                    return;
+                }
+
                 /* create our list item */
                 var $entry_container = $('<li>')
                     .attr('role', 'presentation')
@@ -32,9 +36,9 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, Jupyter, ut
                 var $entry_link = $('<a>')
                     .attr('role', 'menuitem')
                     .attr('tabindex', '-1')
-                    .attr('href', base_url + entry.name + '/')
+                    .attr('href', base_url + server_process.name + '/')
                     .attr('target', '_blank')
-                    .text(entry.title);
+                    .text(server_process.launcher_entry.title);
 
                 /* add the link to the item and
                 * the item to the menu */

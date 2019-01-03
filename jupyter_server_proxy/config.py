@@ -6,7 +6,7 @@ from traitlets import Dict
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
-
+from collections import namedtuple
 
 def _make_serverproxy_handler(name, command, environment):
     """
@@ -35,6 +35,8 @@ def _make_serverproxy_handler(name, command, environment):
                     self._render_template(k): self._render_template(v)
                     for k, v in value.items()
                 }
+            else:
+                raise ValueError('Value of unrecognized type {}'.format(type(value)))
 
         def get_cmd(self):
             if callable(command):
@@ -51,30 +53,48 @@ def _make_serverproxy_handler(name, command, environment):
     return _Proxy
 
 
-def get_entrypoint_proxy_servers():
-    proxy_servers = {}
+def get_entrypoint_server_processes():
+    sps = []
     for entry_point in pkg_resources.iter_entry_points('jupyter_serverproxy_servers'):
-        proxy_servers[entry_point.name] = entry_point.load()()
-    return proxy_servers
+        sps.append(
+            make_server_process(entry_point.name, entry_point.load()())
+        )
+    return sps
 
-def make_proxyserver_handlers(base_url, proxy_servers):
+def make_handlers(base_url, server_processes):
     """
-    Get tornado handlers for registered proxy servers to app
+    Get tornado handlers for registered server_processes
     """
     handlers = []
-    for name, proxy_server in proxy_servers.items():
+    for sp in server_processes:
         handler = _make_serverproxy_handler(
-            name,
-            proxy_server['command'],
-            proxy_server.get('environment', {})
+            sp.name,
+            sp.command,
+            sp.environment
         )
         handlers.append((
-            ujoin(base_url, f'{name}/(.*)'), handler, dict(state={}),
+            ujoin(base_url, f'{sp.name}/(.*)'), handler, dict(state={}),
         ))
         handlers.append((
-            ujoin(base_url, name), AddSlashHandler
+            ujoin(base_url, sp.name), AddSlashHandler
         ))
     return handlers
+
+LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
+ServerProcess = namedtuple('ServerProcess', ['name', 'command', 'environment', 'launcher_entry'])
+
+def make_server_process(name, server_process_config):
+    le = server_process_config.get('launcher_entry', {})
+    return ServerProcess(
+        name=name,
+        command=server_process_config['command'],
+        environment=server_process_config.get('environment', {}),
+        launcher_entry=LauncherEntry(
+            enabled=le.get('enabled', True),
+            icon_path=le.get('icon_path'),
+            title=le.get('title', name)
+        )
+    )
 
 class ServerProxy(Configurable):
     servers = Dict(
@@ -101,7 +121,21 @@ class ServerProxy(Configurable):
             Could also be a callable that takes a single argument - port. It should return
             a dictionary.
 
+          launcher_entry
+            A dictionary of various options for entries in classic notebook / jupyterlab launchers.
+
+            Keys recognized are:
+
+            enabled
+              Set to True (default) to make an entry in the launchers. Set to False to have no
+              explicit entry.
+
+            icon_path
+              Full path to an svg icon that could be used with a launcher. Currently only used by the
+              JupyterLab launcher
+
+            title
+              Title to be used for the launcher entry. Defaults to the name of the server if missing.
         """,
         config=True
     )
-

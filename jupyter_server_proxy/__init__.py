@@ -1,7 +1,7 @@
 from .handlers import setup_handlers, SuperviseAndProxyHandler
-from .config import ServerProxy, make_proxyserver_handlers, get_entrypoint_proxy_servers
+from .config import ServerProxy, make_handlers, get_entrypoint_server_processes, make_server_process
 from notebook.utils import url_path_join as ujoin
-from .api import ServersInfoHandler, LauncherEntry, IconHandler
+from .api import ServersInfoHandler, IconHandler
 
 # Jupyter Extension points
 def _jupyter_server_extension_paths():
@@ -23,9 +23,9 @@ def load_jupyter_server_extension(nbapp):
     base_url = nbapp.web_app.settings['base_url']
     serverproxy = ServerProxy(parent=nbapp)
 
-    all_servers = serverproxy.servers.copy()
-    all_servers.update(get_entrypoint_proxy_servers())
-    server_handlers = make_proxyserver_handlers(base_url, all_servers)
+    server_proccesses = [make_server_process(k, v) for k, v in serverproxy.servers.items()]
+    server_proccesses += get_entrypoint_server_processes()
+    server_handlers = make_handlers(base_url, server_proccesses)
     nbapp.web_app.add_handlers('.*', server_handlers)
 
     # Set up default handler
@@ -33,15 +33,11 @@ def load_jupyter_server_extension(nbapp):
 
     launcher_entries = []
     icons = {}
-    for name, server in all_servers.items():
-        launcher_entries.append(LauncherEntry(
-            name=name,
-            title=server.get('title', name),
-        ))
-        if 'icon' in server:
-            icons[name] = server['icon']
+    for sp in server_proccesses:
+        if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
+            icons[sp.name] = sp.launcher_entry.icon_path
 
     nbapp.web_app.add_handlers('.*', [
-        (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'launcher_entries': launcher_entries}),
+        (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'server_processes': server_proccesses}),
         (ujoin(base_url, 'server-proxy/icon/(.*)'), IconHandler, {'icons': icons})
     ])
