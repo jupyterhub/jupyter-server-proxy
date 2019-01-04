@@ -9,7 +9,7 @@ import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment):
+def _make_serverproxy_handler(name, command, environment, timeout):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -51,6 +51,9 @@ def _make_serverproxy_handler(name, command, environment):
             else:
                 return self._render_template(environment)
 
+        def get_timeout(self):
+            return timeout
+
     return _Proxy
 
 
@@ -71,7 +74,8 @@ def make_handlers(base_url, server_processes):
         handler = _make_serverproxy_handler(
             sp.name,
             sp.command,
-            sp.environment
+            sp.environment,
+            sp.timeout,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -82,7 +86,7 @@ def make_handlers(base_url, server_processes):
     return handlers
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
-ServerProcess = namedtuple('ServerProcess', ['name', 'command', 'environment', 'launcher_entry'])
+ServerProcess = namedtuple('ServerProcess', ['name', 'command', 'environment', 'timeout', 'launcher_entry'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -90,6 +94,7 @@ def make_server_process(name, server_process_config):
         name=name,
         command=server_process_config['command'],
         environment=server_process_config.get('environment', {}),
+        timeout=server_process_config.get('timeout', 5),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
@@ -121,6 +126,9 @@ class ServerProxy(Configurable):
 
             Could also be a callable that takes a single argument - port. It should return
             a dictionary.
+
+          timeout
+            Timeout in seconds for the process to become ready, default 5s.
 
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.

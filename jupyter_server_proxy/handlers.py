@@ -316,7 +316,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 # Set up extra environment variables for process
                 server_env.update(self.get_env())
 
-                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, log=self.log)
+                timeout = self.get_timeout()
+
+                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log)
                 self.state['proc'] = proc
 
                 try:
