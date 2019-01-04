@@ -288,14 +288,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return {}
 
     async def _http_ready_func(self, p):
-        url = f'http://localhost:{self.port}'
+        url = 'http://localhost:{}'.format(self.port)
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url) as resp:
-                    self.log.debug(f'Got code {resp.status} back from {url}')
+                    self.log.debug('Got code {} back from {}'.format(resp.status, url))
                     return resp.status == 200
             except aiohttp.ClientConnectionError:
-                self.log.debug(f'Connection to {url} refused')
+                self.log.debug('Connection to {} refused'.format(url))
                 return False
 
     async def ensure_process(self):

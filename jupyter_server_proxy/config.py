@@ -73,7 +73,7 @@ def make_handlers(base_url, server_processes):
             sp.environment
         )
         handlers.append((
-            ujoin(base_url, f'{sp.name}/(.*)'), handler, dict(state={}),
+            ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
         ))
         handlers.append((
             ujoin(base_url, sp.name), AddSlashHandler
