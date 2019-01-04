@@ -3,14 +3,14 @@ from glob import glob
 
 setuptools.setup(
     name="jupyter-server-proxy",
-    version='1.0dev',
+    version='1.0beta5',
     url="https://github.com/jupyterhub/jupyter-server-proxy",
     author="Ryan Lovett & Yuvi Panda",
     author_email="rylo@berkeley.edu",
     license="BSD 3-Clause",
     description="Jupyter server extension to supervise and proxy web services",
     packages=setuptools.find_packages(),
-    install_requires=['notebook', 'simpervisor', 'aiohttp'],
+    install_requires=['notebook', 'simpervisor>=0.2', 'aiohttp'],
     python_requires='>=3.5',
     classifiers=[
         'Framework :: Jupyter',
