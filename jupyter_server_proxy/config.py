@@ -22,7 +22,8 @@ def _make_serverproxy_handler(name, command, environment, timeout):
         @property
         def process_args(self):
             return {
-                'port': self.port
+                'port': self.port,
+                'base_url': self.base_url,
             }
 
         def _render_template(self, value):
