@@ -7,6 +7,7 @@ from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
+from .utils import call_with_asked_args
 
 def _make_serverproxy_handler(name, command, environment):
     """
@@ -40,13 +41,13 @@ def _make_serverproxy_handler(name, command, environment):
 
         def get_cmd(self):
             if callable(command):
-                return self._render_template(command(**self.process_args))
+                return self._render_template(call_with_asked_args(command, self.process_args))
             else:
                 return self._render_template(command)
 
         def get_env(self):
             if callable(environment):
-                return self._render_template(environment(**self.process_args))
+                return self._render_template(call_with_asked_args(environment, self.process_args))
             else:
                 return self._render_template(environment)
 
