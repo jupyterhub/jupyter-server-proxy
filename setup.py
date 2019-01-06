@@ -3,7 +3,7 @@ from glob import glob
 
 setuptools.setup(
     name="jupyter-server-proxy",
-    version='1.0beta5',
+    version='1.0beta6',
     url="https://github.com/jupyterhub/jupyter-server-proxy",
     author="Ryan Lovett & Yuvi Panda",
     author_email="rylo@berkeley.edu",
@@ -17,8 +17,8 @@ setuptools.setup(
     ],
     data_files=[
         ('share/jupyter/nbextensions/jupyter_server_proxy', glob('jupyter_server_proxy/static/*')),
-        ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/serverextension.json']),
-        ('etc/jupyter/nbconfig/tree.d', ['jupyter_server_proxy/etc/nbextension.json'])
+        ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-serverextension.json']),
+        ('etc/jupyter/nbconfig/tree.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json'])
     ],
     include_package_data=True,
     zip_safe=False
