@@ -1,6 +1,6 @@
 def call_with_asked_args(callback, args):
     """
-    Call callback only the args it wants from args
+    Call callback with only the args it wants from args
 
     Example
     >>> def cb(a):

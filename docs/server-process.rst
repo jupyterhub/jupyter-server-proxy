@@ -91,7 +91,7 @@ with:
        'command': _cmd_callback
    }
 
-The ``port`` argument will be pased to the callable. This is a simple form of dependency
+The ``port`` argument will be passed to the callable. This is a simple form of dependency
 injection that helps us add more parameters in the future without breaking backwards
 compatibility.
 
