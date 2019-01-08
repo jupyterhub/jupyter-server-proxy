@@ -26,8 +26,8 @@ pairs.
      process. If the string ``{port}`` is present anywhere, it'll
      be replaced with the port the process should listen on.
     
-   * A callable that takes one parameter - ``port``, and returns a
-     list of strings that are used & treated same as above.
+   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+     and returns a list of strings that are used & treated same as above.
   
    This key is required.
 
@@ -40,8 +40,8 @@ pairs.
      process itself. If the string ``{port}}`` is present anywhere,
      it'll be replaced with the port the process should listen on.
 
-   * A callable that takes on parameter - ``port``, and returns a dictionary
-     of strings that are used & treated same as above.
+   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+     and returns a dictionary of strings that are used & treated same as above.
 
 #. **launcher_entry**
 
@@ -59,6 +59,60 @@ pairs.
 
    #. **title**
       Title to be used for the launcher entry. Defaults to the name of the server if missing.
+
+.. _server-processes/callable-arguments:
+
+Callable arguments
+------------------
+
+Any time you specify a callable in the config, it can ask for any arguments it needs
+by simply declaring it - only arguments the callable asks for will be passed to it.
+
+For example, with the following config:
+
+.. code:: python
+
+   def _cmd_callback():
+       return ['some-command']
+
+   server_config = {
+       'command': _cmd_callback
+   }
+
+No arguments will be passed to ``_cmd_callback``, since it doesn't ask for any. However,
+with:
+
+.. code:: python
+
+   def _cmd_callback(port):
+       return ['some-command', '--port=' + str(port)]
+
+   server_config = {
+       'command': _cmd_callback
+   }
+
+The ``port`` argument will be pased to the callable. This is a simple form of dependency
+injection that helps us add more parameters in the future without breaking backwards
+compatibility.
+
+Available arguments
+~~~~~~~~~~~~~~~~~~~
+Currently, the following arguments are available:
+
+#. **port**
+   The port the command should listen on
+
+If any of the returned strings, lists or dictionaries contain strings
+of form ``{<argument-name>}``, they will be replaced with the value
+of the argument. For example, if your function is:
+
+.. code:: python
+
+   def _openrefine_cmd():
+       return ['openrefine', '-p', '{port}']
+
+The ``{port}`` will be replaced with the appropriate port before
+the command is started
 
 Specifying config via traitlets
 ===============================
