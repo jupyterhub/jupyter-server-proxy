@@ -21,7 +21,6 @@ def call_with_asked_args(callback, args):
             asked_arg_values.append(args[asked_arg_name])
         else:
             missing_args.append(asked_arg_name)
-    print(asked_arg_values)
     if missing_args:
         raise TypeError(
             '{}() missing required positional argument: {}'.format(
