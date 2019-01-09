@@ -114,19 +114,17 @@ class ServerProxy(Configurable):
 
         Value should be a dictionary with the following keys:
           command
-            A list of strings that should be the full command to be executed. If {{port}}  is
-            present, it'll be substituted with the port the process should listen on.
+            A list of strings that should be the full command to be executed.
+            The optional template arguments {{port}} and {{base_url}} will be substituted with the
+            port the process should listen on and the base-url of the notebook.
 
-            Could also be a callable that takes a single argument - port. It should return
-            a dictionary.
+            Could also be a callable. It should return a dictionary.
 
           environment
-            A dictionary of environment variable mappings. {{port}} will be replaced by the port
-            the process should listen on. If not explicitly set, a PORT environment variable will
-            automatically be set.
+            A dictionary of environment variable mappings. {{port}} and {{base_url}} will be
+            substituted as for command.
 
-            Could also be a callable that takes a single argument - port. It should return
-            a dictionary.
+            Could also be a callable. It should return a dictionary.
 
           timeout
             Timeout in seconds for the process to become ready, default 5s.
