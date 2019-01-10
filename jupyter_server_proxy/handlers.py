@@ -287,6 +287,12 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
            overridden in subclasses.'''
         return {}
 
+    def get_timeout(self):
+        """
+        Return timeout (in s) to wait before giving up on process readiness
+        """
+        return 5
+
     async def _http_ready_func(self, p):
         url = 'http://localhost:{}'.format(self.port)
         async with aiohttp.ClientSession() as session:
@@ -316,7 +322,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 # Set up extra environment variables for process
                 server_env.update(self.get_env())
 
-                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, log=self.log)
+                timeout = self.get_timeout()
+
+                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log)
                 self.state['proc'] = proc
 
                 try:

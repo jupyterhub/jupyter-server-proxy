@@ -23,13 +23,23 @@ pairs.
    One of:
 
    * A list of strings that is the command used to start the
-     process. If the string ``{port}`` is present anywhere, it'll
-     be replaced with the port the process should listen on.
-    
+     process. The following template strings will be replaced:
+
+     * ``{port}`` the port the process should listen on.
+
+     * ``{base_url}`` the base URL of the notebook
+
+     For example, if the application needs to know its full path it can
+     be constructed from ``{base_url}/proxy/{port}``
+
    * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
      and returns a list of strings that are used & treated same as above.
   
    This key is required.
+
+#. **timeout**
+
+   Timeout in seconds for the process to become ready, default ``5s``.
 
 #. **environment**
 
@@ -37,8 +47,8 @@ pairs.
 
    * A dictionary of strings that are passed in as the environment to
      the started process, in addition to the environment of the notebook
-     process itself. If the string ``{port}}`` is present anywhere,
-     it'll be replaced with the port the process should listen on.
+     process itself. The strings ``{port}`` and ``{base_url}`` will be
+     replaced as for **command**.
 
    * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
      and returns a dictionary of strings that are used & treated same as above.
@@ -101,6 +111,9 @@ Currently, the following arguments are available:
 
 #. **port**
    The port the command should listen on
+
+#. **base_url**
+   The base URL of the notebook
 
 If any of the returned strings, lists or dictionaries contain strings
 of form ``{<argument-name>}``, they will be replaced with the value
