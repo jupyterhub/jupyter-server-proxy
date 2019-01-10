@@ -287,6 +287,12 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
            overridden in subclasses.'''
         return {}
 
+    def get_timeout(self):
+        """
+        Return timeout (in s) to wait before giving up on process readiness
+        """
+        return 5
+
     async def _http_ready_func(self, p):
         url = 'http://localhost:{}'.format(self.port)
         async with aiohttp.ClientSession() as session:
