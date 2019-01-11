@@ -18,6 +18,7 @@ def _make_serverproxy_handler(name, command, environment, timeout):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = name
+            self.proxy_base = name
 
         @property
         def process_args(self):
