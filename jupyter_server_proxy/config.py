@@ -4,17 +4,26 @@ Traitlets based configuration for jupyter_server_proxy
 from notebook.utils import url_path_join as ujoin
 from traitlets import Dict
 from traitlets.config import Configurable
-from .handlers import SuperviseAndProxyHandler, AddSlashHandler
+from .handlers import (
+    SuperviseAndProxyHandler,
+    SuperviseAndAbsoluteProxyHandler,
+    AddSlashHandler,
+)
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment, timeout):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute):
     """
-    Create a SuperviseAndProxyHandler subclass with given parameters
+    Create a Supervise*ProxyHandler subclass with given parameters
     """
+    if absolute:
+        base_class = SuperviseAndAbsoluteProxyHandler
+    else:
+        base_class = SuperviseAndProxyHandler
+
     # FIXME: Set 'name' properly
-    class _Proxy(SuperviseAndProxyHandler):
+    class _Proxy(base_class):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = name
@@ -78,6 +87,7 @@ def make_handlers(base_url, server_processes):
             sp.command,
             sp.environment,
             sp.timeout,
+            sp.absolute,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -88,7 +98,8 @@ def make_handlers(base_url, server_processes):
     return handlers
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
-ServerProcess = namedtuple('ServerProcess', ['name', 'command', 'environment', 'timeout', 'launcher_entry'])
+ServerProcess = namedtuple('ServerProcess', [
+    'name', 'command', 'environment', 'timeout', 'absolute', 'launcher_entry'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -97,6 +108,7 @@ def make_server_process(name, server_process_config):
         command=server_process_config['command'],
         environment=server_process_config.get('environment', {}),
         timeout=server_process_config.get('timeout', 5),
+        absolute=server_process_config.get('absolute', False),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
@@ -129,6 +141,10 @@ class ServerProxy(Configurable):
 
           timeout
             Timeout in seconds for the process to become ready, default 5s.
+
+          absolute
+            Proxy requests default to being rewritten to /. If this is True
+            the absolute URL will be sent to the backend instead.
 
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.
