@@ -29,6 +29,9 @@ class AddSlashHandler(IPythonHandler):
         self.redirect(urlunparse(dest))
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
+
+    proxy_base = ''
+
     async def open(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
@@ -126,6 +129,15 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         self.settings['api_last_activity'] = utcnow()
 
+    def _get_context_path(self, port):
+        """
+        Some applications need to know where they are being proxied from.
+        This is either {base_url}/proxy/{port} or {base_url}/{proxy_base}.
+        """
+        if self.proxy_base:
+            return url_path_join(self.base_url, self.proxy_base)
+        return url_path_join(self.base_url, 'proxy', str(port))
+
 
     @web.authenticated
     async def proxy(self, port, proxied_path):
@@ -133,6 +145,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         While self.request.uri is
             (hub)    /user/username/proxy/([0-9]+)/something.
             (single) /proxy/([0-9]+)/something
+        or if proxy_base is set
+            (hub)    /user/username/{proxy_base}/something.
+            (single) /{proxy_base}/something
         This serverextension is given {port}/{everything/after}.
         '''
 
@@ -167,10 +182,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         headers = self.proxy_request_headers()
 
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
-        # headers to see if and where they are being proxied from. We set
-        # them to be {base_url}/proxy/{port}.
+        # headers to see if and where they are being proxied from.
         headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
-            url_path_join(self.base_url, 'proxy', str(port))
+            self._get_context_path(port)
 
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
