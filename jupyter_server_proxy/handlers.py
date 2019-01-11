@@ -138,7 +138,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             return url_path_join(self.base_url, self.proxy_base)
         return url_path_join(self.base_url, 'proxy', str(port))
 
-    def build_proxy_request(self, port, proxied_path, body, headers, options):
+    def build_proxy_request(self, port, proxied_path, body):
         client_uri = '{uri}:{port}{path}'.format(
             uri='http://localhost',
             port=port,
@@ -147,9 +147,16 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         if self.request.query:
             client_uri += '?' + self.request.query
 
+        headers = self.proxy_request_headers()
+
+        # Some applications check X-Forwarded-Context and X-ProxyContextPath
+        # headers to see if and where they are being proxied from.
+        headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
+            self._get_context_path(port)
+
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
-            headers=headers, **options)
+            headers=headers, **self.proxy_request_options())
         return req
 
     @web.authenticated
@@ -184,15 +191,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         client = httpclient.AsyncHTTPClient()
 
-        headers = self.proxy_request_headers()
-
-        # Some applications check X-Forwarded-Context and X-ProxyContextPath
-        # headers to see if and where they are being proxied from.
-        headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
-            self._get_context_path(port)
-
-        req = self.build_proxy_request(
-            port, proxied_path, body, headers, self.proxy_request_options())
+        req = self.build_proxy_request(port, proxied_path, body)
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
         self._record_activity()
@@ -267,8 +266,32 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         return super().select_subprotocol(subprotocols)
 
 
-# FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
-class SuperviseAndProxyHandler(LocalProxyHandler):
+class LocalAbsoluteProxyHandler(LocalProxyHandler):
+
+    def _get_context_path(self, port):
+        if self.proxy_base:
+            return super()._get_context_path(port)
+        return url_path_join(self.base_url, 'proxy-abs', str(port))
+
+    def build_proxy_request(self, port, proxied_path, body):
+        context_path = self._get_context_path(port)
+        client_uri = '{uri}:{port}{path}'.format(
+            uri='http://localhost',
+            port=port,
+            path=url_path_join(context_path, proxied_path),
+        )
+        if self.request.query:
+            client_uri += '?' + self.request.query
+
+        headers = self.proxy_request_headers()
+
+        req = httpclient.HTTPRequest(
+            client_uri, method=self.request.method, body=body,
+            headers=headers, **self.proxy_request_options())
+        return req
+
+
+class SuperviseAndProxyHandlerBase(IPythonHandler):
     '''Manage a given process and requests to it '''
 
     def initialize(self, state):
@@ -392,10 +415,21 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     def options(self, path):
         return self.proxy(self.port, path)
 
+
+# FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
+class SuperviseAndProxyHandler(SuperviseAndProxyHandlerBase, LocalProxyHandler):
+    pass
+
+
+class SuperviseAndAbsoluteProxyHandler(SuperviseAndProxyHandlerBase, LocalAbsoluteProxyHandler):
+    pass
+
+
 def setup_handlers(web_app):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler),
+        (url_path_join(web_app.settings['base_url'], r'/proxy-abs/(\d+)(.*)'), LocalAbsoluteProxyHandler),
     ])
 
 # vim: set et ts=4 sw=4:
