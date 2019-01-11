@@ -138,6 +138,19 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             return url_path_join(self.base_url, self.proxy_base)
         return url_path_join(self.base_url, 'proxy', str(port))
 
+    def build_proxy_request(self, port, proxied_path, body, headers, options):
+        client_uri = '{uri}:{port}{path}'.format(
+            uri='http://localhost',
+            port=port,
+            path=proxied_path
+        )
+        if self.request.query:
+            client_uri += '?' + self.request.query
+
+        req = httpclient.HTTPRequest(
+            client_uri, method=self.request.method, body=body,
+            headers=headers, **options)
+        return req
 
     @web.authenticated
     async def proxy(self, port, proxied_path):
@@ -169,14 +182,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             else:
                 body = None
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='http://localhost',
-            port=port,
-            path=proxied_path
-        )
-        if self.request.query:
-            client_uri += '?' + self.request.query
-
         client = httpclient.AsyncHTTPClient()
 
         headers = self.proxy_request_headers()
@@ -186,11 +191,8 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
             self._get_context_path(port)
 
-        req = httpclient.HTTPRequest(
-            client_uri, method=self.request.method, body=body,
-            headers=headers,
-            **self.proxy_request_options())
-
+        req = self.build_proxy_request(
+            port, proxied_path, body, headers, self.proxy_request_options())
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
         self._record_activity()
