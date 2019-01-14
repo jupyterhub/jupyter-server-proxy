@@ -13,14 +13,16 @@ import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute):
+def _make_serverproxy_handler(name, command, environment, timeout, rewrite):
     """
     Create a Supervise*ProxyHandler subclass with given parameters
     """
-    if absolute:
+    if rewrite == '':
         base_class = SuperviseAndAbsoluteProxyHandler
-    else:
+    elif rewrite == '/':
         base_class = SuperviseAndProxyHandler
+    else:
+        raise ValueError('Unsupported rewrite value "{}"'.format(rewrite))
 
     # FIXME: Set 'name' properly
     class _Proxy(base_class):
@@ -87,7 +89,7 @@ def make_handlers(base_url, server_processes):
             sp.command,
             sp.environment,
             sp.timeout,
-            sp.absolute,
+            sp.rewrite,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -99,7 +101,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'rewrite', 'launcher_entry'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -108,7 +110,7 @@ def make_server_process(name, server_process_config):
         command=server_process_config['command'],
         environment=server_process_config.get('environment', {}),
         timeout=server_process_config.get('timeout', 5),
-        absolute=server_process_config.get('absolute', False),
+        rewrite=server_process_config.get('rewrite', '/'),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
@@ -142,9 +144,9 @@ class ServerProxy(Configurable):
           timeout
             Timeout in seconds for the process to become ready, default 5s.
 
-          absolute
-            Proxy requests default to being rewritten to /. If this is True
-            the absolute URL will be sent to the backend instead.
+          rewrite
+            Proxy requests default to being rewritten to '/'. If this is ''
+            (empty) the absolute URL will be sent to the backend instead.
 
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.
