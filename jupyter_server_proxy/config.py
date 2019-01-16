@@ -4,32 +4,22 @@ Traitlets based configuration for jupyter_server_proxy
 from notebook.utils import url_path_join as ujoin
 from traitlets import Dict
 from traitlets.config import Configurable
-from .handlers import (
-    SuperviseAndProxyHandler,
-    SuperviseAndAbsoluteProxyHandler,
-    AddSlashHandler,
-)
+from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
 def _make_serverproxy_handler(name, command, environment, timeout, rewrite):
     """
-    Create a Supervise*ProxyHandler subclass with given parameters
+    Create a SuperviseAndProxyHandler subclass with given parameters
     """
-    if rewrite == '':
-        base_class = SuperviseAndAbsoluteProxyHandler
-    elif rewrite == '/':
-        base_class = SuperviseAndProxyHandler
-    else:
-        raise ValueError('Unsupported rewrite value "{}"'.format(rewrite))
-
     # FIXME: Set 'name' properly
-    class _Proxy(base_class):
+    class _Proxy(SuperviseAndProxyHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = name
             self.proxy_base = name
+            self.rewrite = rewrite
 
         @property
         def process_args(self):
