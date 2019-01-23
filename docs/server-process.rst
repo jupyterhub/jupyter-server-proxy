@@ -41,6 +41,9 @@ pairs.
 
    Timeout in seconds for the process to become ready, default ``5s``.
 
+   A process is considered 'ready' when it can return a valid HTTP response on the
+   port it is supposed to start at.
+
 #. **environment**
 
    One of:

@@ -298,8 +298,10 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url) as resp:
+                    # We only care if we get back *any* response, not just 200
+                    # If there's an error response, that can be shown directly to the user
                     self.log.debug('Got code {} back from {}'.format(resp.status, url))
-                    return resp.status == 200
+                    return True
             except aiohttp.ClientConnectionError:
                 self.log.debug('Connection to {} refused'.format(url))
                 return False
