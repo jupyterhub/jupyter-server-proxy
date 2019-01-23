@@ -199,6 +199,7 @@ above.
                 'openrefine = openrefine:setup_openrefine',
             ]
         },
+        install_requires=['jupyter-server-proxy'],
       )
 
    We make an entry for the ``jupyter_serverproxy_servers`` entrypoint.
