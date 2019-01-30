@@ -167,6 +167,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
+            context_path = self._get_context_path(port)
             headers['X-Forwarded-Context'] = context_path
             headers['X-ProxyContextPath'] = context_path
 
