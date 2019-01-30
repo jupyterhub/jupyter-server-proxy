@@ -11,7 +11,7 @@ def request_get(port, path, token):
     return h.getresponse()
 
 
-def test_server_proxy_rewrite():
+def test_server_proxy_non_absolute():
     r = request_get(PORT, '/python-http/abc', TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
