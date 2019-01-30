@@ -29,6 +29,12 @@ class AddSlashHandler(IPythonHandler):
         self.redirect(urlunparse(dest))
 
 class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
+
+    def __init__(self, *args, **kwargs):
+        self.proxy_base = ''
+        self.absolute_url = kwargs.pop('absolute_url', False)
+        super().__init__(*args, **kwargs)
+
     async def open(self, port, proxied_path=''):
         """
         Called when a client opens a websocket connection.
@@ -39,13 +45,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='ws://127.0.0.1',
-            port=port,
-            path=proxied_path
-        )
-        if self.request.query:
-            client_uri += '?' + self.request.query
+        client_uri = self.get_client_uri('ws', port, proxied_path)
         headers = self.request.headers
 
         def message_cb(message):
@@ -126,14 +126,63 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         self.settings['api_last_activity'] = utcnow()
 
+    def _get_context_path(self, port):
+        """
+        Some applications need to know where they are being proxied from.
+        This is either:
+        - {base_url}/proxy/{port}
+        - {base_url}/proxy/absolute/{port}
+        - {base_url}/{proxy_base}
+        """
+        if self.proxy_base:
+            return url_path_join(self.base_url, self.proxy_base)
+        if self.absolute_url:
+            return url_path_join(self.base_url, 'proxy', 'absolute', str(port))
+        else:
+            return url_path_join(self.base_url, 'proxy', str(port))
+
+    def get_client_uri(self, protocol, port, proxied_path):
+        context_path = self._get_context_path(port)
+        if self.absolute_url:
+            client_path = url_path_join(context_path, proxied_path)
+        else:
+            client_path = proxied_path
+
+        client_uri = '{protocol}://{host}:{port}{path}'.format(
+            protocol=protocol,
+            host='localhost',
+            port=port,
+            path=client_path
+        )
+        if self.request.query:
+            client_uri += '?' + self.request.query
+
+        return client_uri
+
+    def _build_proxy_request(self, port, proxied_path, body):
+
+        headers = self.proxy_request_headers()
+
+        client_uri = self.get_client_uri('http', port, proxied_path)
+        # Some applications check X-Forwarded-Context and X-ProxyContextPath
+        # headers to see if and where they are being proxied from.
+        if not self.absolute_url:
+            context_path = self._get_context_path(port)
+            headers['X-Forwarded-Context'] = context_path
+            headers['X-ProxyContextPath'] = context_path
+
+        req = httpclient.HTTPRequest(
+            client_uri, method=self.request.method, body=body,
+            headers=headers, **self.proxy_request_options())
+        return req
 
     @web.authenticated
     async def proxy(self, port, proxied_path):
         '''
-        While self.request.uri is
-            (hub)    /user/username/proxy/([0-9]+)/something.
-            (single) /proxy/([0-9]+)/something
-        This serverextension is given {port}/{everything/after}.
+        This serverextension handles:
+            {base_url}/proxy/{port([0-9]+)}/{proxied_path}
+            {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
+            {base_url}/{proxy_base}/{proxied_path}
         '''
 
         if 'Proxy-Connection' in self.request.headers:
@@ -154,29 +203,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             else:
                 body = None
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='http://localhost',
-            port=port,
-            path=proxied_path
-        )
-        if self.request.query:
-            client_uri += '?' + self.request.query
-
         client = httpclient.AsyncHTTPClient()
 
-        headers = self.proxy_request_headers()
-
-        # Some applications check X-Forwarded-Context and X-ProxyContextPath
-        # headers to see if and where they are being proxied from. We set
-        # them to be {base_url}/proxy/{port}.
-        headers['X-Forwarded-Context'] = headers['X-ProxyContextPath'] = \
-            url_path_join(self.base_url, 'proxy', str(port))
-
-        req = httpclient.HTTPRequest(
-            client_uri, method=self.request.method, body=body,
-            headers=headers,
-            **self.proxy_request_options())
-
+        req = self._build_proxy_request(port, proxied_path, body)
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
         self._record_activity()
@@ -378,10 +407,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     def options(self, path):
         return self.proxy(self.port, path)
 
+
 def setup_handlers(web_app):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
+         LocalProxyHandler, {'absolute_url': False}),
+        (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
+         LocalProxyHandler, {'absolute_url': True}),
     ])
 
 # vim: set et ts=4 sw=4:
