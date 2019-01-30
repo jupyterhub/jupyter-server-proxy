@@ -81,6 +81,8 @@ pairs.
 
    This is very useful with applications that require a ``base_url`` to be set.
 
+   Defaults to *False*.
+
 
 #. **launcher_entry**
 
