@@ -56,6 +56,32 @@ pairs.
    * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
      and returns a dictionary of strings that are used & treated same as above.
 
+#. **absolute_url**
+
+   *True* if the URL as seen by the proxied application should be the full URL
+   sent by the user. *False* if the URL as seen by the proxied application should
+   see the URL after the parts specific to jupyter-server-proxy have been stripped.
+
+   For example, with the following config:
+
+   .. code:: python
+
+      c.ServerProxy.servers = {
+        'test-server': {
+          'command': ['python3', '-m', 'http.server', '{port}'],
+          'absolute_url': False
+        }
+      }
+
+   When a user requests ``/test-server/some-url``, the proxied server will see it
+   as a request for ``/some-url`` - the ``/test-server`` part is stripped out.
+
+   If ``absolute_url`` is set to ``True`` instead, the proxied server will see it
+   as a request for ``/test-server/some-url`` instead - without any stripping.
+
+   This is very useful with applications that require a ``base_url`` to be set.
+
+
 #. **launcher_entry**
 
    A dictionary with options on if / how an entry in the classic Jupyter Notebook

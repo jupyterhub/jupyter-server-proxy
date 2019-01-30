@@ -32,7 +32,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
-        self.rewrite = kwargs.pop('rewrite', '/')
+        self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
 
     async def open(self, port, proxied_path=''):
@@ -45,13 +45,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='ws://127.0.0.1',
-            port=port,
-            path=proxied_path
-        )
-        if self.request.query:
-            client_uri += '?' + self.request.query
+        client_uri = self.get_client_uri('ws', port, proxied_path)
         headers = self.request.headers
 
         def message_cb(message):
@@ -142,32 +136,37 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         if self.proxy_base:
             return url_path_join(self.base_url, self.proxy_base)
-        if self.rewrite == '/':
-            return url_path_join(self.base_url, 'proxy', str(port))
-        if self.rewrite == '':
+        if self.absolute_url:
             return url_path_join(self.base_url, 'proxy', 'absolute', str(port))
-        raise ValueError('Unsupported rewrite: "{}"'.format(self.rewrite))
-
-    def _build_proxy_request(self, port, proxied_path, body):
-        context_path = self._get_context_path(port)
-        if self.rewrite:
-            client_path = proxied_path
         else:
-            client_path = url_path_join(context_path, proxied_path)
+            return url_path_join(self.base_url, 'proxy', str(port))
 
-        client_uri = '{uri}:{port}{path}'.format(
-            uri='http://localhost',
+    def get_client_uri(self, protocol, port, proxied_path):
+        context_path = self._get_context_path(port)
+        if self.absolute_url:
+            client_path = url_path_join(context_path, proxied_path)
+        else:
+            client_path = proxied_path
+
+        client_uri = '{protocol}://{host}:{port}{path}'.format(
+            protocol=protocol,
+            host='localhost',
             port=port,
             path=client_path
         )
         if self.request.query:
             client_uri += '?' + self.request.query
 
+        return client_uri
+
+    def _build_proxy_request(self, port, proxied_path, body):
+
         headers = self.proxy_request_headers()
 
+        client_uri = self.get_client_uri('http', port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
-        if self.rewrite == '/':
+        if not self.absolute_url:
             headers['X-Forwarded-Context'] = context_path
             headers['X-ProxyContextPath'] = context_path
 
@@ -412,9 +411,9 @@ def setup_handlers(web_app):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
-         LocalProxyHandler, {'rewrite': '/'}),
+         LocalProxyHandler, {'absolute_url': False}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
-         LocalProxyHandler, {'rewrite': ''}),
+         LocalProxyHandler, {'absolute_url': True}),
     ])
 
 # vim: set et ts=4 sw=4:
