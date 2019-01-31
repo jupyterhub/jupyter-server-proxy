@@ -6,5 +6,9 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'absolute_url': True
     },
+    'python-http-port54321': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'port': 54321,
+    },
 }
 #c.Application.log_level = 'DEBUG'
