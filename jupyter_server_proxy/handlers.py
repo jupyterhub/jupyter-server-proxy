@@ -284,6 +284,10 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
 
+    def __init__(self, *args, **kwargs):
+        self.requested_port = 0
+        super().__init__(*args, **kwargs)
+
     def initialize(self, state):
         self.state = state
         if 'proc_lock' not in state:
@@ -294,11 +298,12 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     @property
     def port(self):
         """
-        Allocate a random empty port for use by application
+        Allocate either the requested port or a random empty port for use by
+        application
         """
         if 'port' not in self.state:
             sock = socket.socket()
-            sock.bind(('', 0))
+            sock.bind(('', self.requested_port))
             self.state['port'] = sock.getsockname()[1]
             sock.close()
         return self.state['port']
