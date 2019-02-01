@@ -9,7 +9,7 @@ import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -20,6 +20,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url)
             self.name = name
             self.proxy_base = name
             self.absolute_url = absolute_url
+            self.requested_port = port
 
         @property
         def process_args(self):
@@ -80,6 +81,7 @@ def make_handlers(base_url, server_processes):
             sp.environment,
             sp.timeout,
             sp.absolute_url,
+            sp.port,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -91,7 +93,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'launcher_entry'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -101,6 +103,7 @@ def make_server_process(name, server_process_config):
         environment=server_process_config.get('environment', {}),
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
+        port=server_process_config.get('port', 0),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
@@ -137,6 +140,9 @@ class ServerProxy(Configurable):
           absolute_url
             Proxy requests default to being rewritten to '/'. If this is True,
             the absolute URL will be sent to the backend instead.
+
+          port
+            Set the port that the service will listen on. The default is to automatically select an unused port.
 
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.

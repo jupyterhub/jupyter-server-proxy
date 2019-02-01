@@ -84,6 +84,12 @@ pairs.
    Defaults to *False*.
 
 
+ #. **port**
+
+     Set the port that the service will listen on. The default is to
+     automatically select an unused port.
+
+
 #. **launcher_entry**
 
    A dictionary with options on if / how an entry in the classic Jupyter Notebook
