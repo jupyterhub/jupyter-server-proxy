@@ -28,8 +28,19 @@ Contents
 ========
 
 .. toctree::
+   :maxdepth: 2
 
    install
    server-process
    launchers
    arbitrary-ports
+
+Contributing
+============
+
+Contributions of all kinds - documentation, issues, blog posts, code, are most welcome!
+
+.. toctree::
+   :maxdepth: 2
+
+   contributing/release
