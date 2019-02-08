@@ -1,21 +1,16 @@
-=================================
-User Contributed Server Processes
-=================================
+.. _convenience/new:
 
-This directory contains various python packages that can be
-pip installed to get popular services that are commonly
-used with jupyter-server-proxy working.
-
-Making a new package
-====================
+================================
+Making a new convenience package
+================================
 
 There is a `cookiecutter <https://github.com/audreyr/cookiecutter>`_
-template provided here that can be used to make new packages.
+template provided in this repo that can be used to make new packages.
 
 .. code:: bash
 
    pip install cookiecutter
-   cookiecutter template
+   cookiecutter contrib/template -o contrib/
 
 This should ask you a bunch of questions, and generate a directory
 named after your project with a python package. From there, you should:

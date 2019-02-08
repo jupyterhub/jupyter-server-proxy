@@ -196,6 +196,8 @@ if we want tighter control over what process is spawned.
    in your notebook url. The URL path is specified by the key,
    but this should be made more configurable in the future.
 
+.. _server-process/package:
+
 Specifying config from python packages
 ======================================
 

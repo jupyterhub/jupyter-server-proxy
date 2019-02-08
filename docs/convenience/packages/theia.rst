@@ -1,0 +1,1 @@
+../../../contrib/theia/README.rst
