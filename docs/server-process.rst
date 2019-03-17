@@ -84,7 +84,7 @@ pairs.
    Defaults to *False*.
 
 
- #. **port**
+#. **port**
 
      Set the port that the service will listen on. The default is to
      automatically select an unused port.
