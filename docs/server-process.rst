@@ -39,7 +39,7 @@ pairs.
 
 #. **timeout**
 
-   Timeout in seconds for the process to become ready, default ``5s``.
+   Timeout in seconds for the process to become ready, default ``5``.
 
    A process is considered 'ready' when it can return a valid HTTP response on the
    port it is supposed to start at.
