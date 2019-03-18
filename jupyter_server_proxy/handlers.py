@@ -33,6 +33,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
+        self.proxy_request_options = kwargs.pop('proxy_request_options', dict(follow_redirects=False))
         super().__init__(*args, **kwargs)
 
     async def open(self, port, proxied_path=''):
