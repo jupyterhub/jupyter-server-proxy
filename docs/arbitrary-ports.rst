@@ -6,8 +6,14 @@ Accessing Arbitrary Ports
 
 If you already have a server running on localhost listening on
 a port, you can access it through the notebook at
-``<notebook-base>/proxy/<port>``. This works for all ports listening
-on the local machine.
+``<notebook-base>/proxy/<port>``.
+The URL will be rewritten to remove the above prefix.
+
+You can disable URL rewriting by using
+``<notebook-base>/proxy/absolute/<port>`` so your server will receive the full
+URL in the request.
+
+This works for all ports listening on the local machine.
 
 With JupyterHub
 ===============
