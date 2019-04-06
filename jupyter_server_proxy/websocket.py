@@ -93,7 +93,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
         else:
-            awwait maybe_future(super().get(*args, **kwargs))
+            await maybe_future(super().get(*args, **kwargs))
 
 
 def setup_handlers(web_app):
