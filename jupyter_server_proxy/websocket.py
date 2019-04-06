@@ -85,7 +85,10 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
     async def get(self, *args, **kwargs):
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
-        await super().get(*args, **kwargs)
+        else:
+            result = super().get(*args, **kwargs)
+            if inspect.isawaitable(result):
+                await result
 
 
 
