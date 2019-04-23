@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-server-proxy",
-  "version": "1.0.1-alpha.0",
+  "version": "1.0.1-alpha.6",
   "description": "Launcher icons for proxied applications",
   "keywords": [
     "jupyter",
@@ -30,12 +30,12 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^1.0.0-alpha6",
-    "@jupyterlab/launcher": "^1.0.0-alpha6"
+    "@jupyterlab/application": "^1.0.0-alpha.6",
+    "@jupyterlab/launcher": "^1.0.0-alpha.6"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
-    "typescript": "~3.1.1"
+    "typescript": "~3.4.3"
   },
   "jupyterlab": {
     "extension": true
