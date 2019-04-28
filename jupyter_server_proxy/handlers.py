@@ -242,9 +242,9 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     # Support all the methods that torando does by default except for GET which
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
-    async def http_get(self, port, proxy_path=''):
+    def http_get(self, port, proxy_path=''):
         '''Our non-websocket GET.'''
-        return await self.proxy(port, proxy_path)
+        return self.proxy(port, proxy_path)
 
     def post(self, port, proxy_path=''):
         return self.proxy(port, proxy_path)
@@ -387,8 +387,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return await super().proxy(self.port, path)
 
 
-    async def http_get(self, path):
-        return await self.proxy(self.port, path)
+    def http_get(self, path):
+        self.log.debug(f'Proxy GET: {path}')
+        return self.proxy(self.port, path)
 
     async def open(self, path):
         await self.ensure_process()
