@@ -9,7 +9,7 @@ import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, proxy_request_options):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -21,6 +21,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.proxy_base = name
             self.absolute_url = absolute_url
             self.requested_port = port
+            self.proxy_request_options = proxy_request_options
 
         @property
         def process_args(self):
@@ -82,6 +83,7 @@ def make_handlers(base_url, server_processes):
             sp.timeout,
             sp.absolute_url,
             sp.port,
+            sp.proxy_request_options,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -93,7 +95,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'launcher_entry', 'proxy_request_options'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -108,7 +110,10 @@ def make_server_process(name, server_process_config):
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
             title=le.get('title', name)
-        )
+        ),
+        proxy_request_options=server_process_config.get(
+			'proxy_request_options', dict(follow_redirects=False)
+		)
     )
 
 class ServerProxy(Configurable):
@@ -159,6 +164,10 @@ class ServerProxy(Configurable):
 
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
+
+          proxy_request_options
+             A dictionary of options to be used when constructing a tornado.httpclient.HTTPRequest instance for the proxy request. The default is { follow_redirects=False }.
+
         """,
         config=True
     )

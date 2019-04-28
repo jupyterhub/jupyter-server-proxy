@@ -107,6 +107,13 @@ pairs.
    #. **title**
       Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
+
+#. **proxy_request_options**
+
+   A dictionary of options to be used when constructing a
+   tornado.httpclient.HTTPRequest instance for the proxy request.
+   The default is ``{ follow_redirects=False }``.
+
 .. _server-processes/callable-arguments:
 
 Callable arguments
