@@ -31,59 +31,15 @@ class AddSlashHandler(IPythonHandler):
 class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     """
     A tornado request handler that proxies HTTP and websockets from
-    a given host/port combination.
+    a given host/port combination. This class is not meant to be
+    used directly as a means of overriding CORS. This presents significant
+    security risks, and could allow arbitrary remote code access. Instead, it is
+    meant to be subclassed and used for proxying URLs from trusted sources.
     """
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
-
-    async def open(self, host, port, proxied_path=''):
-        """
-        Called when a client opens a websocket connection.
-
-        We establish a websocket connection to the proxied backend &
-        set up a callback to relay messages through.
-        """
-        if not proxied_path.startswith('/'):
-            proxied_path = '/' + proxied_path
-
-        client_uri = self.get_client_uri('ws', host, port, proxied_path)
-        headers = self.request.headers
-
-        def message_cb(message):
-            """
-            Callback when the backend sends messages to us
-
-            We just pass it back to the frontend
-            """
-            # Websockets support both string (utf-8) and binary data, so let's
-            # make sure we signal that appropriately when proxying
-            self._record_activity()
-            if message is None:
-                self.close()
-            else:
-                self.write_message(message, binary=isinstance(message, bytes))
-
-        def ping_cb(data):
-            """
-            Callback when the backend sends pings to us.
-
-            We just pass it back to the frontend.
-            """
-            self._record_activity()
-            self.ping(data)
-
-        async def start_websocket_connection():
-            self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
-            self._record_activity()
-            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
-            self.ws = await pingable_ws_connect(request=request,
-                on_message_callback=message_cb, on_ping_callback=ping_cb)
-            self._record_activity()
-            self.log.info('Websocket connection established to {}'.format(client_uri))
-
-        ioloop.IOLoop.current().add_callback(start_websocket_connection)
 
     def on_message(self, message):
         """
@@ -232,6 +188,54 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             if response.body:
                 self.write(response.body)
 
+    async def proxy_open(self, host, port, proxied_path=''):
+        """
+        Called when a client opens a websocket connection.
+
+        We establish a websocket connection to the proxied backend &
+        set up a callback to relay messages through.
+        """
+        if not proxied_path.startswith('/'):
+            proxied_path = '/' + proxied_path
+
+        client_uri = self.get_client_uri('ws', host, port, proxied_path)
+        headers = self.request.headers
+
+        def message_cb(message):
+            """
+            Callback when the backend sends messages to us
+
+            We just pass it back to the frontend
+            """
+            # Websockets support both string (utf-8) and binary data, so let's
+            # make sure we signal that appropriately when proxying
+            self._record_activity()
+            if message is None:
+                self.close()
+            else:
+                self.write_message(message, binary=isinstance(message, bytes))
+
+        def ping_cb(data):
+            """
+            Callback when the backend sends pings to us.
+
+            We just pass it back to the frontend.
+            """
+            self._record_activity()
+            self.ping(data)
+
+        async def start_websocket_connection():
+            self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
+            self._record_activity()
+            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
+            self.ws = await pingable_ws_connect(request=request,
+                on_message_callback=message_cb, on_ping_callback=ping_cb)
+            self._record_activity()
+            self.log.info('Websocket connection established to {}'.format(client_uri))
+
+        ioloop.IOLoop.current().add_callback(start_websocket_connection)
+
+
     def proxy_request_headers(self):
         '''A dictionary of headers to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
@@ -293,7 +297,7 @@ class LocalProxyHandler(ProxyHandler):
         return await self.proxy(port, proxied_path)
 
     async def open(self, port, proxied_path):
-        return await super().open('localhost', port, proxied_path)
+        return await self.proxy_open('localhost', port, proxied_path)
 
     def post(self, port, proxied_path):
         return self.proxy(port, proxied_path)
