@@ -35,11 +35,42 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     used directly as a means of overriding CORS. This presents significant
     security risks, and could allow arbitrary remote code access. Instead, it is
     meant to be subclassed and used for proxying URLs from trusted sources.
+
+    Subclasses should implement open, http_get, post, put, delete, head, patch,
+    and options.
     """
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
+
+    # Support all the methods that torando does by default except for GET which
+    # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
+
+    async def open(self, port, proxied_path):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement open')
+
+    async def http_get(self, host, port, proxy_path=''):
+        '''Our non-websocket GET.'''
+        raise NotImplementedError('Subclasses of ProxyHandler should implement http_get')
+
+    def post(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement this post')
+
+    def put(self, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement this put')
+
+    def delete(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement delete')
+
+    def head(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement head')
+
+    def patch(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement patch')
+
+    def options(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement options')
 
     def on_message(self, message):
         """
@@ -245,31 +276,6 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
         return dict(follow_redirects=False)
-
-    # Support all the methods that torando does by default except for GET which
-    # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
-
-    async def http_get(self, host, port, proxy_path=''):
-        '''Our non-websocket GET.'''
-        return await self.proxy(host, port, proxy_path)
-
-    def post(self, host, port, proxy_path=''):
-        return self.proxy(host, port, proxy_path)
-
-    def put(self, port, proxy_path=''):
-        return self.proxy(host, port, proxy_path)
-
-    def delete(self, host, port, proxy_path=''):
-        return self.proxy(host, port, proxy_path)
-
-    def head(self, host, port, proxy_path=''):
-        return self.proxy(host, port, proxy_path)
-
-    def patch(self, host, port, proxy_path=''):
-        return self.proxy(host, port, proxy_path)
-
-    def options(self, host, port, proxy_path=''):
-        return self.proxy(host, port, proxy_path)
 
     def check_xsrf_cookie(self):
         '''
