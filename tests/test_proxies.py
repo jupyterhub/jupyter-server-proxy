@@ -5,8 +5,8 @@ PORT = os.getenv('TEST_PORT', 8888)
 TOKEN = os.getenv('JUPYTER_TOKEN', 'secret')
 
 
-def request_get(port, path, token):
-    h = HTTPConnection('localhost', port, 10)
+def request_get(port, path, token, host='localhost'):
+    h = HTTPConnection(host, port, 10)
     h.request('GET', '{}?token={}'.format(path, token))
     return h.getresponse()
 
@@ -57,3 +57,7 @@ def test_server_proxy_port_absolute():
     assert s.startswith('GET /proxy/absolute/54321/nmo?token=')
     assert 'X-Forwarded-Context' not in s
     assert 'X-Proxycontextpath' not in s
+
+def test_server_proxy_remote():
+    r = request_get(PORT, '/newproxy', TOKEN, host='127.0.0.1')
+    assert r.code == 200

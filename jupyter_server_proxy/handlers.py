@@ -28,59 +28,49 @@ class AddSlashHandler(IPythonHandler):
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
 
-class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
+class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
+    """
+    A tornado request handler that proxies HTTP and websockets from
+    a given host/port combination. This class is not meant to be
+    used directly as a means of overriding CORS. This presents significant
+    security risks, and could allow arbitrary remote code access. Instead, it is
+    meant to be subclassed and used for proxying URLs from trusted sources.
 
+    Subclasses should implement open, http_get, post, put, delete, head, patch,
+    and options.
+    """
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
 
-    async def open(self, port, proxied_path=''):
-        """
-        Called when a client opens a websocket connection.
+    # Support all the methods that torando does by default except for GET which
+    # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
-        We establish a websocket connection to the proxied backend &
-        set up a callback to relay messages through.
-        """
-        if not proxied_path.startswith('/'):
-            proxied_path = '/' + proxied_path
+    async def open(self, port, proxied_path):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement open')
 
-        client_uri = self.get_client_uri('ws', port, proxied_path)
-        headers = self.request.headers
+    async def http_get(self, host, port, proxy_path=''):
+        '''Our non-websocket GET.'''
+        raise NotImplementedError('Subclasses of ProxyHandler should implement http_get')
 
-        def message_cb(message):
-            """
-            Callback when the backend sends messages to us
+    def post(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement this post')
 
-            We just pass it back to the frontend
-            """
-            # Websockets support both string (utf-8) and binary data, so let's
-            # make sure we signal that appropriately when proxying
-            self._record_activity()
-            if message is None:
-                self.close()
-            else:
-                self.write_message(message, binary=isinstance(message, bytes))
+    def put(self, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement this put')
 
-        def ping_cb(data):
-            """
-            Callback when the backend sends pings to us.
+    def delete(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement delete')
 
-            We just pass it back to the frontend.
-            """
-            self._record_activity()
-            self.ping(data)
+    def head(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement head')
 
-        async def start_websocket_connection():
-            self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
-            self._record_activity()
-            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
-            self.ws = await pingable_ws_connect(request=request,
-                on_message_callback=message_cb, on_ping_callback=ping_cb)
-            self._record_activity()
-            self.log.info('Websocket connection established to {}'.format(client_uri))
+    def patch(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement patch')
 
-        ioloop.IOLoop.current().add_callback(start_websocket_connection)
+    def options(self, host, port, proxy_path=''):
+        raise NotImplementedError('Subclasses of ProxyHandler should implement options')
 
     def on_message(self, message):
         """
@@ -141,7 +131,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         else:
             return url_path_join(self.base_url, 'proxy', str(port))
 
-    def get_client_uri(self, protocol, port, proxied_path):
+    def get_client_uri(self, protocol, host, port, proxied_path):
         context_path = self._get_context_path(port)
         if self.absolute_url:
             client_path = url_path_join(context_path, proxied_path)
@@ -150,7 +140,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         client_uri = '{protocol}://{host}:{port}{path}'.format(
             protocol=protocol,
-            host='localhost',
+            host=host,
             port=port,
             path=client_path
         )
@@ -159,11 +149,11 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         return client_uri
 
-    def _build_proxy_request(self, port, proxied_path, body):
+    def _build_proxy_request(self, host, port, proxied_path, body):
 
         headers = self.proxy_request_headers()
 
-        client_uri = self.get_client_uri('http', port, proxied_path)
+        client_uri = self.get_client_uri('http', host, port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
@@ -177,7 +167,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         return req
 
     @web.authenticated
-    async def proxy(self, port, proxied_path):
+    async def proxy(self, host, port, proxied_path):
         '''
         This serverextension handles:
             {base_url}/proxy/{port([0-9]+)}/{proxied_path}
@@ -205,7 +195,7 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         client = httpclient.AsyncHTTPClient()
 
-        req = self._build_proxy_request(port, proxied_path, body)
+        req = self._build_proxy_request(host, port, proxied_path, body)
         response = await client.fetch(req, raise_error=False)
         # record activity at start and end of requests
         self._record_activity()
@@ -229,6 +219,54 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             if response.body:
                 self.write(response.body)
 
+    async def proxy_open(self, host, port, proxied_path=''):
+        """
+        Called when a client opens a websocket connection.
+
+        We establish a websocket connection to the proxied backend &
+        set up a callback to relay messages through.
+        """
+        if not proxied_path.startswith('/'):
+            proxied_path = '/' + proxied_path
+
+        client_uri = self.get_client_uri('ws', host, port, proxied_path)
+        headers = self.request.headers
+
+        def message_cb(message):
+            """
+            Callback when the backend sends messages to us
+
+            We just pass it back to the frontend
+            """
+            # Websockets support both string (utf-8) and binary data, so let's
+            # make sure we signal that appropriately when proxying
+            self._record_activity()
+            if message is None:
+                self.close()
+            else:
+                self.write_message(message, binary=isinstance(message, bytes))
+
+        def ping_cb(data):
+            """
+            Callback when the backend sends pings to us.
+
+            We just pass it back to the frontend.
+            """
+            self._record_activity()
+            self.ping(data)
+
+        async def start_websocket_connection():
+            self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
+            self._record_activity()
+            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
+            self.ws = await pingable_ws_connect(request=request,
+                on_message_callback=message_cb, on_ping_callback=ping_cb)
+            self._record_activity()
+            self.log.info('Websocket connection established to {}'.format(client_uri))
+
+        ioloop.IOLoop.current().add_callback(start_websocket_connection)
+
+
     def proxy_request_headers(self):
         '''A dictionary of headers to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
@@ -238,31 +276,6 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
         return dict(follow_redirects=False)
-
-    # Support all the methods that torando does by default except for GET which
-    # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
-
-    async def http_get(self, port, proxy_path=''):
-        '''Our non-websocket GET.'''
-        return await self.proxy(port, proxy_path)
-
-    def post(self, port, proxy_path=''):
-        return self.proxy(port, proxy_path)
-
-    def put(self, port, proxy_path=''):
-        return self.proxy(port, proxy_path)
-
-    def delete(self, port, proxy_path=''):
-        return self.proxy(port, proxy_path)
-
-    def head(self, port, proxy_path=''):
-        return self.proxy(port, proxy_path)
-
-    def patch(self, port, proxy_path=''):
-        return self.proxy(port, proxy_path)
-
-    def options(self, port, proxy_path=''):
-        return self.proxy(port, proxy_path)
 
     def check_xsrf_cookie(self):
         '''
@@ -278,6 +291,40 @@ class LocalProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             self.log.info('Client sent subprotocols: {}'.format(subprotocols))
             return subprotocols[0]
         return super().select_subprotocol(subprotocols)
+
+
+class LocalProxyHandler(ProxyHandler):
+    """
+    A tornado request handler that proxies HTTP and websockets
+    from a port on the local system. Same as the above ProxyHandler,
+    but specific to 'localhost'.
+    """
+    async def http_get(self, port, proxied_path):
+        return await self.proxy(port, proxied_path)
+
+    async def open(self, port, proxied_path):
+        return await self.proxy_open('localhost', port, proxied_path)
+
+    def post(self, port, proxied_path):
+        return self.proxy(port, proxied_path)
+
+    def put(self, port, proxied_path):
+        return self.proxy(port, proxied_path)
+
+    def delete(self, port, proxied_path):
+        return self.proxy(port, proxied_path)
+
+    def head(self, port, proxied_path):
+        return self.proxy(port, proxied_path)
+
+    def patch(self, port, proxied_path):
+        return self.proxy(port, proxied_path)
+
+    def options(self, port, proxied_path):
+        return self.proxy(port, proxied_path)
+
+    def proxy(self, port, proxied_path):
+        return super().proxy('localhost', port, proxied_path)
 
 
 # FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
