@@ -24,3 +24,26 @@ The primary use cases are:
 
 `The documentation <https://jupyter-server-proxy.readthedocs.io/>`_
 contains information on installation & usage.
+
+====================
+Install
+====================
+
+pip
+---
+
+pip install jupyter-server-proxy
+
+conda
+-----
+
+conda install jupyter-server-proxy -c conda-forge
+
+src
+---
+
+pip install .
+
+**Note:** if installing from source in editable mode: ``setup.py develop/pip install -e``, please explicitly install the server extensions:
+
+``jupyter serverextension enable --sys-prefix jupyter_server_proxy``
