@@ -32,17 +32,17 @@ Install
 pip
 ---
 
-pip install jupyter-server-proxy
+    pip install jupyter-server-proxy
 
 conda
 -----
 
-conda install jupyter-server-proxy -c conda-forge
+    conda install jupyter-server-proxy -c conda-forge
 
 src
 ---
 
-pip install .
+    pip install .
 
 **Note:** if installing from source in editable mode: ``setup.py develop/pip install -e``, please explicitly install the server extensions:
 
