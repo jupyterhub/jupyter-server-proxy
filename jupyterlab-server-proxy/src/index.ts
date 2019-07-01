@@ -1,11 +1,11 @@
-import { JupyterLab, JupyterLabPlugin } from '@jupyterlab/application'; 
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application'; 
 import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
 
 import '../style/index.css';
 
 
-function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterLab) {
+function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFrontEnd) {
     for (let server_process of serverData.server_processes) {
 
       if (!server_process.launcher_entry.enabled) {
@@ -34,11 +34,11 @@ function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterLa
 /**
  * Initialization data for the jupyterlab-server-proxy extension.
  */
-const extension: JupyterLabPlugin<void> = {
+const extension: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-server-proxy',
   autoStart: true,
   requires: [ILauncher],
-  activate: (app: JupyterLab, launcher: ILauncher) => {
+  activate: (app: JupyterFrontEnd, launcher: ILauncher) => {
     // FIXME: What the callback hell is this
     fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info').then(
       response => {
