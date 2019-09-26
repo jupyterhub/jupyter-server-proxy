@@ -58,6 +58,25 @@ def test_server_proxy_port_absolute():
     assert 'X-Forwarded-Context' not in s
     assert 'X-Proxycontextpath' not in s
 
+
+def test_server_proxy_indexpage_index():
+    r = request_get(PORT, '/python-http-indexpage/', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /index.html?token=')
+    assert 'X-Forwarded-Context: /python-http-indexpage\n' in s
+    assert 'X-Proxycontextpath: /python-http-indexpage\n' in s
+
+
+def test_server_proxy_indexpage_other():
+    r = request_get(PORT, '/python-http-indexpage/pqr', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /pqr?token=')
+    assert 'X-Forwarded-Context: /python-http-indexpage\n' in s
+    assert 'X-Proxycontextpath: /python-http-indexpage\n' in s
+
+
 def test_server_proxy_remote():
     r = request_get(PORT, '/newproxy', TOKEN, host='127.0.0.1')
     assert r.code == 200

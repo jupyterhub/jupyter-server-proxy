@@ -10,6 +10,10 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'port': 54321,
     },
+    'python-http-indexpage': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'indexpage': 'index.html',
+    },
 }
 
 import sys
