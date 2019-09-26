@@ -340,6 +340,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
+        self.indexpage = ''
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
@@ -435,6 +436,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     async def proxy(self, port, path):
         if not path.startswith('/'):
             path = '/' + path
+        if self.indexpage and (path == '/' or path.startswith == '/?'):
+            path = '/' + self.indexpage + path[1:]
 
         await self.ensure_process()
 
