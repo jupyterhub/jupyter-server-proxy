@@ -44,7 +44,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
 
-    # Support all the methods that torando does by default except for GET which
+    # Support all the methods that tornado does by default except for GET which
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
     async def open(self, port, proxied_path):
