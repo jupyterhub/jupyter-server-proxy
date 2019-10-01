@@ -334,6 +334,40 @@ class LocalProxyHandler(ProxyHandler):
         return super().proxy('localhost', port, proxied_path)
 
 
+class RemoteProxyHandler(ProxyHandler):
+    """
+    A tornado request handler that proxies HTTP and websockets
+    from a port on a specified remote system.
+    """
+
+    async def http_get(self, host, port, proxied_path):
+        return await self.proxy(host, port, proxied_path)
+
+    def post(self, host, port, proxied_path):
+        return self.proxy(host, port, proxied_path)
+
+    def put(self, host, port, proxied_path):
+        return self.proxy(host, port, proxied_path)
+
+    def delete(self, host, port, proxied_path):
+        return self.proxy(host, port, proxied_path)
+
+    def head(self, host, port, proxied_path):
+        return self.proxy(host, port, proxied_path)
+
+    def patch(self, host, port, proxied_path):
+        return self.proxy(host, port, proxied_path)
+
+    def options(self, host, port, proxied_path):
+        return self.proxy(host, port, proxied_path)
+
+    async def open(self, host, port, proxied_path):
+        return await self.proxy_open(host, port, proxied_path)
+
+    def proxy(self, host, port, proxied_path):
+        return super().proxy(host, port, proxied_path)
+
+
 # FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
 class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
@@ -474,6 +508,10 @@ def setup_handlers(web_app):
          LocalProxyHandler, {'absolute_url': False}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
          LocalProxyHandler, {'absolute_url': True}),
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
+         RemoteProxyHandler, {'absolute_url': False}),
+        (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
+         RemoteProxyHandler, {'absolute_url': True}),
     ])
 
 # vim: set et ts=4 sw=4:
