@@ -10,6 +10,7 @@ import os
 from urllib.parse import urlunparse, urlparse
 import aiohttp
 from asyncio import Lock
+import re
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
@@ -166,6 +167,11 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             headers=headers, **self.proxy_request_options())
         return req
 
+    def _check_host_whitelist(self, host):
+        # TODO Get whitelist from config
+        whitelist = [r'localhost']
+        return any([bool(re.match(pattern, host)) for pattern in whitelist])
+
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
         '''
@@ -174,6 +180,12 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
             {base_url}/{proxy_base}/{proxied_path}
         '''
+
+        if not self._check_host_whitelist(host):
+            self.set_status(403)
+            self.write("Host '{host}' is not whitelisted. "
+                       "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
+            return
 
         if 'Proxy-Connection' in self.request.headers:
             del self.request.headers['Proxy-Connection']
@@ -226,6 +238,14 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         We establish a websocket connection to the proxied backend &
         set up a callback to relay messages through.
         """
+
+        if not self._check_host_whitelist(host):
+            self.set_status(403)
+            self.log.info("Host '{host}' is not whitelisted. "
+                          "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
+            self.close()
+            return
+
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
