@@ -16,6 +16,7 @@ from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler, utcnow
 
+from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
 
@@ -340,7 +341,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
-        self.indexpage = ''
+        self.mappath = {}
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
@@ -436,8 +437,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     async def proxy(self, port, path):
         if not path.startswith('/'):
             path = '/' + path
-        if self.indexpage and (path == '/' or path.startswith == '/?'):
-            path = '/' + self.indexpage + path[1:]
+        if self.mappath:
+            if callable(self.mappath):
+                path = call_with_asked_args(self.mappath, {'path': path})
+            else:
+                path = self.mappath.get(path, path)
 
         await self.ensure_process()
 

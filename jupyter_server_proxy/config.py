@@ -9,7 +9,7 @@ import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, indexpage):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -21,7 +21,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.proxy_base = name
             self.absolute_url = absolute_url
             self.requested_port = port
-            self.indexpage = indexpage
+            self.mappath = mappath
 
         @property
         def process_args(self):
@@ -83,7 +83,7 @@ def make_handlers(base_url, server_processes):
             sp.timeout,
             sp.absolute_url,
             sp.port,
-            sp.indexpage,
+            sp.mappath,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -95,7 +95,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'indexpage', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -106,7 +106,7 @@ def make_server_process(name, server_process_config):
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
-        indexpage=server_process_config.get('indexpage', ''),
+        mappath=server_process_config.get('mappath', ''),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
@@ -147,10 +147,10 @@ class ServerProxy(Configurable):
           port
             Set the port that the service will listen on. The default is to automatically select an unused port.
 
-          indexpage
-            If the root of the service is requested return this page instead.
-            This is often referred to in web-server configurations as the index
-            page.
+          mappath
+            Map request paths to proxied paths.
+            Either a dictionary of request paths to proxied paths,
+            or a callable that takes parameter ``path`` and returns the proxied path.
 
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.
