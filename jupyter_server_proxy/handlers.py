@@ -169,7 +169,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
     def _check_host_whitelist(self, host):
         # TODO Get whitelist from config
-        whitelist = [r'localhost']
+        whitelist = [r'localhost', r'127\.0\.0\.1']
         return any([bool(re.match(pattern, host)) for pattern in whitelist])
 
     @web.authenticated
