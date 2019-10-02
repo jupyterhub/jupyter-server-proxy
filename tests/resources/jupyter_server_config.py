@@ -1,3 +1,7 @@
+def mappathf(path):
+    p = path + 'mapped'
+    return p
+
 c.ServerProxy.servers = {
     'python-http': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
@@ -10,9 +14,15 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'port': 54321,
     },
-    'python-http-indexpage': {
+    'python-http-mappath': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
-        'indexpage': 'index.html',
+        'mappath': {
+            '/': '/index.html',
+        }
+    },
+    'python-http-mappathf': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'mappath': mappathf,
     },
 }
 

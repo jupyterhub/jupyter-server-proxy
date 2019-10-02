@@ -1,5 +1,6 @@
 import os
 from http.client import HTTPConnection
+import pytest
 
 PORT = os.getenv('TEST_PORT', 8888)
 TOKEN = os.getenv('JUPYTER_TOKEN', 'secret')
@@ -7,7 +8,11 @@ TOKEN = os.getenv('JUPYTER_TOKEN', 'secret')
 
 def request_get(port, path, token, host='localhost'):
     h = HTTPConnection(host, port, 10)
-    h.request('GET', '{}?token={}'.format(path, token))
+    if '?' in path:
+        url = '{}&token={}'.format(path, token)
+    else:
+        url = '{}?token={}'.format(path, token)
+    h.request('GET', url)
     return h.getresponse()
 
 
@@ -59,22 +64,36 @@ def test_server_proxy_port_absolute():
     assert 'X-Proxycontextpath' not in s
 
 
-def test_server_proxy_indexpage_index():
-    r = request_get(PORT, '/python-http-indexpage/', TOKEN)
+@pytest.mark.parametrize(
+    "requestpath,expected", [
+        ('/', '/index.html?token='),
+        ('/?q=1', '/index.html?q=1&token='),
+        ('/pqr?q=2', '/pqr?q=2&token='),
+    ]
+)
+def test_server_proxy_mappath_dict(requestpath, expected):
+    r = request_get(PORT, '/python-http-mappath' + requestpath, TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert s.startswith('GET /index.html?token=')
-    assert 'X-Forwarded-Context: /python-http-indexpage\n' in s
-    assert 'X-Proxycontextpath: /python-http-indexpage\n' in s
+    assert s.startswith('GET ' + expected)
+    assert 'X-Forwarded-Context: /python-http-mappath\n' in s
+    assert 'X-Proxycontextpath: /python-http-mappath\n' in s
 
 
-def test_server_proxy_indexpage_other():
-    r = request_get(PORT, '/python-http-indexpage/pqr', TOKEN)
+@pytest.mark.parametrize(
+    "requestpath,expected", [
+        ('/', '/mapped?token='),
+        ('/?q=1', '/mapped?q=1&token='),
+        ('/stu?q=2', '/stumapped?q=2&token='),
+    ]
+)
+def test_server_proxy_mappath_callable(requestpath, expected):
+    r = request_get(PORT, '/python-http-mappathf' + requestpath, TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert s.startswith('GET /pqr?token=')
-    assert 'X-Forwarded-Context: /python-http-indexpage\n' in s
-    assert 'X-Proxycontextpath: /python-http-indexpage\n' in s
+    assert s.startswith('GET ' + expected)
+    assert 'X-Forwarded-Context: /python-http-mappathf\n' in s
+    assert 'X-Proxycontextpath: /python-http-mappathf\n' in s
 
 
 def test_server_proxy_remote():
