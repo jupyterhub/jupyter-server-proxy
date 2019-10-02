@@ -90,6 +90,13 @@ pairs.
      automatically select an unused port.
 
 
+#. **mappath**
+
+     Map request paths to proxied paths.
+     Either a dictionary of request paths to proxied paths,
+     or a callable that takes parameter ``path`` and returns the proxied path.
+
+
 #. **launcher_entry**
 
    A dictionary with options on if / how an entry in the classic Jupyter Notebook

@@ -16,6 +16,7 @@ from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler, utcnow
 
+from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
 
@@ -44,7 +45,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self.absolute_url = kwargs.pop('absolute_url', False)
         super().__init__(*args, **kwargs)
 
-    # Support all the methods that torando does by default except for GET which
+    # Support all the methods that tornado does by default except for GET which
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
     async def open(self, port, proxied_path):
@@ -340,6 +341,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
+        self.mappath = {}
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
@@ -435,6 +437,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     async def proxy(self, port, path):
         if not path.startswith('/'):
             path = '/' + path
+        if self.mappath:
+            if callable(self.mappath):
+                path = call_with_asked_args(self.mappath, {'path': path})
+            else:
+                path = self.mappath.get(path, path)
 
         await self.ensure_process()
 
