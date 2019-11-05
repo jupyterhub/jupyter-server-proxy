@@ -2,7 +2,7 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
-from traitlets import Dict
+from traitlets import Any, Dict
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
@@ -160,5 +160,27 @@ class ServerProxy(Configurable):
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
         """,
+        config=True
+    )
+
+    host_whitelist_hook = Any(
+        lambda handler, host: host in ['localhost', '127.0.0.1'],
+        help="""
+        Verify that a host should be proxied.
+
+        This should be a callable that checks whether a host should be proxied
+        and returns True if so (False otherwise).  It could be a very simple
+        check that the host is present in a list of allowed hosts, or it could
+        be a more complex verification against a regular expression.  It should
+        probably not be a slow check against an external service.  Here is an 
+        example that could be placed in a site-wide Jupyter notebook config:
+
+            def hook(handler, host):
+                handler.log.info("Request to proxy to host " + host)
+                return host.startswith("10.")
+            c.ServerProxy.host_whitelist_hook = hook
+        
+        The default check is to return True if the host is localhost.
+        """, 
         config=True
     )
