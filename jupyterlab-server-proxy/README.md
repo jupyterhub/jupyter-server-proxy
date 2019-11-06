@@ -10,7 +10,7 @@ Launcher icons for proxied applications
 ## Installation
 
 ```bash
-jupyter labextension install jupyterlab-server-proxy
+jupyter labextension install @jupyterlab/server-proxy
 ```
 
 ## Development
