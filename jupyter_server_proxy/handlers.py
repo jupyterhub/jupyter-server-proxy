@@ -43,6 +43,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
+        self.host_whitelist_hook = kwargs.pop('host_whitelist_hook',
+                lambda handler, host: host in ['localhost', '127.0.0.1'])
         super().__init__(*args, **kwargs)
 
     # Support all the methods that torando does by default except for GET which
@@ -168,9 +170,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         return req
 
     def _check_host_whitelist(self, host):
-        # TODO Get whitelist from config
-        whitelist = [r'localhost', r'127\.0\.0\.1']
-        return any([bool(re.match(pattern, host)) for pattern in whitelist])
+        return self.host_whitelist_hook(self, host)
 
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
@@ -521,7 +521,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app):
+def setup_handlers(web_app, host_whitelist_hook):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
@@ -529,9 +529,9 @@ def setup_handlers(web_app):
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
          LocalProxyHandler, {'absolute_url': True}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': False}),
+         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist_hook': host_whitelist_hook}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': True}),
+         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist_hook': host_whitelist_hook}),
     ])
 
 # vim: set et ts=4 sw=4:
