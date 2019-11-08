@@ -524,14 +524,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 def setup_handlers(web_app, host_whitelist_hook):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': False}),
-        (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': True}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
          RemoteProxyHandler, {'absolute_url': False, 'host_whitelist_hook': host_whitelist_hook}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
          RemoteProxyHandler, {'absolute_url': True, 'host_whitelist_hook': host_whitelist_hook}),
+        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
+         LocalProxyHandler, {'absolute_url': False}),
+        (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
+         LocalProxyHandler, {'absolute_url': True}),
     ])
 
 # vim: set et ts=4 sw=4:
