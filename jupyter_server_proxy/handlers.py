@@ -10,7 +10,6 @@ import os
 from urllib.parse import urlunparse, urlparse
 import aiohttp
 from asyncio import Lock
-import re
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
