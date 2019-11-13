@@ -2,12 +2,18 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
-from traitlets import Callable, Dict, List, Union
+from traitlets import Dict, List, Union
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
+
+try:
+    # Traitlets >= 4.3.3
+    from traitlets import Callable
+except ImportError:
+    from .utils import Callable
 
 def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port):
     """
