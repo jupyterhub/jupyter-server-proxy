@@ -42,8 +42,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
-        self.host_whitelist_hook = kwargs.pop('host_whitelist_hook',
-                lambda handler, host: host in ['localhost', '127.0.0.1'])
+        self.host_whitelist = kwargs.pop('host_whitelist', ['localhost', '127.0.0.1'])
         super().__init__(*args, **kwargs)
 
     # Support all the methods that torando does by default except for GET which
@@ -169,7 +168,10 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         return req
 
     def _check_host_whitelist(self, host):
-        return self.host_whitelist_hook(self, host)
+        if callable(self.host_whitelist):
+            return self.host_whitelist(self, host)
+        else:
+            return host in self.host_whitelist
 
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
@@ -520,13 +522,13 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app, host_whitelist_hook):
+def setup_handlers(web_app, host_whitelist):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist_hook': host_whitelist_hook}),
+         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist': host_whitelist}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist_hook': host_whitelist_hook}),
+         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist': host_whitelist}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
          LocalProxyHandler, {'absolute_url': False}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
