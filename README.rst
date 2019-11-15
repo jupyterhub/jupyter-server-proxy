@@ -2,7 +2,7 @@
 Jupyter Server Proxy
 ====================
 
-|ReadTheDocs badge| |Travis badge| |PyPI badge| |NPM badge|
+|ReadTheDocs badge| |Travis badge| |PyPI badge| |Conda badge| |NPM badge|
 
 .. |ReadTheDocs badge| image:: https://img.shields.io/readthedocs/jupyter-server-proxy?logo=read-the-docs
    :target: https://jupyter-server-proxy.readthedocs.io/
@@ -12,6 +12,9 @@ Jupyter Server Proxy
 
 .. |PyPI badge| image:: https://img.shields.io/pypi/v/jupyter-server-proxy.svg?logo=pypi
    :target: https://pypi.python.org/pypi/jupyter-server-proxy
+
+.. |Conda badge| image:: https://img.shields.io/conda/vn/conda-forge/jupyter-server-proxy?logo=conda-forge
+   :target: https://anaconda.org/conda-forge/jupyter-server-proxy
 
 .. |NPM badge| image:: https://img.shields.io/npm/v/jupyterlab-server-proxy.svg?logo=npm
    :target: https://www.npmjs.com/package/jupyterlab-server-proxy
