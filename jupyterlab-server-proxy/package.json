@@ -1,5 +1,5 @@
 {
-  "name": "jupyterlab-server-proxy",
+  "name": "@jupyterlab/server-proxy",
   "version": "2.0.0",
   "description": "Launcher icons for proxied applications",
   "keywords": [
