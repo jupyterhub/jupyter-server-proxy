@@ -43,18 +43,26 @@ Install
 pip
 ---
 
-``pip install jupyter-server-proxy``
+.. code-block::
+
+   pip install jupyter-server-proxy
 
 conda
 -----
 
-``conda install jupyter-server-proxy -c conda-forge``
+.. code-block::
+
+   conda install jupyter-server-proxy -c conda-forge
 
 src
 ---
 
-``pip install .``
+.. code-block::
+
+   pip install .
 
 **Note:** if installing from source in editable mode: ``setup.py develop/pip install -e``, please explicitly install the server extensions:
 
-``jupyter serverextension enable --sys-prefix jupyter_server_proxy``
+.. code-block::
+
+   jupyter serverextension enable --sys-prefix jupyter_server_proxy
