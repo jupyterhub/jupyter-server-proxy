@@ -2,12 +2,18 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
-from traitlets import Dict
+from traitlets import Dict, List, Union, default
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
+
+try:
+    # Traitlets >= 4.3.3
+    from traitlets import Callable
+except ImportError:
+    from .utils import Callable
 
 def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath):
     """
@@ -170,3 +176,30 @@ class ServerProxy(Configurable):
         """,
         config=True
     )
+
+    host_whitelist = Union(
+        trait_types=[List(), Callable()],
+        help="""
+        List of allowed hosts.
+        Can also be a function that decides whether a host can be proxied.
+
+        If implemented as a function, this should return True if a host should
+        be proxied and False if it should not.  Such a function could verify
+        that the host matches a particular regular expression pattern or falls
+        into a specific subnet.  It should probably not be a slow check against
+        some external service.  Here is an example that could be placed in a 
+        site-wide Jupyter notebook config:
+
+            def host_whitelist(handler, host):
+                handler.log.info("Request to proxy to host " + host)
+                return host.startswith("10.")
+            c.ServerProxy.host_whitelist = host_whitelist
+
+        Defaults to a list of ["localhost", "127.0.0.1"].
+        """,
+        config=True
+    )
+
+    @default("host_whitelist")
+    def _host_whitelist_default(self):
+        return ["localhost", "127.0.0.1"]
