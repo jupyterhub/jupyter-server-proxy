@@ -20,9 +20,10 @@ Jupyter Server Proxy lets you run arbitrary external processes (such
 as RStudio, Shiny Server, syncthing, PostgreSQL, etc) alongside your
 notebook, and provide authenticated web access to them.
 
-**Note:** This project used to be called **nbserverproxy**. if you have an older
-version of nbserverproxy installed, remember to uninstall it before install
-jupyter-server-proxy - otherwise they may conflict
+**Note:** This project used to be called **nbserverproxy**. As
+nbserverproxy is an older version of jupyter-server-proxy, uninstall
+nbserverproxy before installing jupyter-server-proxy to avoid
+conflicts.
 
 The primary use cases are:
 
