@@ -2,7 +2,10 @@
 Jupyter Server Proxy
 ====================
 
-|Travis badge| |PyPI badge| |NPM badge|
+|ReadTheDocs badge| |Travis badge| |PyPI badge| |NPM badge|
+
+.. |ReadTheDocs badge| image:: https://img.shields.io/readthedocs/jupyter-server-proxy?logo=read-the-docs
+   :target: https://jupyter-server-proxy.readthedocs.io/
 
 .. |Travis badge| image:: https://img.shields.io/travis/jupyterhub/jupyter-server-proxy/master.svg?logo=travis
    :target: https://travis-ci.org/jupyterhub/jupyter-server-proxy
