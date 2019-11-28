@@ -12,6 +12,6 @@ def setup_{{cookiecutter.project_name}}():
         'environment': {},
         'launcher_entry': {
             'title': '{{cookiecutter.project_name}}',
-            'icon_url': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', '{{cookiecutter.project_name}}.svg')
+            'icon_path': os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', '{{cookiecutter.project_name}}.svg')
         }
     }
