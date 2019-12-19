@@ -2,7 +2,7 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
-from traitlets import Dict, List, Union, default
+from traitlets import Bool, Dict, List, Unicode, Union, default
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
@@ -203,3 +203,45 @@ class ServerProxy(Configurable):
     @default("host_whitelist")
     def _host_whitelist_default(self):
         return ["localhost", "127.0.0.1"]
+
+    keyfile = Unicode(
+        "",
+        help="""
+        Path to optional SSL key.
+
+        Use with `https=True` and `certfile`.
+        """,
+        config=True
+    )
+
+    certfile = Unicode(
+        "",
+        help="""
+        Path to optional SSL cert.
+
+        Use with `https=True` and `keyfile`.
+        """,
+        config=True
+    )
+
+    cafile = Unicode(
+        "",
+        help="""
+        Path to optional CA file.
+
+        Use with `https=True`.
+        """,
+        config=True
+    )
+
+    https = Bool(
+        False,
+        help="""
+        Whether to use SSL for forwarded client requests.
+
+        If this is set to `True` then you should provide a path to an SSL key,
+        cert, and CA.  Use this if the proxied service expects to service
+        requests over SSL.
+        """,
+        config=True
+    )
