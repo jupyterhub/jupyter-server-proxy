@@ -16,8 +16,8 @@ Jupyter Server Proxy
 .. |Conda badge| image:: https://img.shields.io/conda/vn/conda-forge/jupyter-server-proxy?logo=conda-forge
    :target: https://anaconda.org/conda-forge/jupyter-server-proxy
 
-.. |NPM badge| image:: https://img.shields.io/npm/v/jupyterlab-server-proxy.svg?logo=npm
-   :target: https://www.npmjs.com/package/jupyterlab-server-proxy
+.. |NPM badge| image:: https://img.shields.io/npm/v/@jupyterlab/server-proxy.svg?logo=npm
+   :target: https://www.npmjs.com/package/@jupyterlab/server-proxy
 
 Jupyter Server Proxy lets you run arbitrary external processes (such
 as RStudio, Shiny Server, syncthing, PostgreSQL, etc) alongside your
