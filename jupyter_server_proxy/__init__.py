@@ -35,7 +35,7 @@ def load_jupyter_server_extension(nbapp):
     if serverproxy.https:
         ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=serverproxy.cafile)
         ssl_context.load_cert_chain(serverproxy.certfile, serverproxy.keyfile)
-        ssl_context.check_hostname = False
+        ssl_context.check_hostname = serverproxy.check_hostname
         ssl_options = ssl_context
 
     # Set up default handler

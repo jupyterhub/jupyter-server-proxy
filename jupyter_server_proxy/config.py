@@ -245,3 +245,9 @@ class ServerProxy(Configurable):
         """,
         config=True
     )
+
+    check_hostname = Bool(
+        False,
+        help="Whether to check hostname.",
+        config=True
+    )
