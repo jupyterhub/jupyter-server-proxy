@@ -174,7 +174,7 @@ the command is started
 Specifying config via traitlets
 ===============================
 
-[Traitlets](https://traitlets.readthedocs.io/) are the configuration
+`Traitlets <https://traitlets.readthedocs.io/>`_ are the configuration
 mechanism used by Jupyter Notebook. It can take config in Python
 and we can use that to specify Server Processes - including functions
 if we want tighter control over what process is spawned.
