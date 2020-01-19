@@ -20,7 +20,7 @@ The primary use cases are:
 #. Allow access from frontend javascript (in classic notebook or
    JupyterLab extensions) to access web APIs of other processes
    running locally in a safe manner. This is used by the `JupyterLab
-   extension <https://github.com/dask/dask-labextension>`_ for 
+   extension <https://github.com/dask/dask-labextension>`_ for
    `dask <https://dask.org/>`_.
 
 
@@ -33,7 +33,7 @@ Contents
    install
    server-process
    launchers
-   arbitrary-ports
+   arbitrary-ports-hosts
 
 
 Convenience packages for popular applications

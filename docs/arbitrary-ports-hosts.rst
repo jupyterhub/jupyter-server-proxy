@@ -1,8 +1,8 @@
 .. _arbitrary-ports:
 
-=========================
-Accessing Arbitrary Ports
-=========================
+==================================
+Accessing Arbitrary Ports or Hosts
+==================================
 
 If you already have a server running on localhost listening on
 a port, you can access it through the notebook at
@@ -14,6 +14,11 @@ You can disable URL rewriting by using
 URL in the request.
 
 This works for all ports listening on the local machine.
+
+You can also specify arbitrary hosts in order to proxy traffic from
+another machine on the network ``<notebook-base>/proxy/<host>:<port>``.
+
+For security reasons the host must match an entry in the whitelist in your configuration.
 
 With JupyterHub
 ===============
@@ -38,7 +43,7 @@ Without JupyterHub
 ==================
 
 A very similar set up works when you don't use JupyterHub. You
-can construct the URL with ``<notebook-url>/proxy/<port>``. 
+can construct the URL with ``<notebook-url>/proxy/<port>``.
 
 If your notebook url is ``http://localhost:8888`` and you have
 a process running listening on port 8080, you can access it with

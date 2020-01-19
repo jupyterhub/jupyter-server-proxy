@@ -51,11 +51,13 @@ def pingable_ws_connect(request=None, on_message_callback=None,
     # for tornado 4.5.x compatibility
     if version_info[0] == 4:
         conn = PingableWSClientConnection(io_loop=ioloop.IOLoop.current(),
+            compression_options={},
             request=request,
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback)
     else:
         conn = PingableWSClientConnection(request=request,
+            compression_options={},
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback,
             max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024))

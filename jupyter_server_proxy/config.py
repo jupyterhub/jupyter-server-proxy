@@ -2,14 +2,20 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from notebook.utils import url_path_join as ujoin
-from traitlets import Dict
+from traitlets import Dict, List, Union, default
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port):
+try:
+    # Traitlets >= 4.3.3
+    from traitlets import Callable
+except ImportError:
+    from .utils import Callable
+
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -21,6 +27,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.proxy_base = name
             self.absolute_url = absolute_url
             self.requested_port = port
+            self.mappath = mappath
 
         @property
         def process_args(self):
@@ -82,6 +89,7 @@ def make_handlers(base_url, server_processes):
             sp.timeout,
             sp.absolute_url,
             sp.port,
+            sp.mappath,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -93,7 +101,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -104,6 +112,7 @@ def make_server_process(name, server_process_config):
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
+        mappath=server_process_config.get('mappath', {}),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
@@ -144,6 +153,11 @@ class ServerProxy(Configurable):
           port
             Set the port that the service will listen on. The default is to automatically select an unused port.
 
+          mappath
+            Map request paths to proxied paths.
+            Either a dictionary of request paths to proxied paths,
+            or a callable that takes parameter ``path`` and returns the proxied path.
+
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.
 
@@ -162,3 +176,30 @@ class ServerProxy(Configurable):
         """,
         config=True
     )
+
+    host_whitelist = Union(
+        trait_types=[List(), Callable()],
+        help="""
+        List of allowed hosts.
+        Can also be a function that decides whether a host can be proxied.
+
+        If implemented as a function, this should return True if a host should
+        be proxied and False if it should not.  Such a function could verify
+        that the host matches a particular regular expression pattern or falls
+        into a specific subnet.  It should probably not be a slow check against
+        some external service.  Here is an example that could be placed in a 
+        site-wide Jupyter notebook config:
+
+            def host_whitelist(handler, host):
+                handler.log.info("Request to proxy to host " + host)
+                return host.startswith("10.")
+            c.ServerProxy.host_whitelist = host_whitelist
+
+        Defaults to a list of ["localhost", "127.0.0.1"].
+        """,
+        config=True
+    )
+
+    @default("host_whitelist")
+    def _host_whitelist_default(self):
+        return ["localhost", "127.0.0.1"]
