@@ -85,9 +85,9 @@ accessing it from a classic notebook extension.
    import { PageConfig } from '@jupyterlab/coreutils';
 
    // Get base URL of current notebook server
-   let baseUrl = PageConfig.getBaseUrl()
+   let base_url = PageConfig.getBaseUrl()
 
    // Construct URL of our proxied service
-   let serviceUrl = base_url + 'proxy/' + port;
+   let service_url = base_url + 'proxy/' + port;
 
-   // Do stuff with your serviceUrl
+   // Do stuff with your service_url
