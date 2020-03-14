@@ -139,7 +139,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             client_path = url_path_join(context_path, proxied_path)
         else:
             client_path = proxied_path
-        
+
         client_path = quote(client_path)
 
         client_uri = '{protocol}://{host}:{port}{path}'.format(
