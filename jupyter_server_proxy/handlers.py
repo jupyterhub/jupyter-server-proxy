@@ -7,7 +7,7 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 import inspect
 import socket
 import os
-from urllib.parse import urlunparse, urlparse
+from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
 
@@ -155,7 +155,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         headers = self.proxy_request_headers()
 
-        client_uri = self.get_client_uri('http', host, port, proxied_path)
+        client_uri = self.get_client_uri('http', host, port, quote(proxied_path))
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
