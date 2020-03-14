@@ -139,6 +139,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             client_path = url_path_join(context_path, proxied_path)
         else:
             client_path = proxied_path
+        
+        client_path = quote(client_path)
 
         client_uri = '{protocol}://{host}:{port}{path}'.format(
             protocol=protocol,
@@ -155,7 +157,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         headers = self.proxy_request_headers()
 
-        client_uri = self.get_client_uri('http', host, port, quote(proxied_path))
+        client_uri = self.get_client_uri('http', host, port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
