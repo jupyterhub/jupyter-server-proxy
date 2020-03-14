@@ -1,5 +1,6 @@
 import os
 from http.client import HTTPConnection
+from urllib.parse import quote
 import pytest
 
 PORT = os.getenv('TEST_PORT', 8888)
@@ -17,10 +18,12 @@ def request_get(port, path, token, host='localhost'):
 
 
 def test_server_proxy_url_encoding():
-    r = request_get(PORT, '/python-http/Hellö Wörld 🎉你好世界@±¥', TOKEN)
+    special_path = 'Hellö Wörld 🎉你好世界@±¥'
+    test_url = quote('/python-http/' + special_path)
+    r = request_get(PORT, test_url, TOKEN)
     assert r.code == 200
     s = r.read().decode('utf-8')
-    assert s.startswith('GET /Hellö Wörld 🎉你好世界@±¥?token=')
+    assert s.startswith('GET /{}?token='.format(special_path))
 
 
 def test_server_proxy_non_absolute():
