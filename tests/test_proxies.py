@@ -16,6 +16,13 @@ def request_get(port, path, token, host='localhost'):
     return h.getresponse()
 
 
+def test_server_proxy_url_encoding():
+    r = request_get(PORT, '/python-http/Hellö Wörld 🎉你好世界@±¥', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('utf-8')
+    assert s.startswith('GET /Hellö Wörld 🎉你好世界@±¥?token=')
+
+
 def test_server_proxy_non_absolute():
     r = request_get(PORT, '/python-http/abc', TOKEN)
     assert r.code == 200
