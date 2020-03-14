@@ -18,11 +18,11 @@ def request_get(port, path, token, host='localhost'):
 
 
 def test_server_proxy_url_encoding():
-    special_path = 'Hellö Wörld 🎉你好世界@±¥'
-    test_url = quote('/python-http/' + special_path)
+    special_path = quote('Hellö Wörld 🎉你好世界@±¥')
+    test_url = '/python-http/' + special_path
     r = request_get(PORT, test_url, TOKEN)
     assert r.code == 200
-    s = r.read().decode('utf-8')
+    s = r.read().decode('ascii')
     assert s.startswith('GET /{}?token='.format(special_path))
 
 
