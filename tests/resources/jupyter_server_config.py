@@ -24,6 +24,9 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'mappath': mappathf,
     },
+    'python-websocket' : {
+        'command': ['python3', './tests/resources/websocket.py', '--port={port}'],
+    }
 }
 
 import sys

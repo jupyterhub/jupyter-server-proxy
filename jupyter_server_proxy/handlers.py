@@ -44,6 +44,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         self.host_whitelist = kwargs.pop('host_whitelist', ['localhost', '127.0.0.1'])
+        self.subprotocols = None
         super().__init__(*args, **kwargs)
 
     # Support all the methods that tornado does by default except for GET which
@@ -284,7 +285,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await pingable_ws_connect(request=request,
-                on_message_callback=message_cb, on_ping_callback=ping_cb)
+                on_message_callback=message_cb, on_ping_callback=ping_cb,
+                subprotocols=self.subprotocols)
             ws_connected.set_result(True)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
@@ -316,6 +318,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
     def select_subprotocol(self, subprotocols):
         '''Select a single Sec-WebSocket-Protocol during handshake.'''
+        self.subprotocols = subprotocols
         if isinstance(subprotocols, list) and subprotocols:
             self.log.info('Client sent subprotocols: {}'.format(subprotocols))
             return subprotocols[0]
