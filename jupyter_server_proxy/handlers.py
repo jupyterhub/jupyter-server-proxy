@@ -7,7 +7,7 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 import inspect
 import socket
 import os
-from urllib.parse import urlunparse, urlparse
+from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
 
@@ -140,6 +140,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
             client_path = url_path_join(context_path, proxied_path)
         else:
             client_path = proxied_path
+
+        client_path = quote(client_path)
 
         client_uri = '{protocol}://{host}:{port}{path}'.format(
             protocol=protocol,
