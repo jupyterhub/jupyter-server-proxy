@@ -1,6 +1,10 @@
+import asyncio
+import json
 import os
 from http.client import HTTPConnection
+from urllib.parse import quote
 import pytest
+from tornado.websocket import websocket_connect
 
 PORT = os.getenv('TEST_PORT', 8888)
 TOKEN = os.getenv('JUPYTER_TOKEN', 'secret')
@@ -14,6 +18,15 @@ def request_get(port, path, token, host='localhost'):
         url = '{}?token={}'.format(path, token)
     h.request('GET', url)
     return h.getresponse()
+
+
+def test_server_proxy_url_encoding():
+    special_path = quote('Hellö Wörld 🎉你好世界@±¥')
+    test_url = '/python-http/' + special_path
+    r = request_get(PORT, test_url, TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /{}?token='.format(special_path))
 
 
 def test_server_proxy_non_absolute():
@@ -99,3 +112,35 @@ def test_server_proxy_mappath_callable(requestpath, expected):
 def test_server_proxy_remote():
     r = request_get(PORT, '/newproxy', TOKEN, host='127.0.0.1')
     assert r.code == 200
+
+
+@pytest.fixture(scope="module")
+def event_loop():
+    loop = asyncio.get_event_loop()
+    yield loop
+    loop.close()
+
+
+async def _websocket_echo():
+    url = "ws://localhost:{}/python-websocket/echosocket".format(PORT)
+    conn = await websocket_connect(url)
+    expected_msg = "Hello, world!"
+    await conn.write_message(expected_msg)
+    msg = await conn.read_message()
+    assert msg == expected_msg
+
+def test_server_proxy_websocket(event_loop):
+    event_loop.run_until_complete(_websocket_echo())
+
+
+async def _websocket_subprotocols():
+    url = "ws://localhost:{}/python-websocket/subprotocolsocket".format(PORT)
+    conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
+    await conn.write_message("Hello, world!")
+    msg = await conn.read_message()
+    assert json.loads(msg) == ["protocol_1", "protocol_2"]
+
+
+def test_server_proxy_websocket_subprotocols(event_loop):
+    event_loop.run_until_complete(_websocket_subprotocols())
+
