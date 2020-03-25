@@ -483,7 +483,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, start_thread)
         else:
-            self._ensure_process()
+            await self._ensure_process()
 
     async def _ensure_process(self):
         """
