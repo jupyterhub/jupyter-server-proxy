@@ -11,7 +11,7 @@ from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
 
-from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
+from tornado import gen, web, httpclient, simple_httpclient, httputil, process, websocket, ioloop, version_info
 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler, utcnow
@@ -213,7 +213,15 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         client = httpclient.AsyncHTTPClient()
 
         req = self._build_proxy_request(host, port, proxied_path, body)
-        response = await client.fetch(req, raise_error=False)
+
+        try:
+            response = await client.fetch(req, raise_error=False)
+        except simple_httpclient.HTTPTimeoutError as err:
+            self._record_activity()
+            self.set_status(408)
+            self.write(str(err))
+            return
+
         # record activity at start and end of requests
         self._record_activity()
 
