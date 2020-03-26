@@ -217,6 +217,10 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         try:
             response = await client.fetch(req, raise_error=False)
         except httpclient.HTTPError as err:
+            # We need to capture the timeout error even with raise_error=False,
+            # because it only affects the HTTPError raised when a non-200 response 
+            # code is used, instead of suppressing all errors.
+            # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
             if err.code == 599:
                 self._record_activity()
                 self.set_status(599)
