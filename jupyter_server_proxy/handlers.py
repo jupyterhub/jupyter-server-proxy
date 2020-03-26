@@ -468,7 +468,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # ProactorEventLoop is used. 
         # Ref: https://docs.python.org/3/library/asyncio-subprocess.html
         # We use a workaround for windows by starting a new ProactorEventLoop
-        # in a thread. This is necessary because we don't want it to interfer with
+        # in a thread. This is necessary because we don't want it to interfere with
         # the event loop for tornado web server (which does not support ProactorEventLoop).
         if sys.platform == "win32":
             def start_thread():
