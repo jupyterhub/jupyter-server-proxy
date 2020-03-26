@@ -11,7 +11,7 @@ from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
 
-from tornado import gen, web, httpclient, simple_httpclient, httputil, process, websocket, ioloop, version_info
+from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler, utcnow
@@ -216,11 +216,14 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         try:
             response = await client.fetch(req, raise_error=False)
-        except simple_httpclient.HTTPTimeoutError as err:
-            self._record_activity()
-            self.set_status(408)
-            self.write(str(err))
-            return
+        except httpclient.HTTPError as err:
+            if err.code == 599:
+                self._record_activity()
+                self.set_status(599)
+                self.write(str(err))
+                return
+            else:
+                raise
 
         # record activity at start and end of requests
         self._record_activity()
@@ -316,7 +319,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-        return dict(follow_redirects=False, request_timeout=75.0)
+        return dict(follow_redirects=False, connect_timeout=250, request_timeout=300.0)
 
     def check_xsrf_cookie(self):
         '''
