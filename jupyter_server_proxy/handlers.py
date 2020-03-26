@@ -7,8 +7,10 @@ Some original inspiration from https://github.com/senko/tornado-proxy
 import inspect
 import socket
 import os
+import sys
 from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
+import asyncio
 from asyncio import Lock
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
@@ -444,7 +446,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return 5
 
     async def _http_ready_func(self, p):
-        url = 'http://localhost:{}'.format(self.port)
+        # Use 127.0.0.1 instead of localhost, since it can fail on windows
+        url = 'http://127.0.0.1:{}'.format(self.port)
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(url) as resp:
@@ -457,6 +460,32 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 return False
 
     async def ensure_process(self):
+        """
+        Start the process
+        """
+        # The default asyncio event loop implementation on Windows does not 
+        # support subprocesses. Subprocesses are available for Windows if a 
+        # ProactorEventLoop is used. 
+        # Ref: https://docs.python.org/3/library/asyncio-subprocess.html
+        # We use a workaround for windows by starting a new ProactorEventLoop
+        # in a thread. This is necessary because we don't want it to interfere with
+        # the event loop for tornado web server (which does not support ProactorEventLoop).
+        if sys.platform == "win32":
+            def start_thread():
+                new_loop = asyncio.ProactorEventLoop()
+                # patch add_signal_handler for simpervisor
+                def add_signal_handler(signum, callback, *args):
+                    pass
+                new_loop.add_signal_handler = add_signal_handler
+                asyncio.set_event_loop(new_loop)
+                new_loop.run_until_complete(self._ensure_process())
+                new_loop.close()
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, start_thread)
+        else:
+            await self._ensure_process()
+
+    async def _ensure_process(self):
         """
         Start the process
         """
@@ -491,7 +520,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                     # Make sure we remove proc from state in any error condition
                     del self.state['proc']
                     raise
-
 
     @web.authenticated
     async def proxy(self, port, path):
