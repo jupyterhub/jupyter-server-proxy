@@ -10,7 +10,7 @@ PORT = os.getenv('TEST_PORT', 8888)
 TOKEN = os.getenv('JUPYTER_TOKEN', 'secret')
 
 
-def request_get(port, path, token, host='127.0.0.1'):
+def request_get(port, path, token, host='localhost'):
     h = HTTPConnection(host, port, 10)
     if '?' in path:
         url = '{}&token={}'.format(path, token)
