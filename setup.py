@@ -3,7 +3,7 @@ from glob import glob
 
 setuptools.setup(
     name="jupyter-server-proxy",
-    version='1.3.0',
+    version='1.3.1',
     url="https://github.com/jupyterhub/jupyter-server-proxy",
     author="Ryan Lovett & Yuvi Panda",
     author_email="rylo@berkeley.edu",
