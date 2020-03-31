@@ -20,13 +20,28 @@ def request_get(port, path, token, host='localhost'):
     return h.getresponse()
 
 
-def test_server_proxy_url_encoding():
-    special_path = quote('Hellö Wörld 🎉你好世界@±¥')
+def test_server_proxy_minimal_proxy_path_encoding():
+    """Test that we don't encode anything more than we must to have a valid web
+    request."""
+    special_path = quote("Hello world 123 åäö 🎉你好世界±¥ :/[]@!$&'()*+,;=-._~", safe=":/?#[]@!$&'()*+,;=-._~")
+    # NOTE: we left out ?# as they would interact badly with our requests_get
+    # function's ability to pass the token query parameter.
     test_url = '/python-http/' + special_path
     r = request_get(PORT, test_url, TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert s.startswith('GET /{}?token='.format(special_path))
+    assert 'GET /{}?token='.format(special_path) in s
+
+def test_server_proxy_minimal_proxy_path_encoding_complement():
+    """Test that we don't encode ?# as a complement to the other test."""
+    test_url = '/python-http/?token={}#test'.format(TOKEN)
+    h = HTTPConnection('localhost', PORT, 10)
+    r = request_get(PORT, test_url, TOKEN)
+    h.request('GET', test_url)
+    return h.getresponse()
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert 'GET /{}?token='.format(test_url) in s
 
 
 def test_server_proxy_non_absolute():
