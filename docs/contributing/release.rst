@@ -71,5 +71,7 @@ Release checklist
    .. code::
 
       cd jupyterlab-server-proxy
+      npm install
+      npm login
       npm publish
 
