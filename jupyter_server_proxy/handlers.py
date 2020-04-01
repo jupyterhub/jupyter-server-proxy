@@ -220,7 +220,22 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         client = httpclient.AsyncHTTPClient()
 
         req = self._build_proxy_request(host, port, proxied_path, body)
-        response = await client.fetch(req, raise_error=False)
+
+        try:
+            response = await client.fetch(req, raise_error=False)
+        except httpclient.HTTPError as err:
+            # We need to capture the timeout error even with raise_error=False,
+            # because it only affects the HTTPError raised when a non-200 response 
+            # code is used, instead of suppressing all errors.
+            # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
+            if err.code == 599:
+                self._record_activity()
+                self.set_status(599)
+                self.write(str(err))
+                return
+            else:
+                raise
+
         # record activity at start and end of requests
         self._record_activity()
 
@@ -315,7 +330,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-        return dict(follow_redirects=False)
+        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0)
 
     def check_xsrf_cookie(self):
         '''
