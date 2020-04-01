@@ -70,6 +70,10 @@ conda
 JupyterLab extension
 --------------------
 
+Note that as the JupyterLab extension only is a graphical interface to
+launch registered applications in the python package, the extension
+requires the python package to be installed.
+
 .. code-block::
 
    jupyter labextension install @jupyterlab/server-proxy
