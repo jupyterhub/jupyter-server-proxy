@@ -20,8 +20,12 @@ Jupyter Server Proxy
    :target: https://www.npmjs.com/package/@jupyterlab/server-proxy
 
 Jupyter Server Proxy lets you run arbitrary external processes (such
-as RStudio, Shiny Server, syncthing, PostgreSQL, etc) alongside your
-notebook, and provide authenticated web access to them.
+as RStudio, Shiny Server, Syncthing, PostgreSQL, Code Server, etc)
+alongside your notebook server and provide authenticated web access to
+them using a path like ``/rstudio`` next to others like ``/lab``.
+Alongside the python package that provides the main functionality, the
+JupyterLab extension (``@jupyterlab/server-proxy``) provides buttons
+in the JupyterLab launcher window to get to RStudio for example.
 
 **Note:** This project used to be called **nbserverproxy**. As
 nbserverproxy is an older version of jupyter-server-proxy, uninstall
@@ -43,33 +47,79 @@ The primary use cases are:
 `The documentation <https://jupyter-server-proxy.readthedocs.io/>`_
 contains information on installation & usage.
 
-====================
 Install
-====================
+=======
+
+Python package
+--------------
 
 pip
----
+^^^
 
 .. code-block::
 
    pip install jupyter-server-proxy
 
 conda
------
+^^^^^
 
 .. code-block::
 
    conda install jupyter-server-proxy -c conda-forge
 
-src
----
+JupyterLab extension
+--------------------
+
+Note that as the JupyterLab extension only is a graphical interface to
+launch registered applications in the python package, the extension
+requires the python package to be installed.
 
 .. code-block::
 
-   pip install .
+   jupyter labextension install @jupyterlab/server-proxy
 
-**Note:** if installing from source in editable mode: ``setup.py develop/pip install -e``, please explicitly install the server extensions:
+Contributing
+============
+
+Python package
+--------------
 
 .. code-block::
 
-   jupyter serverextension enable --sys-prefix jupyter_server_proxy
+   pip install -e .
+
+   # explicit install needed with editable mode (-e) jupyter
+   serverextension enable --sys-prefix jupyter_server_proxy
+
+
+JupyterLab extension
+--------------------
+
+The ``jlpm`` command is JupyterLab's pinned version of ``yarn`` that
+is installed with JupyterLab. You may use ``yarn`` or ``npm`` instead
+of ``jlpm`` below.
+
+.. code-block::
+
+   cd jupyterlab-server-proxy
+   # Install dependencies
+   jlpm
+   # Build Typescript source
+   jlpm build
+   # Link your development version of the extension with JupyterLab
+   jupyter labextension link .
+   # Rebuild Typescript source after making changes
+   jlpm build
+   # Rebuild JupyterLab after making any changes
+   jupyter lab build
+
+You can watch the source directory and run JupyterLab in watch mode to
+watch for changes in the extension's source and automatically rebuild
+the extension and application.
+
+.. code-block::
+
+   # Watch the source directory in another terminal tab
+   jlpm watch
+   # Run jupyterlab in watch mode in one terminal tab
+   jupyter lab --watch
