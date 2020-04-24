@@ -135,7 +135,7 @@ class ServerProxy(Configurable):
             The optional template arguments {{port}} and {{base_url}} will be substituted with the
             port the process should listen on and the base-url of the notebook.
 
-            Could also be a callable. It should return a dictionary.
+            Could also be a callable. It should return a list.
 
           environment
             A dictionary of environment variable mappings. {{port}} and {{base_url}} will be
