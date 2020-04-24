@@ -334,11 +334,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-<<<<<<< HEAD
-        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0)
-=======
-        return dict(follow_redirects=False, ssl_options=self.ssl_options)
->>>>>>> Enable SSL on forwarded requests
+        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0, 
+                ssl_options=self.ssl_options)
 
     def check_xsrf_cookie(self):
         '''
