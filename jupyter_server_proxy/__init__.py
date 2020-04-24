@@ -23,9 +23,9 @@ def load_jupyter_server_extension(nbapp):
     base_url = nbapp.web_app.settings['base_url']
     serverproxy = ServerProxy(parent=nbapp)
 
-    server_proccesses = [make_server_process(k, v) for k, v in serverproxy.servers.items()]
-    server_proccesses += get_entrypoint_server_processes()
-    server_handlers = make_handlers(base_url, server_proccesses)
+    server_processes = [make_server_process(k, v) for k, v in serverproxy.servers.items()]
+    server_processes += get_entrypoint_server_processes()
+    server_handlers = make_handlers(base_url, server_processes)
     nbapp.web_app.add_handlers('.*', server_handlers)
 
     # Set up default handler
@@ -33,11 +33,11 @@ def load_jupyter_server_extension(nbapp):
 
     launcher_entries = []
     icons = {}
-    for sp in server_proccesses:
+    for sp in server_processes:
         if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
             icons[sp.name] = sp.launcher_entry.icon_path
 
     nbapp.web_app.add_handlers('.*', [
-        (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'server_processes': server_proccesses}),
+        (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'server_processes': server_processes}),
         (ujoin(base_url, 'server-proxy/icon/(.*)'), IconHandler, {'icons': icons})
     ])
