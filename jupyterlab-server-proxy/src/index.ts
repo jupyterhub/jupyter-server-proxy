@@ -7,11 +7,6 @@ import '../style/index.css';
 
 function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFrontEnd) {
     for (let server_process of serverData.server_processes) {
-
-      if (!server_process.launcher_entry.enabled) {
-        continue;
-      }
-
       let commandId = 'server-proxy:' + server_process.name;
 
       app.commands.addCommand(commandId, {
@@ -21,14 +16,19 @@ function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFr
           window.open(launch_url, '_blank');
         }
       });
-      let command : ILauncher.IItemOptions = {
+
+      if (!server_process.launcher_entry.enabled) {
+        continue;
+      }
+
+      let launcher_item : ILauncher.IItemOptions = {
         command: commandId,
         category: 'Notebook'
       };
       if (server_process.launcher_entry.icon_url) {
-        command.kernelIconUrl =  server_process.launcher_entry.icon_url;
+        launcher_item.kernelIconUrl =  server_process.launcher_entry.icon_url;
       }
-      launcher.add(command);
+      launcher.add(launcher_item);
     }
 }
 /**
