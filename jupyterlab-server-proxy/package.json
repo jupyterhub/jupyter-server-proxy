@@ -19,6 +19,7 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "style": "style/index.css",
   "repository": {
     "type": "git",
     "url": "https://github.com/jupyterhub/jupyter-server-proxy.git"
