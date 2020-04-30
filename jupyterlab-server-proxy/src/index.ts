@@ -1,4 +1,4 @@
-import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
+import { JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer } from '@jupyterlab/application';
 import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
@@ -21,71 +21,76 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
   return widget;
 }
 
-function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFrontEnd) {
+async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
+  const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
+  if (!response.ok) {
+    console.log('Fetching metadata about registered failed. Make sure jupyter-server-proxy is installed');
+    console.log(response);
+    return;
+  }
 
-    const namespace = 'server-proxy';
-    const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({ namespace });
+  const data = await response.json();
+  for (let server_process of data.server_processes) {
+    const namespace = 'server-proxy' + ':' + server_process.name;
+    const command = namespace + ':' + 'open';
 
-    for (let server_process of serverData.server_processes) {
-      const commandId = namespace + ':' + server_process.name;
-      const launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
-      let widget : MainAreaWidget<IFrame>;
-      const options : CommandRegistry.ICommandOptions = {
-        label: server_process.launcher_entry.title,
-        execute: (server_process.framed?
-          () => {
-            if (!widget || widget.isDisposed) {
-              widget = newServerProxyWidget(commandId, launch_url, server_process.launcher_entry.title);
-            }
-            if (!widget.isAttached) {
-              app.shell.add(widget);
-            }
-            if (!tracker.has(widget)) {
-              void tracker.add(widget);
-            }
-            app.shell.activateById(widget.id);
+    const launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
+    let widget : MainAreaWidget<IFrame>;
+    const options : CommandRegistry.ICommandOptions = {
+      label: server_process.launcher_entry.title,
+      execute: (server_process.framed?
+        () => {
+          if (!widget || widget.isDisposed) {
+            widget = newServerProxyWidget(command, launch_url, server_process.launcher_entry.title);
           }
-          :
-          () => window.open(launch_url, '_blank')
-        )
-      };
+          if (!widget.isAttached) {
+            app.shell.add(widget);
+          }
+          if (!tracker.has(widget)) {
+            void tracker.add(widget);
+          }
+          app.shell.activateById(widget.id);
+        }
+        :
+        () => window.open(launch_url, '_blank')
+      )
+    };
 
-      app.commands.addCommand(commandId, options);
-      
-      if (!server_process.launcher_entry.enabled) {
-        continue;
-      }
-      const launcher_item : ILauncher.IItemOptions = {
-        command: commandId,
-        category: 'Notebook'
-      };
-      if (server_process.launcher_entry.icon_url) {
-        launcher_item.kernelIconUrl =  server_process.launcher_entry.icon_url;
-      }
-      launcher.add(launcher_item);
+    app.commands.addCommand(command, options);
+
+    let tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
+      namespace: server_process.name
+    });
+
+    restorer.restore(tracker, {
+      command,
+      name: () => server_process.name
+    });
+
+    if (!server_process.launcher_entry.enabled) {
+      continue;
     }
+
+    const launcher_item : ILauncher.IItemOptions = {
+      command: command,
+      category: 'Notebook'
+    };
+
+    if (server_process.launcher_entry.icon_url) {
+      launcher_item.kernelIconUrl =  server_process.launcher_entry.icon_url;
+    }
+    launcher.add(launcher_item);
+  }
 }
+
 /**
  * Initialization data for the jupyterlab-server-proxy extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-server-proxy',
   autoStart: true,
-  requires: [ILauncher],
-  activate: (app: JupyterFrontEnd, launcher: ILauncher) => {
-    // FIXME: What the callback hell is this
-    fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info').then(
-      response => {
-        if (!response.ok) {
-          console.log('Fetching metadata about registered failed. Make sure jupyter-server-proxy is installed');
-          console.log(response);
-        } else {
-          response.json().then(data => addLauncherEntries(data, launcher, app))
-        }
-
-      }
-    )
-  }
+  requires: [ILauncher, ILayoutRestorer],
+  activate: activate
 };
 
 export default extension;
