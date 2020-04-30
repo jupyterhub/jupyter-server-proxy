@@ -29,13 +29,18 @@ function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFr
     for (let server_process of serverData.server_processes) {
       const commandId = namespace + ':' + server_process.name;
       const launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
-      const widget = newServerProxyWidget(commandId, launch_url, server_process.launcher_entry.title);
+      let widget : MainAreaWidget<IFrame>;
       const options : CommandRegistry.ICommandOptions = {
         label: server_process.launcher_entry.title,
         execute: (server_process.framed?
           () => {
+            if (!widget || widget.isDisposed) {
+              widget = newServerProxyWidget(commandId, launch_url, server_process.launcher_entry.title);
+            }
             if (!widget.isAttached) {
               app.shell.add(widget);
+            }
+            if (!tracker.has(widget)) {
               void tracker.add(widget);
             }
             app.shell.activateById(widget.id);
