@@ -1,49 +1,56 @@
-import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application'; 
+import { JupyterFrontEnd, JupyterFrontEndPlugin } from '@jupyterlab/application';
 import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
-import { IFrame } from '@jupyterlab/apputils';
+import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
 
 import { CommandRegistry } from '@lumino/commands';
 
 import '../style/index.css';
 
-function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFrontEnd) {
-    for (let server_process of serverData.server_processes) {
-      let commandId = 'server-proxy:' + server_process.name;
-      let launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
-      let options : CommandRegistry.ICommandOptions;
+function newServerProxyWidget(id: string, url: string, text: string): MainAreaWidget<IFrame> {
+  const content = new IFrame({
+    sandbox: ['allow-same-origin', 'allow-scripts', 'allow-popups', 'allow-forms'],
+  });
+  content.title.label = text;
+  content.title.closable = true;
+  content.url = url;
+  content.addClass('jp-ServerProxy');
+  content.id = id;
+  const widget = new MainAreaWidget({ content });
+  widget.addClass('jp-ServerProxy');
+  return widget;
+}
 
-      if (server_process.framed) {
-        let iframe = new IFrame();
-        iframe.sandbox = ['allow-same-origin', 'allow-scripts', 'allow-popups', 'allow-forms'];
-        iframe.title.label = server_process.launcher_entry.title;
-        iframe.title.closable = true;
-        iframe.url = launch_url;
-        iframe.id = commandId;
-        options = {
-          label: server_process.launcher_entry.title,
-          execute: () => {
-            if (!iframe.isAttached) {
-              app.shell.add(iframe);
+function addLauncherEntries(serverData: any, launcher: ILauncher, app: JupyterFrontEnd) {
+
+    const namespace = 'server-proxy';
+    const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({ namespace });
+
+    for (let server_process of serverData.server_processes) {
+      const commandId = namespace + ':' + server_process.name;
+      const launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
+      const widget = newServerProxyWidget(commandId, launch_url, server_process.launcher_entry.title);
+      const options : CommandRegistry.ICommandOptions = {
+        label: server_process.launcher_entry.title,
+        execute: (server_process.framed?
+          () => {
+            if (!widget.isAttached) {
+              app.shell.add(widget);
+              void tracker.add(widget);
             }
-            app.shell.activateById(iframe.id);
+            app.shell.activateById(widget.id);
           }
-        }
-      } else {
-        options = {
-          label: server_process.launcher_entry.title,
-          execute: () => {
-            window.open(launch_url, '_blank');
-          }
-        }
-      }
-      
+          :
+          () => window.open(launch_url, '_blank')
+        )
+      };
+
       app.commands.addCommand(commandId, options);
+      
       if (!server_process.launcher_entry.enabled) {
         continue;
       }
-
-      let launcher_item : ILauncher.IItemOptions = {
+      const launcher_item : ILauncher.IItemOptions = {
         command: commandId,
         category: 'Notebook'
       };
