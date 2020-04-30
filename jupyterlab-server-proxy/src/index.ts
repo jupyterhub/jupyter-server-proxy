@@ -3,8 +3,6 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
 
-import { CommandRegistry } from '@lumino/commands';
-
 import '../style/index.css';
 
 function newServerProxyWidget(id: string, url: string, text: string): MainAreaWidget<IFrame> {
@@ -28,51 +26,71 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     console.log(response);
     return;
   }
+  const { commands, shell } = app;
 
   const data = await response.json();
+  const namespace = 'server-proxy';
+  const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
+    namespace
+  });
+  const command = namespace + ':' + 'open';
+
+  if (restorer) {
+    void restorer.restore(tracker, {
+      command: command,
+      args: widget => ({
+        url: widget.content.url,
+        title: widget.content.title.label,
+        framed: true,
+        id: widget.content.id
+      }),
+      name: widget => widget.content.id
+    });
+  }
+
+  commands.addCommand(command, {
+    label: args => args['title'] as string,
+    execute: args => {
+      const id = args['id'] as string;
+      const title = args['title'] as string;
+      const url = args['url'] as string;
+      const framed = args['framed'] as boolean;
+      if (!framed) {
+        window.open(url, '_blank');
+        return;
+      }
+      let widget = tracker.find((widget) => { return widget.content.id == id; });
+      if(!widget){
+        widget = newServerProxyWidget(id, url, title);
+      }
+      if (!widget.isAttached) {
+        shell.add(widget);
+      }
+      if (!tracker.has(widget)) {
+        void tracker.add(widget);
+      }
+      shell.activateById(widget.id);
+      return widget;
+    }
+  });
+
   for (let server_process of data.server_processes) {
-    const namespace = 'server-proxy' + ':' + server_process.name;
-    const command = namespace + ':' + 'open';
-
-    const launch_url = PageConfig.getBaseUrl() + server_process.name + '/';
-    let widget : MainAreaWidget<IFrame>;
-    const options : CommandRegistry.ICommandOptions = {
-      label: server_process.launcher_entry.title,
-      execute: (server_process.framed?
-        () => {
-          if (!widget || widget.isDisposed) {
-            widget = newServerProxyWidget(command, launch_url, server_process.launcher_entry.title);
-          }
-          if (!widget.isAttached) {
-            app.shell.add(widget);
-          }
-          if (!tracker.has(widget)) {
-            void tracker.add(widget);
-          }
-          app.shell.activateById(widget.id);
-        }
-        :
-        () => window.open(launch_url, '_blank')
-      )
-    };
-
-    app.commands.addCommand(command, options);
-
-    let tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
-      namespace: server_process.name
-    });
-
-    restorer.restore(tracker, {
-      command,
-      name: () => server_process.name
-    });
-
     if (!server_process.launcher_entry.enabled) {
       continue;
     }
 
+    const url = PageConfig.getBaseUrl() + server_process.name + '/';
+    const title = server_process.launcher_entry.title;
+    const framed = server_process.framed;
+    const id = namespace + ':' + server_process.name;
     const launcher_item : ILauncher.IItemOptions = {
       command: command,
+      args: {
+        url: url,
+        title: title,
+        framed: framed,
+        id: id
+      },
       category: 'Notebook'
     };
 
