@@ -24,14 +24,14 @@ def test_server_proxy_url_encoding():
     special_path = quote('Hellö Wörld 🎉你好世界@±¥')
     test_url = '/python-http/' + special_path
     r = request_get(PORT, test_url, TOKEN)
-    assert r.code == 200
+    assert r.code == 200, r.reason
     s = r.read().decode('ascii')
     assert s.startswith('GET /{}?token='.format(special_path))
 
 
 def test_server_proxy_non_absolute():
     r = request_get(PORT, '/python-http/abc', TOKEN)
-    assert r.code == 200
+    assert r.code == 200, r.reason
     s = r.read().decode('ascii')
     assert s.startswith('GET /abc?token=')
     assert 'X-Forwarded-Context: /python-http\n' in s

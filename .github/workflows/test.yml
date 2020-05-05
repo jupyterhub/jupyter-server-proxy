@@ -39,5 +39,5 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          sleep 20
+          sleep 5
           pytest
