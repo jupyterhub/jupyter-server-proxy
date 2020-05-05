@@ -49,3 +49,4 @@ jobs:
         with:
           name: jupyter-log
           path: ./output
+        continue-on-error: true
