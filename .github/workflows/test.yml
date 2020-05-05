@@ -43,6 +43,7 @@ jobs:
         run: |
           sleep 5
           pytest
+        continue-on-error: true
       - name: Save jupyter output log
         uses: actions/upload-artifact@v1
         with:
