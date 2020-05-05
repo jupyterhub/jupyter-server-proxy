@@ -31,8 +31,10 @@ jobs:
           pip3 install .
           pip3 install pytest
         shell: bash
+      - run: mkdir ./output
+        shell: bash
       - name: Start Jupyter notebook
-        run: jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+        run: jupyter-notebook --config=./tests/resources/jupyter_server_config.py &> ./output/log.txt &
         shell: bash
         env:
           JUPYTER_TOKEN: secret
@@ -41,3 +43,8 @@ jobs:
         run: |
           sleep 5
           pytest
+      - name: Save jupyter output log
+        uses: actions/upload-artifact@v1
+        with:
+          name: jupyter-log
+          path: ./output
