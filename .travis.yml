@@ -1,0 +1,10 @@
+language: python	
+python:	
+- 3.5	
+
+script:	
+  - pip3 install .	
+  - pip3 install pytest	
+  - JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &	
+  - sleep 5	
+  - pytest
