@@ -122,7 +122,7 @@ def event_loop():
 
 
 async def _websocket_echo():
-    url = "ws://127.0.0.1:{}/python-websocket/echosocket".format(PORT)
+    url = "ws://localhost:{}/python-websocket/echosocket".format(PORT)
     conn = await websocket_connect(url)
     expected_msg = "Hello, world!"
     await conn.write_message(expected_msg)
@@ -134,7 +134,7 @@ def test_server_proxy_websocket(event_loop):
 
 
 async def _websocket_subprotocols():
-    url = "ws://127.0.0.1:{}/python-websocket/subprotocolsocket".format(PORT)
+    url = "ws://localhost:{}/python-websocket/subprotocolsocket".format(PORT)
     conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
     await conn.write_message("Hello, world!")
     msg = await conn.read_message()
