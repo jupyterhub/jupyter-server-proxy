@@ -30,11 +30,14 @@ jobs:
           python -m pip install --upgrade pip
           pip3 install .
           pip3 install pytest
+        shell: bash
       - name: Start Jupyter notebook
         run: jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+        shell: bash
         env:
           JUPYTER_TOKEN: secret
       - name: Run tests
+        shell: bash
         run: |
           sleep 20
           pytest
