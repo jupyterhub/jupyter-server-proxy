@@ -50,6 +50,9 @@ jobs:
         run: |
           sleep 20
           pytest
+      - name: Stop Jupyter notebook
+        run: jupyter-notebook stop 8888
+        shell: bash
       - name: Save jupyter output log
         uses: actions/upload-artifact@v1
         with:
