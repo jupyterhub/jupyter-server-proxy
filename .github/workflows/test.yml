@@ -12,17 +12,10 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        experimental: [false]
-        python-version: [3.5, 3.6]
-        include:
-          - os: windows-latest
-          - python-version: 3.6
-          - experimental: true
+        python-version: [3.5, 3.6, 3.7, 3.8]
         exclude:
           - os: windows-latest
             python-version: 3.5
@@ -48,13 +41,16 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          sleep 20
+          sleep 5
           pytest
+        continue-on-error: true
       - name: Stop Jupyter notebook
         run: jupyter-notebook stop 8888
         shell: bash
+        continue-on-error: true
       - name: Save jupyter output log
         uses: actions/upload-artifact@v1
         with:
           name: jupyter-log
           path: ./output
+        continue-on-error: true
