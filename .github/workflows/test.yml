@@ -50,8 +50,8 @@ jobs:
         run: |
           sleep 20
           pytest
-      - name: Start Jupyter notebook
-        run: jupyter-notebook --config=./tests/resources/jupyter_server_config.py &> ./output/log.txt &
+      - name: Stop Jupyter notebook
+        run: jupyter-notebook stop 8888
         shell: bash
       - name: Save jupyter output log
         uses: actions/upload-artifact@v1
