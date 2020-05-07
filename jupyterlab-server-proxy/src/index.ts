@@ -63,14 +63,15 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
       if(!widget){
         widget = newServerProxyWidget(id, url, title);
       }
-      if (!widget.isAttached) {
-        shell.add(widget);
-      }
       if (!tracker.has(widget)) {
         void tracker.add(widget);
       }
-      shell.activateById(widget.id);
-      return widget;
+      if (!widget.isAttached) {
+        shell.add(widget);
+        return widget;
+      } else {
+        shell.activateById(widget.id);
+      }
     }
   });
 
