@@ -88,7 +88,7 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
       command: command,
       args: {
         url: url,
-        title: title,
+        title: title + (!framed ? ' [🡕]': ''),
         framed: framed,
         id: id
       },
