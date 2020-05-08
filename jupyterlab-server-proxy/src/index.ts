@@ -22,7 +22,7 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
 async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
   const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
   if (!response.ok) {
-    console.log('Fetching metadata about registered failed. Make sure jupyter-server-proxy is installed');
+    console.log('Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.');
     console.log(response);
     return;
   }
