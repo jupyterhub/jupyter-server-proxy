@@ -89,7 +89,7 @@ Python package
    pip install -e .
 
    # explicit install needed with editable mode (-e) jupyter
-   serverextension enable --sys-prefix jupyter_server_proxy
+   jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
 
 JupyterLab extension
