@@ -101,7 +101,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'framed'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -118,7 +118,7 @@ def make_server_process(name, server_process_config):
             icon_path=le.get('icon_path'),
             title=le.get('title', name)
         ),
-        framed=server_process_config.get('framed', False)
+        new_browser_tab=server_process_config.get('new_browser_tab', False)
     )
 
 class ServerProxy(Configurable):
@@ -175,9 +175,9 @@ class ServerProxy(Configurable):
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
-          framed
-            Set to True to make the proxied server interface opened as a JupyterLab tab. Set to False (default)
-            to have it open a new browser tab.
+          new_browser_tab
+            Set to True to make the proxied server interface opened as a new browser tab. Set to False (default)
+            to have it open a new JupyterLab tab. This has no effect in classic notebook.
         """,
         config=True
     )

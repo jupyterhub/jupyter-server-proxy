@@ -21,7 +21,7 @@ class ServersInfoHandler(IPythonHandler):
                     'enabled': sp.launcher_entry.enabled,
                     'title': sp.launcher_entry.title
                 },
-                'framed' : sp.framed
+                'new_browser_tab' : sp.new_browser_tab
             }
             if sp.launcher_entry.icon_path:
                 icon_url = ujoin(self.base_url, 'server-proxy', 'icon', sp.name)

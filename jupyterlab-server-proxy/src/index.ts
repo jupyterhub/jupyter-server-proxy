@@ -41,7 +41,7 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
       args: widget => ({
         url: widget.content.url,
         title: widget.content.title.label,
-        framed: true,
+        newBrowserTab: false,
         id: widget.content.id
       }),
       name: widget => widget.content.id
@@ -54,8 +54,8 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
       const id = args['id'] as string;
       const title = args['title'] as string;
       const url = args['url'] as string;
-      const framed = args['framed'] as boolean;
-      if (!framed) {
+      const newBrowserTab = args['newBrowserTab'] as boolean;
+      if (newBrowserTab) {
         window.open(url, '_blank');
         return;
       }
@@ -82,14 +82,14 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
 
     const url = PageConfig.getBaseUrl() + server_process.name + '/';
     const title = server_process.launcher_entry.title;
-    const framed = server_process.framed;
+    const newBrowserTab = server_process.new_browser_tab;
     const id = namespace + ':' + server_process.name;
     const launcher_item : ILauncher.IItemOptions = {
       command: command,
       args: {
         url: url,
-        title: title + (!framed ? ' [🡕]': ''),
-        framed: framed,
+        title: title + (newBrowserTab ? ' [🡕]': ''),
+        newBrowserTab: newBrowserTab,
         id: id
       },
       category: 'Notebook'
