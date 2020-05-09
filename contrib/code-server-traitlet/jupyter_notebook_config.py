@@ -2,10 +2,9 @@ c.ServerProxy.servers = {
   'code-server': {
     'command': [
       'code-server',
-        '--no-auth',
+        '--auth=none',
         '--disable-telemetry',
-        '--allow-http',
-        '--port={port}'
+        '--bind-addr=localhost:{port}'
     ],
     'timeout': 20,
     'launcher_entry': {
