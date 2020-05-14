@@ -118,7 +118,7 @@ def make_server_process(name, server_process_config):
             icon_path=le.get('icon_path'),
             title=le.get('title', name)
         ),
-        new_browser_tab=server_process_config.get('new_browser_tab', False)
+        new_browser_tab=server_process_config.get('new_browser_tab', True)
     )
 
 class ServerProxy(Configurable):
@@ -176,7 +176,7 @@ class ServerProxy(Configurable):
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
           new_browser_tab
-            Set to True to make the proxied server interface opened as a new browser tab. Set to False (default)
+            Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
             to have it open a new JupyterLab tab. This has no effect in classic notebook.
         """,
         config=True
@@ -192,7 +192,7 @@ class ServerProxy(Configurable):
         be proxied and False if it should not.  Such a function could verify
         that the host matches a particular regular expression pattern or falls
         into a specific subnet.  It should probably not be a slow check against
-        some external service.  Here is an example that could be placed in a 
+        some external service.  Here is an example that could be placed in a
         site-wide Jupyter notebook config:
 
             def host_whitelist(handler, host):
