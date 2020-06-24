@@ -30,7 +30,7 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, Jupyter, ut
                 /* create our list item */
                 var $entry_container = $('<li>')
                     .attr('role', 'presentation')
-                    .addClass('new-rstudio');
+                    .addClass('new-' + server_process.name);
 
                 /* create our list item's link */
                 var $entry_link = $('<a>')

@@ -114,6 +114,22 @@ pairs.
    #. **title**
       Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
+
+#. **new_browser_tab**
+
+   *JupyterLab only* - *True* if the proxied server URL should be opened in a new browser tab.
+   *False* (default) if the proxied server URL should be opened in a new JupyterLab tab.
+
+   If *False*, the proxied server needs to allow its pages to be rendered in an iframe. This
+   is generally done by configuring the web server ``X-Frame-Options`` to ``SAMEORIGIN``.
+   For more information, refer to
+   `MDN Web docs on X-Frame-Options <https://developer.mozilla.org/docs/Web/HTTP/Headers/X-Frame-Options>`_.
+
+   Note that applications might use a different terminology to refer to frame options.
+   For example, RStudio uses the term *frame origin* and require the flag
+   ``--www-frame-origin=same`` to allow rendering of its pages in an iframe.
+
+
 .. _server-processes/callable-arguments:
 
 Callable arguments

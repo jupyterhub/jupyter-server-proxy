@@ -143,7 +143,14 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         else:
             client_path = proxied_path
 
-        client_path = quote(client_path)
+        # Quote spaces, åäö and such, but only enough to send a valid web
+        # request onwards. To do this, we mark the RFC 3986 specs' "reserved"
+        # and "un-reserved" characters as safe that won't need quoting. The
+        # un-reserved need to be marked safe to ensure the quote function behave
+        # the same in py36 as py37.
+        #
+        # ref: https://tools.ietf.org/html/rfc3986#section-2.2
+        client_path = quote(client_path, safe=":/?#[]@!$&'()*+,;=-._~")
 
         client_uri = '{protocol}://{host}:{port}{path}'.format(
             protocol=protocol,
@@ -215,7 +222,22 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         client = httpclient.AsyncHTTPClient()
 
         req = self._build_proxy_request(host, port, proxied_path, body)
-        response = await client.fetch(req, raise_error=False)
+
+        try:
+            response = await client.fetch(req, raise_error=False)
+        except httpclient.HTTPError as err:
+            # We need to capture the timeout error even with raise_error=False,
+            # because it only affects the HTTPError raised when a non-200 response 
+            # code is used, instead of suppressing all errors.
+            # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
+            if err.code == 599:
+                self._record_activity()
+                self.set_status(599)
+                self.write(str(err))
+                return
+            else:
+                raise
+
         # record activity at start and end of requests
         self._record_activity()
 
@@ -310,7 +332,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-        return dict(follow_redirects=False)
+        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0)
 
     def check_xsrf_cookie(self):
         '''

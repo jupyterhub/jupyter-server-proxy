@@ -1,6 +1,6 @@
 {
   "name": "@jupyterlab/server-proxy",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Launcher icons for proxied applications",
   "keywords": [
     "jupyter",
@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@jupyterlab/application": "^1.0.0 || ^2.0.0",
+    "@jupyterlab/apputils": "^1.0.0 || ^2.0.0",
     "@jupyterlab/launcher": "^1.0.0 || ^2.0.0"
   },
   "devDependencies": {

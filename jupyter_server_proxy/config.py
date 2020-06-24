@@ -101,7 +101,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -117,7 +117,8 @@ def make_server_process(name, server_process_config):
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
             title=le.get('title', name)
-        )
+        ),
+        new_browser_tab=server_process_config.get('new_browser_tab', True)
     )
 
 class ServerProxy(Configurable):
@@ -135,7 +136,7 @@ class ServerProxy(Configurable):
             The optional template arguments {{port}} and {{base_url}} will be substituted with the
             port the process should listen on and the base-url of the notebook.
 
-            Could also be a callable. It should return a dictionary.
+            Could also be a callable. It should return a list.
 
           environment
             A dictionary of environment variable mappings. {{port}} and {{base_url}} will be
@@ -173,6 +174,10 @@ class ServerProxy(Configurable):
 
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
+
+          new_browser_tab
+            Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
+            to have it open a new JupyterLab tab. This has no effect in classic notebook.
         """,
         config=True
     )
@@ -187,7 +192,7 @@ class ServerProxy(Configurable):
         be proxied and False if it should not.  Such a function could verify
         that the host matches a particular regular expression pattern or falls
         into a specific subnet.  It should probably not be a slow check against
-        some external service.  Here is an example that could be placed in a 
+        some external service.  Here is an example that could be placed in a
         site-wide Jupyter notebook config:
 
             def host_whitelist(handler, host):
