@@ -571,7 +571,8 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app, host_allowlist):
+def setup_handlers(web_app, serverproxy_config):
+    host_allowlist = serverproxy_config.host_allowlist
     web_app.add_handlers('.*', [
         (
             url_path_join(
@@ -598,7 +599,8 @@ def setup_handlers(web_app, host_allowlist):
         (
             url_path_join(
                 web_app.settings['base_url'],
-                r'/proxy/(\d+)(.*)'),
+                r'/proxy/(\d+)(.*)',
+            ),
             LocalProxyHandler,
             {
                 'absolute_url': False,

@@ -74,13 +74,13 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
     return _Proxy
 
 
-def get_entrypoint_server_processes():
+def get_entrypoint_server_processes(serverproxy_config):
     sps = []
     for entry_point in pkg_resources.iter_entry_points('jupyter_serverproxy_servers'):
         name = entry_point.name
         server_process_config = entry_point.load()()
         sps.append(
-            make_server_process(name, server_process_config)
+            make_server_process(name, server_process_config, serverproxy_config)
         )
     return sps
 
@@ -114,7 +114,7 @@ ServerProcess = namedtuple('ServerProcess', [
     'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override',
 ])
 
-def make_server_process(name, server_process_config):
+def make_server_process(name, server_process_config, serverproxy_config):
     le = server_process_config.get('launcher_entry', {})
     return ServerProcess(
         name=name,
