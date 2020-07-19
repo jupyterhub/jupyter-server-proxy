@@ -572,7 +572,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
 
 def setup_handlers(web_app, host_allowlist):
-    host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (
             url_path_join(
