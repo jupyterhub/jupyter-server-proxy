@@ -9,7 +9,7 @@ notebook, and provide authenticated web access to them.
 .. note::
 
     This project used to be called **nbserverproxy**. if you have an older
-    version of nbserverproxy installed, remember to uninstall it before install
+    version of nbserverproxy installed, remember to uninstall it before installing
     jupyter-server-proxy - otherwise they may conflict
 
 The primary use cases are:
