@@ -86,6 +86,13 @@ def test_server_proxy_hash_sign_encoding():
     assert s == ''
 
 
+def test_server_rewrite_response():
+    r = request_get(PORT, '/python-http/ciao-a-tutti', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /hello-a-tutti?token=')
+
+
 def test_server_proxy_non_absolute():
     r = request_get(PORT, '/python-http/abc', TOKEN)
     assert r.code == 200
@@ -151,6 +158,13 @@ def test_server_proxy_host_absolute():
     assert s.startswith('GET /proxy/absolute/127.0.0.1:54321/nmo?token=')
     assert 'X-Forwarded-Context' not in s
     assert 'X-Proxycontextpath' not in s
+
+def test_server_proxy_port_non_service_rewrite_response():
+    """Test that 'bar' is replaced by 'foo'."""
+    r = request_get(PORT, '/proxy/54321/baz-bar-foo', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /baz-foo-foo?token=')
 
 
 @pytest.mark.parametrize(
