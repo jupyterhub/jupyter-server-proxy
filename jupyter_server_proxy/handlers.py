@@ -344,7 +344,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         '''Select a single Sec-WebSocket-Protocol during handshake.'''
         self.subprotocols = subprotocols
         if isinstance(subprotocols, list) and subprotocols:
-            self.log.info('Client sent subprotocols: {}'.format(subprotocols))
+            self.log.debug('Client sent subprotocols: {}'.format(subprotocols))
             return subprotocols[0]
         return super().select_subprotocol(subprotocols)
 
