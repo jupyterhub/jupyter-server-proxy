@@ -34,7 +34,7 @@ pairs.
 
    * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
      and returns a list of strings that are used & treated same as above.
-  
+
    This key is required.
 
 #. **timeout**
@@ -128,6 +128,11 @@ pairs.
    Note that applications might use a different terminology to refer to frame options.
    For example, RStudio uses the term *frame origin* and require the flag
    ``--www-frame-origin=same`` to allow rendering of its pages in an iframe.
+
+
+#. **allow_restart_on_graceful_exit**
+   *True* if the proxied server should be restartable even after exiting gracefully. *False* (default) if
+   an error should be thrown if attempting to start a process that previously exited gracefully.
 
 
 .. _server-processes/callable-arguments:
