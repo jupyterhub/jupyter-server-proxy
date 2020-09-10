@@ -53,6 +53,14 @@ for popular applications.
 Making and contributing a :ref:`new convenience package <convenience/new>`
 is very much appreciated.
 
+Examples
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   examples
+
 
 Contributing
 ============
