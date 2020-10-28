@@ -7,8 +7,8 @@ Jupyter Server Proxy
 .. |ReadTheDocs badge| image:: https://img.shields.io/readthedocs/jupyter-server-proxy?logo=read-the-docs
    :target: https://jupyter-server-proxy.readthedocs.io/
 
-.. |Travis badge| image:: https://img.shields.io/travis/jupyterhub/jupyter-server-proxy/master.svg?logo=travis
-   :target: https://travis-ci.org/jupyterhub/jupyter-server-proxy
+.. |Travis badge| image:: https://img.shields.io/travis/com/jupyterhub/jupyter-server-proxy?logo=travis
+   :target: https://travis-ci.com/jupyterhub/jupyter-server-proxy
 
 .. |PyPI badge| image:: https://img.shields.io/pypi/v/jupyter-server-proxy.svg?logo=pypi
    :target: https://pypi.python.org/pypi/jupyter-server-proxy
