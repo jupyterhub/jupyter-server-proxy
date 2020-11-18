@@ -99,7 +99,7 @@ def make_handlers(base_url, server_processes):
         ))
     return handlers
 
-LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
+LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'urlfile'])
 ServerProcess = namedtuple('ServerProcess', [
     'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab'])
 
@@ -116,7 +116,8 @@ def make_server_process(name, server_process_config):
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
-            title=le.get('title', name)
+            title=le.get('title', name),
+            urlfile=le.get('urlfile', ''),
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True)
     )
@@ -174,6 +175,10 @@ class ServerProxy(Configurable):
 
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
+
+            urlfile
+              URL file name and URL parameters to be added to the base URL of the launcher entry.
+              Default is none.
 
           new_browser_tab
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False

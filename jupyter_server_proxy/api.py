@@ -19,7 +19,8 @@ class ServersInfoHandler(IPythonHandler):
                 'name': sp.name,
                 'launcher_entry': {
                     'enabled': sp.launcher_entry.enabled,
-                    'title': sp.launcher_entry.title
+                    'title': sp.launcher_entry.title,
+                    'urlfile': sp.launcher_entry.urlfile,
                 },
                 'new_browser_tab' : sp.new_browser_tab
             }

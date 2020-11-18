@@ -79,8 +79,11 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     if (!server_process.launcher_entry.enabled) {
       continue;
     }
-
-    const url = PageConfig.getBaseUrl() + server_process.name + '/';
+    var urlfile = '';
+    if (server_process.launcher_entry.urlfile) {
+       urlfile =  server_process.launcher_entry.urlfile;
+    }
+    const url = PageConfig.getBaseUrl() + server_process.name + '/' + urlfile;
     const title = server_process.launcher_entry.title;
     const newBrowserTab = server_process.new_browser_tab;
     const id = namespace + ':' + server_process.name;
