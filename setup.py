@@ -1,6 +1,9 @@
 import setuptools
 from glob import glob
 
+with open("README.md") as f:
+    readme = f.read()
+
 setuptools.setup(
     name="jupyter-server-proxy",
     version='1.5.2',
@@ -9,6 +12,8 @@ setuptools.setup(
     author_email="rylo@berkeley.edu",
     license="BSD 3-Clause",
     description="Jupyter server extension to supervise and proxy web services",
+    long_description=readme,
+    long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     install_requires=['notebook', 'simpervisor>=0.2', 'aiohttp'],
     python_requires='>=3.5',
