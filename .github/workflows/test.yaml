@@ -1,0 +1,62 @@
+# This is a GitHub workflow defining a set of jobs with a set of steps.
+# ref: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions
+#
+name: Test
+
+# Trigger the workflow's on all PRs but only on pushed tags or commits to
+# main/master branch to avoid PRs developed in a GitHub fork's dedicated branch
+# to trigger.
+on:
+  pull_request:
+  push:
+    branches:
+    tags:
+  workflow_dispatch:
+
+defaults:
+  run:
+    # Declare bash be used by default in this workflow's "run" steps.
+    #
+    # NOTE: bash will by default run with:
+    #   --noprofile: Ignore ~/.profile etc.
+    #   --norc:      Ignore ~/.bashrc etc.
+    #   -e:          Exit directly on errors
+    #   -o pipefail: Don't mask errors from a command piped into another command
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      # Keep running even if one variation of the job fail
+      fail-fast: false
+      matrix:
+        # We run this job multiple times with different parameterization
+        # specified below, these parameters have no meaning on their own and
+        # gain meaning on how job steps use them.
+        include:
+          - python: 3.5
+          - python: 3.6
+          - python: 3.7
+          - python: 3.8
+          - python: 3.9
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "${{ matrix.python }}"
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install .
+          pip install pytest
+          pip freeze
+
+      - name: Run tests
+        run: |
+          JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+          sleep 5
+          pytest --verbose --color=yes
