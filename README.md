@@ -1,16 +1,10 @@
-Jupyter Server Proxy
-====================
+# Jupyter Server Proxy
 
-[![ReadTheDocs
-badge](https://img.shields.io/readthedocs/jupyter-server-proxy?logo=read-the-docs)](https://jupyter-server-proxy.readthedocs.io/)
-[![Travis
-badge](https://img.shields.io/travis/com/jupyterhub/jupyter-server-proxy?logo=travis)](https://travis-ci.com/jupyterhub/jupyter-server-proxy)
-[![PyPI
-badge](https://img.shields.io/pypi/v/jupyter-server-proxy.svg?logo=pypi)](https://pypi.python.org/pypi/jupyter-server-proxy)
-[![Conda
-badge](https://img.shields.io/conda/vn/conda-forge/jupyter-server-proxy?logo=conda-forge)](https://anaconda.org/conda-forge/jupyter-server-proxy)
-[![NPM
-badge](https://img.shields.io/npm/v/@jupyterlab/server-proxy.svg?logo=npm)](https://www.npmjs.com/package/@jupyterlab/server-proxy)
+[![ReadTheDocs badge](https://img.shields.io/readthedocs/jupyter-server-proxy?logo=read-the-docs)](https://jupyter-server-proxy.readthedocs.io/)
+[![Travis badge](https://img.shields.io/travis/com/jupyterhub/jupyter-server-proxy?logo=travis)](https://travis-ci.com/jupyterhub/jupyter-server-proxy)
+[![PyPI badge](https://img.shields.io/pypi/v/jupyter-server-proxy.svg?logo=pypi)](https://pypi.python.org/pypi/jupyter-server-proxy)
+[![Conda badge](https://img.shields.io/conda/vn/conda-forge/jupyter-server-proxy?logo=conda-forge)](https://anaconda.org/conda-forge/jupyter-server-proxy)
+[![NPM badge](https://img.shields.io/npm/v/@jupyterlab/server-proxy.svg?logo=npm)](https://www.npmjs.com/package/@jupyterlab/server-proxy)
 
 Jupyter Server Proxy lets you run arbitrary external processes (such as
 RStudio, Shiny Server, Syncthing, PostgreSQL, Code Server, etc)
@@ -38,20 +32,19 @@ The primary use cases are:
 [The documentation](https://jupyter-server-proxy.readthedocs.io/)
 contains information on installation & usage.
 
-Install
--------
+## Install
 
 ### Python package
 
 #### pip
 
-``` {.}
+```
 pip install jupyter-server-proxy
 ```
 
 #### conda
 
-``` {.}
+```
 conda install jupyter-server-proxy -c conda-forge
 ```
 
@@ -61,16 +54,15 @@ Note that as the JupyterLab extension only is a graphical interface to
 launch registered applications in the python package, the extension
 requires the python package to be installed.
 
-``` {.}
+```
 jupyter labextension install @jupyterlab/server-proxy
 ```
 
-Contributing
-------------
+## Contributing
 
 ### Python package
 
-``` {.}
+```
 pip install -e .
 
 # explicit install needed with editable mode (-e) jupyter
@@ -79,31 +71,37 @@ jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
 ### JupyterLab extension
 
-The `jlpm` command is JupyterLab\'s pinned version of `yarn` that is
+The `jlpm` command is JupyterLab's pinned version of `yarn` that is
 installed with JupyterLab. You may use `yarn` or `npm` instead of `jlpm`
 below.
 
-``` {.}
+```
 cd jupyterlab-server-proxy
+
 # Install dependencies
 jlpm
+
 # Build Typescript source
 jlpm build
+
 # Link your development version of the extension with JupyterLab
 jupyter labextension link .
+
 # Rebuild Typescript source after making changes
 jlpm build
+
 # Rebuild JupyterLab after making any changes
 jupyter lab build
 ```
 
 You can watch the source directory and run JupyterLab in watch mode to
-watch for changes in the extension\'s source and automatically rebuild
+watch for changes in the extension's source and automatically rebuild
 the extension and application.
 
-``` {.}
+```
 # Watch the source directory in another terminal tab
 jlpm watch
+
 # Run jupyterlab in watch mode in one terminal tab
 jupyter lab --watch
 ```
