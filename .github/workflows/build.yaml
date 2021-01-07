@@ -46,9 +46,6 @@ jobs:
       - name: Build the extension
         run: |
           cd ./jupyterlab-server-proxy
-          npm install eslint --save-dev
-          npx eslint --init
-          jlpm run eslint:check
           jupyter labextension install .
           jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
           python -m jupyterlab.browser_check
