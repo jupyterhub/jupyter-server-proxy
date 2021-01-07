@@ -43,10 +43,9 @@ jobs:
         run: python -m pip install jupyterlab
       - name: Build the extension
         run: |
+          cd ./jupyterlab-server-proxy
           jlpm
           jlpm run eslint:check
-          # uninstall the already packaged
-          jupyter labextension uninstall @jupyterlab/server-proxy
-          jupyter labextension install ./jupyterlab-server-proxy
+          jupyter labextension install .
           jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
           python -m jupyterlab.browser_check
