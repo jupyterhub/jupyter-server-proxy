@@ -36,6 +36,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install node
+        with:
+          node-version: '12.x'
         uses: actions/setup-node@v1
       - name: Install Python
         uses: actions/setup-python@v2
