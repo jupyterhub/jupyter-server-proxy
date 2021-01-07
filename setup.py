@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setuptools.setup(
     name="jupyter-server-proxy",
-    version='1.5.2',
+    version='1.5.3',
     url="https://github.com/jupyterhub/jupyter-server-proxy",
     author="Ryan Lovett & Yuvi Panda",
     author_email="rylo@berkeley.edu",
@@ -15,7 +15,7 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    install_requires=['notebook', 'simpervisor>=0.2', 'aiohttp'],
+    install_requires=['notebook', 'simpervisor>=0.4', 'aiohttp'],
     python_requires='>=3.5',
     classifiers=[
         'Framework :: Jupyter',
