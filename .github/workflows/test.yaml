@@ -60,3 +60,12 @@ jobs:
           JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           pytest --verbose --color=yes
+
+      - name: Check the Notebook Server extension is installed
+        run: |
+          jupyter serverextension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
+
+      - name: Check the Jupyter Server extension is installed
+        run: |
+          pip install jupyter-server
+          jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
