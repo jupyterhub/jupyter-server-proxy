@@ -22,7 +22,8 @@ setuptools.setup(
     ],
     data_files=[
         ('share/jupyter/nbextensions/jupyter_server_proxy', glob('jupyter_server_proxy/static/*')),
-        ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-serverextension.json']),
+        ('etc/jupyter/jupyter_notebook_config.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-notebookserverextension.json']),
+        ('etc/jupyter/jupyter_server_config.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-jupyterserverextension.json']),
         ('etc/jupyter/nbconfig/tree.d', ['jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json'])
     ],
     include_package_data=True,
