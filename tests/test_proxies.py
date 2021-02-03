@@ -23,14 +23,12 @@ def request_get(port, path, token, host='localhost'):
 def test_server_proxy_minimal_proxy_path_encoding():
     """Test that we don't encode anything more than we must to have a valid web
     request."""
-    special_path = quote("Hello world 123 åäö 🎉你好世界±¥ :/[]@!$&'()*+,;=-._~", safe=":/?#[]@!$&'()*+,;=-._~")
-    # NOTE: we left out ?# as they would interact badly with our requests_get
-    # function's ability to pass the token query parameter.
+    special_path = quote("Hello world 123 åäö 🎉你好世界±¥ :/[]@!$&'()*+,;=-._~?key1=value1", safe=":/?#[]@!$&'()*+,;=-._~")
     test_url = '/python-http/' + special_path
     r = request_get(PORT, test_url, TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert 'GET /{}?token='.format(special_path) in s
+    assert 'GET /{}&token='.format(special_path) in s
 
 def test_server_proxy_minimal_proxy_path_encoding_complement():
     """Test that we don't encode ?# as a complement to the other test."""
