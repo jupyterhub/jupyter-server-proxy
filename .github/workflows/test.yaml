@@ -49,6 +49,8 @@ jobs:
           python-version: "${{ matrix.python }}"
 
       - name: Install Python dependencies
+        # NOTE: See CONTRIBUTING.md for a local development setup that differs
+        #       slightly from this.
         run: |
           pip install --upgrade pip
           pip install .
