@@ -1,0 +1,13 @@
+{
+  "title": "Server Proxy",
+  "description": "Settings for the Server Proxy extension",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "description": "Category of proxy launchers",
+      "default": "Notebook"
+    }
+  }
+}

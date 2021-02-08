@@ -15,6 +15,7 @@
   "author": "Yuvi Panda",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "schema/**/*.json",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
@@ -32,13 +33,15 @@
   "dependencies": {
     "@jupyterlab/application": "^1.0.0 || ^2.0.0 || ^3.0.0",
     "@jupyterlab/apputils": "^1.0.0 || ^2.0.0 || ^3.0.0",
-    "@jupyterlab/launcher": "^1.0.0 || ^2.0.0 || ^3.0.0"
+    "@jupyterlab/launcher": "^1.0.0 || ^2.0.0 || ^3.0.0",
+    "@jupyterlab/settingregistry": "^1.0.0 || ^2.0.0 || ^3.0.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
     "typescript": "~3.7.0"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema"
   }
 }
