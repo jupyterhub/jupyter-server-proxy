@@ -35,6 +35,21 @@ labext_name = "jupyter_server_proxy"
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
     ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    (
+        "etc/jupyter/jupyter_server_config.d",
+        "jupyter_server_proxy/etc/jupyter-server-proxy-jupyterserverextension.json",
+        "jupyter_server_proxy.json",
+    ),
+    (
+        "etc/jupyter/jupyter_notebook_config.d",
+        "jupyter_server_proxy/etc/jupyter-server-proxy-notebookserverextension.json",
+        "jupyter_server_proxy.json",
+    ),
+    (
+        "etc/jupyter/nbconfig/tree.d",
+        "jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json",
+        "jupyter_server_proxy.json",
+    ),
 ]
 
 cmdclass = create_cmdclass(
@@ -76,21 +91,6 @@ setup_args = dict(
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
     classifiers=[
         "Framework :: Jupyter",
-    ],
-    data_files=[
-        ("share/jupyter/nbextensions/jupyter_server_proxy", glob("jupyter_server_proxy/static/*")),
-        (
-            "etc/jupyter/jupyter_notebook_config.d",
-            ["jupyter_server_proxy/etc/jupyter-server-proxy-notebookserverextension.json"],
-        ),
-        (
-            "etc/jupyter/jupyter_server_config.d",
-            ["jupyter_server_proxy/etc/jupyter-server-proxy-jupyterserverextension.json"],
-        ),
-        (
-            "etc/jupyter/nbconfig/tree.d",
-            ["jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json"],
-        ),
     ],
 )
 
