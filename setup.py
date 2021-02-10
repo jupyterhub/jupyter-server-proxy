@@ -2,7 +2,6 @@
 jupyter-server-proxy setup
 """
 import json
-from glob import glob
 from pathlib import Path
 
 import setuptools
