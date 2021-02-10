@@ -5,3 +5,4 @@ node_modules
 dist
 .vscode
 package-lock.json
+jupyter_server_proxy/labextension
