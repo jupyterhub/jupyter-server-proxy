@@ -36,18 +36,18 @@ data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
     (
         "etc/jupyter/jupyter_server_config.d",
-        "jupyter_server_proxy/etc/jupyter-server-proxy-jupyterserverextension.json",
-        "jupyter_server_proxy.json",
+        "jupyter_server_proxy/etc",
+        "jupyter-server-proxy-jupyterserverextension.json",
     ),
     (
         "etc/jupyter/jupyter_notebook_config.d",
-        "jupyter_server_proxy/etc/jupyter-server-proxy-notebookserverextension.json",
-        "jupyter_server_proxy.json",
+        "jupyter_server_proxy/etc",
+        "jupyter-server-proxy-notebookserverextension.json",
     ),
     (
         "etc/jupyter/nbconfig/tree.d",
-        "jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json",
-        "jupyter_server_proxy.json",
+        "jupyter_server_proxy/etc",
+        "jupyter-server-proxy-nbextension.json",
     ),
 ]
 
