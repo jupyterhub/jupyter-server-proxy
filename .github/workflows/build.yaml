@@ -26,7 +26,6 @@ jobs:
         # specified below, these parameters have no meaning on their own and
         # gain meaning on how job steps use them.
         include:
-          - python: 3.5
           - python: 3.6
           - python: 3.7
           - python: 3.8
