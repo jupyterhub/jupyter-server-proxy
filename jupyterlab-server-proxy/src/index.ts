@@ -2,8 +2,12 @@ import { JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer } from '@jupyte
 import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import '../style/index.css';
+
+
+const EXTENSION_NAME = '@jupyterlab/server-proxy:plugin';
 
 function newServerProxyWidget(id: string, url: string, text: string): MainAreaWidget<IFrame> {
   const content = new IFrame({
@@ -19,7 +23,7 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
   return widget;
 }
 
-async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
+async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer, settingRegistry: ISettingRegistry): Promise<void> {
   const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
   if (!response.ok) {
     console.log('Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.');
@@ -34,6 +38,16 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     namespace
   });
   const command = namespace + ':' + 'open';
+  var category = 'Notebook';
+
+  if (settingRegistry) {
+    const setting = await settingRegistry.load(extension.id);
+    const updateSettings = (): void => {
+      category = setting.get('category').composite as string;
+    };
+    updateSettings();
+    setting.changed.connect(updateSettings);
+  }
 
   if (restorer) {
     void restorer.restore(tracker, {
@@ -60,7 +74,7 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
         return;
       }
       let widget = tracker.find((widget) => { return widget.content.id == id; });
-      if(!widget){
+      if (!widget) {
         widget = newServerProxyWidget(id, url, title);
       }
       if (!tracker.has(widget)) {
@@ -84,19 +98,19 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     const title = server_process.launcher_entry.title;
     const newBrowserTab = server_process.new_browser_tab;
     const id = namespace + ':' + server_process.name;
-    const launcher_item : ILauncher.IItemOptions = {
+    const launcher_item: ILauncher.IItemOptions = {
       command: command,
       args: {
         url: url,
-        title: title + (newBrowserTab ? ' [↗]': ''),
+        title: title + (newBrowserTab ? ' [↗]' : ''),
         newBrowserTab: newBrowserTab,
         id: id
       },
-      category: 'Notebook'
+      category: category
     };
 
     if (server_process.launcher_entry.icon_url) {
-      launcher_item.kernelIconUrl =  server_process.launcher_entry.icon_url;
+      launcher_item.kernelIconUrl = server_process.launcher_entry.icon_url;
     }
     launcher.add(launcher_item);
   }
@@ -106,9 +120,10 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
  * Initialization data for the jupyterlab-server-proxy extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'jupyterlab-server-proxy',
+  id: EXTENSION_NAME,
   autoStart: true,
   requires: [ILauncher, ILayoutRestorer],
+  optional: [ISettingRegistry],
   activate: activate
 };
 
