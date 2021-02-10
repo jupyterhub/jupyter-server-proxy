@@ -46,8 +46,6 @@ jobs:
       - name: Install dependencies
         run: python -m pip install jupyterlab
       - name: Build the extension
-        run: |
-          cd ./jupyterlab-server-proxy
-          jupyter labextension install .
+          pip install -ve .
           jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
           python -m jupyterlab.browser_check
