@@ -35,10 +35,6 @@ labext_name = "jupyter_server_proxy"
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
     ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
-    # {%- if cookiecutter.has_server_extension == "y" -%}
-    # ("etc/jupyter/jupyter_server_config.d",
-    #  "jupyter-config", "{{ cookiecutter.python_name }}.json"),
-    # {% endif %}
 ]
 
 cmdclass = create_cmdclass(
