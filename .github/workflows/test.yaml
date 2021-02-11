@@ -54,7 +54,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab_version }}.0
-          pip install ./dist/jupyter_server_proxy-3.0.0-py3-none-any.whl
+          pip install ./dist/jupyter_server_proxy-*.whl
           pip install pytest
           pip freeze
       - name: Run tests
