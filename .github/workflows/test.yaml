@@ -35,12 +35,8 @@ jobs:
         # We run this job multiple times with different parameterization
         # specified below, these parameters have no meaning on their own and
         # gain meaning on how job steps use them.
-        include:
-          - python: 3.6
-          - python: 3.7
-          - python: 3.8
-          - python: 3.9
         jupyterlab_version: [1, 2, 3]
+        python: [3.6, 3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
