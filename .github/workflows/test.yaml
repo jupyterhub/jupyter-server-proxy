@@ -52,14 +52,14 @@ jobs:
       - name: Build Python package
         id: build-package
         run: |
-          pip install jupyter_packaging wheel jupyterlab==3
+          pip install jupyter_packaging wheel jupyterlab
           python setup.py sdist bdist_wheel
       - name: Install Python dependencies
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
         run: |
           pip install --upgrade pip
-          pip install jupyter_packaging jupyterlab==${{ matrix.jupyterlab_version }}
+          pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab_version }}
           pip install ./dist/jupyter_server_proxy-3.0.0-py3-none-any.whl
           pip install pytest
           pip freeze
