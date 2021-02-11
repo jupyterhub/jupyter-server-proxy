@@ -34,6 +34,10 @@ contains information on installation & usage.
 
 ## Install
 
+### Requirements
+
+* `jupyterlab>=2` or `notebook`
+
 ### Python package
 
 #### pip
