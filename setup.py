@@ -82,7 +82,7 @@ setup_args = dict(
     long_description_content_type="text/markdown",
     cmdclass=cmdclass,
     packages=setuptools.find_packages(),
-    install_requires=["jupyterlab~=3.0", "notebook", "simpervisor>=0.4", "aiohttp"],
+    install_requires=["simpervisor>=0.4", "aiohttp"],
     zip_safe=False,
     include_package_data=True,
     python_requires=">=3.6",
