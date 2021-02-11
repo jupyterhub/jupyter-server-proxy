@@ -43,12 +43,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "${{ matrix.python }}"
-      - name: Cache wheel
-        id: cache-wheel
-        uses: actions/cache@v2
-        with:
-          path: ./dist/
-          key: ${{ runner.os }}-dist
       - name: Build Python package
         id: build-package
         run: |
