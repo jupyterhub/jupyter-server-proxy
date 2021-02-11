@@ -43,14 +43,23 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "${{ matrix.python }}"
-
+      - name: Cache wheel
+        id: cache-wheel
+        uses: actions/cache@v2
+        with:
+          path: ./dist/
+          key: ${{ runner.os }}-dist
+      - name: Build Python package
+        id: build-package
+        run: |
+          python setup.py sdist bdist_wheel
       - name: Install Python dependencies
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
         run: |
           pip install --upgrade pip
           pip install jupyter_packaging jupyterlab==${{ matrix.jupyterlab_version }}
-          pip install .
+          pip install ./dist/jupyter_server_proxy-3.0.0-py3-none-any.whl
           pip install pytest
           pip freeze
       - name: Run tests
