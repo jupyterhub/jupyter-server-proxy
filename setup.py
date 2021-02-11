@@ -76,6 +76,7 @@ setup_args = dict(
     version=pkg_json["version"],
     url=pkg_json["homepage"],
     author=pkg_json["author"],
+    author_email=pkg_json["author_email"],
     description=pkg_json["description"],
     license=pkg_json["license"],
     long_description=long_description,
