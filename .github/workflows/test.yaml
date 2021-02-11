@@ -52,6 +52,7 @@ jobs:
       - name: Build Python package
         id: build-package
         run: |
+          pip install jupyter_packaging
           python setup.py sdist bdist_wheel
       - name: Install Python dependencies
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
