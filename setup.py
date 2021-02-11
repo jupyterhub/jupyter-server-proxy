@@ -86,10 +86,12 @@ setup_args = dict(
     zip_safe=False,
     include_package_data=True,
     python_requires=">=3.6",
-    platforms="Linux, Mac OS X, Windows",
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
     classifiers=[
         "Framework :: Jupyter",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS :: MacOS X",
     ],
 )
 
