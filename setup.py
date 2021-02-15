@@ -2,6 +2,7 @@
 jupyter-server-proxy setup
 """
 import json
+from glob import glob
 from pathlib import Path
 
 import setuptools
@@ -100,6 +101,21 @@ setup_args = dict(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Framework :: Jupyter",
+    ],
+    data_files=[
+        ("share/jupyter/nbextensions/jupyter_server_proxy", glob("jupyter_server_proxy/static/*")),
+        (
+            "etc/jupyter/jupyter_notebook_config.d",
+            ["jupyter_server_proxy/etc/jupyter-server-proxy-notebookserverextension.json"],
+        ),
+        (
+            "etc/jupyter/jupyter_server_config.d",
+            ["jupyter_server_proxy/etc/jupyter-server-proxy-jupyterserverextension.json"],
+        ),
+        (
+            "etc/jupyter/nbconfig/tree.d",
+            ["jupyter_server_proxy/etc/jupyter-server-proxy-nbextension.json"],
+        ),
     ],
 )
 
