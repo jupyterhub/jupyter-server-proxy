@@ -1,1 +1,7 @@
 include LICENSE
+
+exclude jupyterlab-server-proxy/node_modules
+graft jupyterlab-server-proxy/src
+include jupyterlab-server-proxy/package.json
+include jupyterlab-server-proxy/tsconfig.json
+include jupyterlab-server-proxy/yarn.lock
