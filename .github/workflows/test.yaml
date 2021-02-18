@@ -35,28 +35,28 @@ jobs:
         # We run this job multiple times with different parameterization
         # specified below, these parameters have no meaning on their own and
         # gain meaning on how job steps use them.
-        include:
-          - python: 3.5
-          - python: 3.6
-          - python: 3.7
-          - python: 3.8
-          - python: 3.9
+        jupyterlab_version: [1, 2, 3]
+        python: [3.6, 3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: "${{ matrix.python }}"
-
+      - name: Build Python package
+        id: build-package
+        run: |
+          pip install jupyter_packaging wheel jupyterlab
+          python setup.py sdist bdist_wheel
       - name: Install Python dependencies
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
         run: |
           pip install --upgrade pip
-          pip install .
+          pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab_version }}.0
+          pip install ./dist/jupyter_server_proxy-*.whl
           pip install pytest
           pip freeze
-
       - name: Run tests
         run: |
           JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
