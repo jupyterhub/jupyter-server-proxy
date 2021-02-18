@@ -3,8 +3,9 @@
 ### [3.0.0] - UNRELEASED, TODO UPDATE DATE
 
 This release drops support for Python 3.5 and now packages the JupyterLab
-extension with the Python package. The JupyterLab extension is still available
-on NPM for use with JupyterLab 2.
+extension with the Python package for use with JupyterLab 3. The JupyterLab
+extension is still available on NPM for use with JupyterLab 2 but support for
+JupyterLab 1 is dropped.
 
 The Python package version jumps from 1.6.0 to 3.0.0, and the NPM package
 version jumps from 2.1.2 to 3.0.0.
