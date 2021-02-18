@@ -26,6 +26,8 @@ This repo has more than one package.
 
 As of version 3.0.0, we keep the version numbers of the main Python package and
 the JupyterLab plugin in sync, but have no procedure for the Theia package yet.
+NPM package versioning is stricter than Python package versioning.
+For example if you want to release a release candidate the version should be in the form `3.0.0-rc.1`, python will automatically treat this as `3.0.0rc1`.
 
 Gaining Access Privileges
 =========================
