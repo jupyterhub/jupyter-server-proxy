@@ -58,6 +58,9 @@ Note that as the JupyterLab extension only is a graphical interface to
 launch registered applications in the python package, the extension
 requires the python package to be installed.
 
+As of version 3.0.0 the Python package ships with a JupyterLab 3 compatible
+extension, making this step only needed for JupyterLab 2.
+
 ```
 jupyter labextension install @jupyterlab/server-proxy
 ```
