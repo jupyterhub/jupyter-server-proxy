@@ -30,7 +30,7 @@ package_data_spec = {
     name: ["*"],
 }
 
-labext_name = "jupyter_server_proxy"
+labext_name = "@jupyterlab/server-proxy"
 
 data_files_spec = [
     ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
