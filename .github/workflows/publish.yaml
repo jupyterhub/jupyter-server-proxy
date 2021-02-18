@@ -3,6 +3,7 @@ name: Publish
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
 
@@ -64,7 +65,7 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      # Setup .npmrc file to publish to npm
+      # actions/setup-node creates an .npmrc file that references NODE_AUTH_TOKEN
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
