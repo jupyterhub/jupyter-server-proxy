@@ -326,11 +326,17 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         # WebSocket successful connection would be dropped.
         await ws_connected
 
-
     def proxy_request_headers(self):
         '''A dictionary of headers to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-        return self.request.headers.copy()
+        headers = self.request.headers.copy()
+        # Merge any manually configured headers
+        headers.update(self.get_proxy_headers())
+        return headers
+
+    def get_proxy_headers(self):
+        '''Add additional proxy headers. Typically overridden in subclasses.'''
+        return {}
 
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
@@ -387,7 +393,6 @@ class LocalProxyHandler(ProxyHandler):
     def proxy(self, port, proxied_path):
         return super().proxy('localhost', port, proxied_path)
 
-
 class RemoteProxyHandler(ProxyHandler):
     """
     A tornado request handler that proxies HTTP and websockets
@@ -420,7 +425,6 @@ class RemoteProxyHandler(ProxyHandler):
 
     def proxy(self, host, port, proxied_path):
         return super().proxy(host, port, proxied_path)
-
 
 # FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
 class SuperviseAndProxyHandler(LocalProxyHandler):
@@ -496,9 +500,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
                 cmd = self.get_cmd()
-                server_env = os.environ.copy()
 
                 # Set up extra environment variables for process
+                server_env = os.environ.copy()
                 server_env.update(self.get_env())
 
                 timeout = self.get_timeout()

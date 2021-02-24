@@ -1,4 +1,4 @@
-from .handlers import setup_handlers, SuperviseAndProxyHandler
+from .handlers import setup_handlers
 from .config import ServerProxy, make_handlers, get_entrypoint_server_processes, make_server_process
 from jupyter_server.utils import url_path_join as ujoin
 from .api import ServersInfoHandler, IconHandler
