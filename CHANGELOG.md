@@ -1,6 +1,6 @@
 ## [3.0]
 
-### [3.0.0] - UNRELEASED, TODO UPDATE DATE
+### [3.0.0] - 2020-02-25
 
 This release drops support for Python 3.5 and now packages the JupyterLab
 extension with the Python package for use with JupyterLab 3. The JupyterLab
@@ -20,7 +20,9 @@ version jumps from 2.1.2 to 3.0.0.
 
 #### Continuous integration
 
+* Fix build.yaml workflow [#249](https://github.com/jupyterhub/jupyter-server-proxy/pull/249) ([@manics](https://github.com/manics))
 * Add publish PyPI and NPM workflow [#247](https://github.com/jupyterhub/jupyter-server-proxy/pull/247) ([@manics](https://github.com/manics))
+* tests: remove bad test, add new clarifying current behavior [#240](https://github.com/jupyterhub/jupyter-server-proxy/pull/240) ([@consideRatio](https://github.com/consideRatio))
 
 #### Contributors to this release
 
@@ -49,4 +51,4 @@ extension isn't yet bundled with the python package.
 
 #### Contributors to this release
 
-[@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-01-05..2021-02-02&type=Issues) | [@dipanjank](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Adipanjank+updated%3A2021-01-05..2021-02-02&type=Issues) | [@jtpio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajtpio+updated%3A2021-01-05..2021-02-02&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2021-01-05..2021-02-02&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-01-05..2021-02-02&type=Issues)
+[@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-02-08..2021-02-25&type=Issues) | [@janjagusch](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajanjagusch+updated%3A2021-02-08..2021-02-25&type=Issues) | [@JanJaguschQC](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AJanJaguschQC+updated%3A2021-02-08..2021-02-25&type=Issues) | [@jtpio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajtpio+updated%3A2021-02-08..2021-02-25&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2021-02-08..2021-02-25&type=Issues) | [@ryanlovett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2021-02-08..2021-02-25&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-02-08..2021-02-25&type=Issues)
