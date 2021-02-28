@@ -35,13 +35,17 @@ class NewHandler(ProxyHandler):
         return super().proxy(host, port, proxied_path)
 
 
-def _jupyter_server_extension_paths():
-    return [{"module": "dask_labextension"}]
+def _jupyter_server_extension_points():
+    return [{"module": "proxyextension"}]
 
 
-def load_jupyter_server_extension(nb_server_app):
+def _load_jupyter_server_extension(nb_server_app):
     web_app = nb_server_app.web_app
     base_url = web_app.settings["base_url"]
     proxy_path = url_path_join(base_url, "newproxy/" + "?")
     handlers = [(proxy_path, NewHandler)]
     web_app.add_handlers(".*$", handlers)
+
+
+# For backward compatibility
+load_jupyter_server_extension = _load_jupyter_server_extension

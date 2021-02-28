@@ -4,7 +4,7 @@ from jupyter_server.utils import url_path_join as ujoin
 from .api import ServersInfoHandler, IconHandler
 
 # Jupyter Extension points
-def _jupyter_server_extension_paths():
+def _jupyter_server_extension_points():
     return [{
         'module': 'jupyter_server_proxy',
     }]
@@ -18,7 +18,7 @@ def _jupyter_nbextension_paths():
     }]
 
 
-def load_jupyter_server_extension(nbapp):
+def _load_jupyter_server_extension(nbapp):
     # Set up handlers picked up via config
     base_url = nbapp.web_app.settings['base_url']
     serverproxy = ServerProxy(parent=nbapp)
@@ -41,3 +41,7 @@ def load_jupyter_server_extension(nbapp):
         (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'server_processes': server_processes}),
         (ujoin(base_url, 'server-proxy/icon/(.*)'), IconHandler, {'icons': icons})
     ])
+
+
+# For backward compatibility
+load_jupyter_server_extension = _load_jupyter_server_extension
