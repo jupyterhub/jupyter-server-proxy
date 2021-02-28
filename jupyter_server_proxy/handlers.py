@@ -13,7 +13,7 @@ from asyncio import Lock
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
-from jupyter_server.utils import url_path_join
+from jupyter_server.utils import ensure_async, url_path_join
 from jupyter_server.base.handlers import JupyterHandler, utcnow
 
 from .utils import call_with_asked_args
@@ -532,11 +532,11 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
         await self.ensure_process()
 
-        return await super().proxy(self.port, path)
+        return await ensure_async(super().proxy(self.port, path))
 
 
     async def http_get(self, path):
-        return await self.proxy(self.port, path)
+        return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
         await self.ensure_process()
