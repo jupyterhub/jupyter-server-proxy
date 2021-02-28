@@ -13,15 +13,15 @@ from asyncio import Lock
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
-from notebook.utils import url_path_join
-from notebook.base.handlers import IPythonHandler, utcnow
+from jupyter_server.utils import url_path_join
+from jupyter_server.base.handlers import JupyterHandler, utcnow
 
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
 
 
-class AddSlashHandler(IPythonHandler):
+class AddSlashHandler(JupyterHandler):
     """Add trailing slash to URLs that need them."""
     @web.authenticated
     def get(self, *args):
@@ -29,7 +29,7 @@ class AddSlashHandler(IPythonHandler):
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
 
-class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
+class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     """
     A tornado request handler that proxies HTTP and websockets from
     a given host/port combination. This class is not meant to be

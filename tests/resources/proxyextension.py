@@ -1,5 +1,5 @@
 from jupyter_server_proxy.handlers import ProxyHandler
-from notebook.utils import url_path_join
+from jupyter_server.utils import url_path_join
 
 class NewHandler(ProxyHandler):
     async def http_get(self):

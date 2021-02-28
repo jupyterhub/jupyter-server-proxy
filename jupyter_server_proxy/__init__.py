@@ -1,6 +1,6 @@
 from .handlers import setup_handlers, SuperviseAndProxyHandler
 from .config import ServerProxy, make_handlers, get_entrypoint_server_processes, make_server_process
-from notebook.utils import url_path_join as ujoin
+from jupyter_server.utils import url_path_join as ujoin
 from .api import ServersInfoHandler, IconHandler
 
 # Jupyter Extension points

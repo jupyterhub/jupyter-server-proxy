@@ -1,7 +1,7 @@
 """
 Traitlets based configuration for jupyter_server_proxy
 """
-from notebook.utils import url_path_join as ujoin
+from jupyter_server.utils import url_path_join as ujoin
 from traitlets import Dict, List, Union, default
 from traitlets.config import Configurable
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler

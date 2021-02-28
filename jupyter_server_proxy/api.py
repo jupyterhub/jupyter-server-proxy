@@ -1,10 +1,10 @@
 from tornado import web
 import mimetypes
-from notebook.base.handlers import IPythonHandler
-from notebook.utils import url_path_join as ujoin
+from jupyter_server.base.handlers import JupyterHandler
+from jupyter_server.utils import url_path_join as ujoin
 from collections import namedtuple
 
-class ServersInfoHandler(IPythonHandler):
+class ServersInfoHandler(JupyterHandler):
     def initialize(self, server_processes):
         self.server_processes = server_processes
 
@@ -33,7 +33,7 @@ class ServersInfoHandler(IPythonHandler):
 
 
 # FIXME: Should be a StaticFileHandler subclass
-class IconHandler(IPythonHandler):
+class IconHandler(JupyterHandler):
     """
     Serve launcher icons
     """
