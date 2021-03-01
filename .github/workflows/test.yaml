@@ -35,7 +35,8 @@ jobs:
         # We run this job multiple times with different parameterization
         # specified below, these parameters have no meaning on their own and
         # gain meaning on how job steps use them.
-        jupyterlab_version: [1, 2, 3]
+        # 0 is a placeholder that indicates jupyter-server should be tested on its own
+        jupyterlab_version: [0, 1, 2, 3]
         python: [3.6, 3.7, 3.8, 3.9]
 
     steps:
@@ -59,7 +60,12 @@ jobs:
           pip freeze
       - name: Run tests
         run: |
-          JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+          if [ ${{ matrix.jupyterlab_version }} -gt 0 ]; then
+              APP=notebook
+          else
+              APP=server
+          fi
+          JUPYTER_TOKEN=secret jupyter-$APP --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           pytest --verbose --color=yes
 
