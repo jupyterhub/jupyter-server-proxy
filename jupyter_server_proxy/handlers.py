@@ -200,7 +200,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         if not self._check_host_allowlist(host):
             self.set_status(403)
-            self.write("Host '{host}' is not whitelisted. "
+            self.write("Host '{host}' is not allowed. "
                        "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
             return
 
@@ -273,7 +273,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         if not self._check_host_allowlist(host):
             self.set_status(403)
-            self.log.info("Host '{host}' is not whitelisted. "
+            self.log.info("Host '{host}' is not allowed. "
                           "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
             self.close()
             return
