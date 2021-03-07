@@ -182,7 +182,7 @@ class ServerProxy(Configurable):
         config=True
     )
 
-    host_whitelist = Union(
+    host_allowlist = Union(
         trait_types=[List(), Callable()],
         help="""
         List of allowed hosts.
@@ -195,16 +195,16 @@ class ServerProxy(Configurable):
         some external service.  Here is an example that could be placed in a
         site-wide Jupyter notebook config:
 
-            def host_whitelist(handler, host):
+            def host_allowlist(handler, host):
                 handler.log.info("Request to proxy to host " + host)
                 return host.startswith("10.")
-            c.ServerProxy.host_whitelist = host_whitelist
+            c.ServerProxy.host_allowlist = host_allowlist
 
         Defaults to a list of ["localhost", "127.0.0.1"].
         """,
         config=True
     )
 
-    @default("host_whitelist")
-    def _host_whitelist_default(self):
+    @default("host_allowlist")
+    def _host_allowlist_default(self):
         return ["localhost", "127.0.0.1"]
