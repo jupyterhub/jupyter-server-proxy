@@ -4,6 +4,7 @@ Traitlets based configuration for jupyter_server_proxy
 from notebook.utils import url_path_join as ujoin
 from traitlets import Dict, List, Union, default, observe
 from traitlets.config import Configurable
+from warnings import warn
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
@@ -221,8 +222,9 @@ class ServerProxy(Configurable):
             # only warn if different
             # protects backward-compatible config from warnings
             # if they set the same value under both names
-            # TODO: Doesn't work since Configurable doesn't have a log
-            self.log.warning(
+            # Configurable doesn't have a log
+            # https://github.com/ipython/traitlets/blob/5.0.5/traitlets/config/configurable.py#L181
+            warn(
                 "{cls}.{old} is deprecated in jupyter-server-proxy {version}, use {cls}.{new} instead".format(
                     cls=self.__class__.__name__,
                     old=old_attr,
