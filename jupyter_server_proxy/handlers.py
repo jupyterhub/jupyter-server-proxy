@@ -119,23 +119,26 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         """
         self.settings['api_last_activity'] = utcnow()
 
-    def _get_context_path(self, port):
+    def _get_context_path(self, host, port):
         """
         Some applications need to know where they are being proxied from.
         This is either:
         - {base_url}/proxy/{port}
+        - {base_url}/proxy/{host}:{port}
         - {base_url}/proxy/absolute/{port}
+        - {base_url}/proxy/absolute/{host}:{port}
         - {base_url}/{proxy_base}
         """
+        host_and_port = str(port) if host == 'localhost' else host + ":" + str(port)
         if self.proxy_base:
             return url_path_join(self.base_url, self.proxy_base)
         if self.absolute_url:
-            return url_path_join(self.base_url, 'proxy', 'absolute', str(port))
+            return url_path_join(self.base_url, 'proxy', 'absolute', host_and_port)
         else:
-            return url_path_join(self.base_url, 'proxy', str(port))
+            return url_path_join(self.base_url, 'proxy', host_and_port)
 
     def get_client_uri(self, protocol, host, port, proxied_path):
-        context_path = self._get_context_path(port)
+        context_path = self._get_context_path(host, port)
         if self.absolute_url:
             client_path = url_path_join(context_path, proxied_path)
         else:
@@ -169,9 +172,11 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
-            context_path = self._get_context_path(port)
+            context_path = self._get_context_path(host, port)
             headers['X-Forwarded-Context'] = context_path
             headers['X-ProxyContextPath'] = context_path
+            # to be compatible with flask/werkzeug wsgi applications
+            headers['X-Forwarded-Prefix'] = context_path
 
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
@@ -486,7 +491,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # FIXME: Make sure this times out properly?
         # Invariant here should be: when lock isn't being held, either 'proc' is in state &
         # running, or not.
-        with (await self.state['proc_lock']):
+        async with self.state['proc_lock']:
 
             # Remove 'proc' if it exists and previously exited successfully, if enabled
             if self.allow_restart_on_graceful_exit:

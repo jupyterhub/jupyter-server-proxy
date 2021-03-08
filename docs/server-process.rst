@@ -18,7 +18,8 @@ Server Process options
 Server Processes are configured with a dictionary of key value
 pairs.
 
-#. **command**
+``command``
+^^^^^^^^^^^
 
    One of:
 
@@ -37,14 +38,16 @@ pairs.
 
    This key is required.
 
-#. **timeout**
+``timeout``
+^^^^^^^^^^^
 
    Timeout in seconds for the process to become ready, default ``5``.
 
    A process is considered 'ready' when it can return a valid HTTP response on the
    port it is supposed to start at.
 
-#. **environment**
+``environment``
+^^^^^^^^^^^^^^^
 
    One of:
 
@@ -56,7 +59,8 @@ pairs.
    * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
      and returns a dictionary of strings that are used & treated same as above.
 
-#. **absolute_url**
+``absolute_url``
+^^^^^^^^^^^^^^^^
 
    *True* if the URL as seen by the proxied application should be the full URL
    sent by the user. *False* if the URL as seen by the proxied application should
@@ -84,20 +88,23 @@ pairs.
    Defaults to *False*.
 
 
-#. **port**
+``port``
+^^^^^^^^
 
      Set the port that the service will listen on. The default is to
      automatically select an unused port.
 
 
-#. **mappath**
+``mappath``
+^^^^^^^^^^^
 
      Map request paths to proxied paths.
      Either a dictionary of request paths to proxied paths,
      or a callable that takes parameter ``path`` and returns the proxied path.
 
 
-#. **launcher_entry**
+``launcher_entry``
+^^^^^^^^^^^^^^^^^^
 
    A dictionary with options on if / how an entry in the classic Jupyter Notebook
    'New' dropdown or the JupyterLab launcher should be added. It can contain
@@ -115,7 +122,8 @@ pairs.
       Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
 
-#. **new_browser_tab**
+``new_browser_tab``
+^^^^^^^^^^^^^^^^^^^
 
    *JupyterLab only* - *True* if the proxied server URL should be opened in a new browser tab.
    *False* (default) if the proxied server URL should be opened in a new JupyterLab tab.
