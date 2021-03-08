@@ -71,3 +71,12 @@ jobs:
         run: |
           pip install jupyter-server
           jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
+
+      - name: Check the lab extension
+        run: |
+          if [ ${{ matrix.jupyterlab_version }} = 3 ]; then
+              jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
+              python -m jupyterlab.browser_check
+          else
+              echo "TODO: Check extension works with JupyterLab ${{ matrix.jupyterlab_version }}"
+          fi
