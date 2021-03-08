@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 from http.client import HTTPConnection
+from time import sleep
 from urllib.parse import quote
 import pytest
 from tornado.websocket import websocket_connect
@@ -162,6 +163,14 @@ def test_server_proxy_mappath_callable(requestpath, expected):
     assert s.startswith('GET ' + expected)
     assert 'X-Forwarded-Context: /python-http-mappathf\n' in s
     assert 'X-Proxycontextpath: /python-http-mappathf\n' in s
+
+
+def test_server_proxy_gracefulrestart():
+    # Should exit and restart after every request, sleep to allow time for restart
+    for n in range(3):
+        r = request_get(PORT, '/python-gracefulrestart/', TOKEN)
+        assert r.code == 200
+        sleep(1)
 
 
 def test_server_proxy_remote():
