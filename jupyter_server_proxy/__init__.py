@@ -1,3 +1,5 @@
+import ssl
+
 from .handlers import setup_handlers, SuperviseAndProxyHandler
 from .config import ServerProxy, make_handlers, get_entrypoint_server_processes, make_server_process
 from notebook.utils import url_path_join as ujoin
@@ -28,8 +30,19 @@ def load_jupyter_server_extension(nbapp):
     server_handlers = make_handlers(base_url, server_processes)
     nbapp.web_app.add_handlers('.*', server_handlers)
 
+    # Configure SSL support
+    ssl_options = None
+    if serverproxy.https:
+        ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=serverproxy.cafile)
+        if serverproxy.certfile or serverproxy.keyfile:
+            ssl_context.load_cert_chain(serverproxy.certfile, serverproxy.keyfile or None)
+        else:
+            ssl_context.load_default_certs()
+        ssl_context.check_hostname = serverproxy.check_hostname
+        ssl_options = ssl_context
+
     # Set up default handler
-    setup_handlers(nbapp.web_app, serverproxy.host_whitelist)
+    setup_handlers(nbapp.web_app, serverproxy.host_whitelist, ssl_options)
 
     launcher_entries = []
     icons = {}

@@ -45,6 +45,7 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         self.absolute_url = kwargs.pop('absolute_url', False)
         self.host_whitelist = kwargs.pop('host_whitelist', ['localhost', '127.0.0.1'])
         self.subprotocols = None
+        self.ssl_options = kwargs.pop('ssl_options', None)
         super().__init__(*args, **kwargs)
 
     # Support all the methods that tornado does by default except for GET which
@@ -168,7 +169,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
 
         headers = self.proxy_request_headers()
 
-        client_uri = self.get_client_uri('http', host, port, proxied_path)
+        protocol = 'http' if self.ssl_options is None else 'https'
+        client_uri = self.get_client_uri(protocol, host, port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
@@ -281,7 +283,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
-        client_uri = self.get_client_uri('ws', host, port, proxied_path)
+        protocol = 'ws' if self.ssl_options is None else 'wss'
+        client_uri = self.get_client_uri(protocol, host, port, proxied_path)
         headers = self.request.headers
         current_loop = ioloop.IOLoop.current()
         ws_connected = current_loop.asyncio_loop.create_future()
@@ -312,7 +315,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
         async def start_websocket_connection():
             self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
             self._record_activity()
-            request = httpclient.HTTPRequest(url=client_uri, headers=headers)
+            request = httpclient.HTTPRequest(url=client_uri, headers=headers, 
+                ssl_options=self.ssl_options)
             self.ws = await pingable_ws_connect(request=request,
                 on_message_callback=message_cb, on_ping_callback=ping_cb,
                 subprotocols=self.subprotocols)
@@ -335,7 +339,8 @@ class ProxyHandler(WebSocketHandlerMixin, IPythonHandler):
     def proxy_request_options(self):
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0)
+        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0, 
+                ssl_options=self.ssl_options)
 
     def check_xsrf_cookie(self):
         '''
@@ -561,17 +566,21 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app, host_whitelist):
+def setup_handlers(web_app, host_whitelist, ssl_options):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist': host_whitelist}),
+         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist': host_whitelist,
+          'ssl_options': ssl_options}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist': host_whitelist}),
+         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist': host_whitelist,
+          'ssl_options': ssl_options}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': False}),
+         LocalProxyHandler, {'absolute_url': False,
+          'ssl_options': ssl_options}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': True}),
+         LocalProxyHandler, {'absolute_url': True,
+          'ssl_options': ssl_options}),
     ])
 
 # vim: set et ts=4 sw=4:
