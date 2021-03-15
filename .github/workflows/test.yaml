@@ -37,6 +37,13 @@ jobs:
         # gain meaning on how job steps use them.
         jupyterlab_version: [1, 2, 3]
         python: [3.6, 3.7, 3.8, 3.9]
+        jupyter_app: [notebook]
+        include:
+          # includes a new variable of npm with a value of 2
+          # for the matrix leg matching the os and version
+          - jupyterlab_version: 3
+            python: 3.9
+            jupyter_app: server
 
     steps:
       - uses: actions/checkout@v2
@@ -59,7 +66,7 @@ jobs:
           pip freeze
       - name: Run tests
         run: |
-          JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+          JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter_app }} --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           pytest --verbose --color=yes
 

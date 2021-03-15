@@ -11,16 +11,10 @@ from urllib.parse import urlunparse, urlparse
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
-from notebook.utils import url_path_join
-from notebook.base.handlers import IPythonHandler, utcnow
+from jupyter_server.utils import url_path_join
+from jupyter_server.base.handlers import JupyterHandler, utcnow
 
-try:
-    # Tornado 6.0 deprecated its `maybe_future` function so `notebook` made their own.
-    # See: https://github.com/jupyter/notebook/pull/4453
-    from notebook.utils import maybe_future
-except ImportError:
-    # We can't find it in `notebook` then we should be able to find it in Tornado
-    from tornado.gen import maybe_future
+from jupyter_server.utils import ensure_async
 
 
 class PingableWSClientConnection(websocket.WebSocketClientConnection):
@@ -96,7 +90,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
         else:
-            await maybe_future(super().get(*args, **kwargs))
+            await ensure_async(super().get(*args, **kwargs))
 
 
 def setup_handlers(web_app):
