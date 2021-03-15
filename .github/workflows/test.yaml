@@ -35,7 +35,7 @@ jobs:
         # We run this job multiple times with different parameterization
         # specified below, these parameters have no meaning on their own and
         # gain meaning on how job steps use them.
-        jupyterlab_version: [1, 2, 3]
+        jupyterlab_version: [2, 3]
         python: [3.6, 3.7, 3.8, 3.9]
         jupyter_app: [notebook]
         include:
