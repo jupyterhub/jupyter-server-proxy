@@ -31,5 +31,6 @@ c.ServerProxy.servers = {
 
 import sys
 sys.path.append('./tests/resources')
+c.ServerApp.jpserver_extensions = { 'proxyextension': True }
 c.NotebookApp.nbserver_extensions = { 'proxyextension': True }
 #c.Application.log_level = 'DEBUG'

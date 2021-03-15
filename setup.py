@@ -84,7 +84,11 @@ setup_args = dict(
     long_description_content_type="text/markdown",
     cmdclass=cmdclass,
     packages=setuptools.find_packages(),
-    install_requires=["simpervisor>=0.4", "aiohttp"],
+    install_requires=[
+        "aiohttp",
+        "jupyter-server>=1.0",
+        "simpervisor>=0.4",
+    ],
     zip_safe=False,
     include_package_data=True,
     python_requires=">=3.6",
