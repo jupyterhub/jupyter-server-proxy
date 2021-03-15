@@ -29,7 +29,7 @@ def _load_jupyter_server_extension(nbapp):
     nbapp.web_app.add_handlers('.*', server_handlers)
 
     # Set up default handler
-    setup_handlers(nbapp.web_app, serverproxy.host_whitelist)
+    setup_handlers(nbapp.web_app, serverproxy.host_allowlist)
 
     launcher_entries = []
     icons = {}

@@ -43,7 +43,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
-        self.host_whitelist = kwargs.pop('host_whitelist', ['localhost', '127.0.0.1'])
+        self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
         self.subprotocols = None
         super().__init__(*args, **kwargs)
 
@@ -183,11 +183,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             headers=headers, **self.proxy_request_options())
         return req
 
-    def _check_host_whitelist(self, host):
-        if callable(self.host_whitelist):
-            return self.host_whitelist(self, host)
+    def _check_host_allowlist(self, host):
+        if callable(self.host_allowlist):
+            return self.host_allowlist(self, host)
         else:
-            return host in self.host_whitelist
+            return host in self.host_allowlist
 
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
@@ -198,9 +198,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             {base_url}/{proxy_base}/{proxied_path}
         '''
 
-        if not self._check_host_whitelist(host):
+        if not self._check_host_allowlist(host):
             self.set_status(403)
-            self.write("Host '{host}' is not whitelisted. "
+            self.write("Host '{host}' is not allowed. "
                        "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
             return
 
@@ -271,9 +271,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         set up a callback to relay messages through.
         """
 
-        if not self._check_host_whitelist(host):
+        if not self._check_host_allowlist(host):
             self.set_status(403)
-            self.log.info("Host '{host}' is not whitelisted. "
+            self.log.info("Host '{host}' is not allowed. "
                           "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
             self.close()
             return
@@ -561,13 +561,13 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app, host_whitelist):
+def setup_handlers(web_app, host_allowlist):
     host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': False, 'host_whitelist': host_whitelist}),
+         RemoteProxyHandler, {'absolute_url': False, 'host_allowlist': host_allowlist}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(.*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': True, 'host_whitelist': host_whitelist}),
+         RemoteProxyHandler, {'absolute_url': True, 'host_allowlist': host_allowlist}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
          LocalProxyHandler, {'absolute_url': False}),
         (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),

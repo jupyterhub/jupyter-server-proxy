@@ -2,8 +2,9 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from jupyter_server.utils import url_path_join as ujoin
-from traitlets import Dict, List, Union, default
+from traitlets import Dict, List, Union, default, observe
 from traitlets.config import Configurable
+from warnings import warn
 from .handlers import SuperviseAndProxyHandler, AddSlashHandler
 import pkg_resources
 from collections import namedtuple
@@ -182,7 +183,7 @@ class ServerProxy(Configurable):
         config=True
     )
 
-    host_whitelist = Union(
+    host_allowlist = Union(
         trait_types=[List(), Callable()],
         help="""
         List of allowed hosts.
@@ -195,16 +196,40 @@ class ServerProxy(Configurable):
         some external service.  Here is an example that could be placed in a
         site-wide Jupyter notebook config:
 
-            def host_whitelist(handler, host):
+            def host_allowlist(handler, host):
                 handler.log.info("Request to proxy to host " + host)
                 return host.startswith("10.")
-            c.ServerProxy.host_whitelist = host_whitelist
+            c.ServerProxy.host_allowlist = host_allowlist
 
         Defaults to a list of ["localhost", "127.0.0.1"].
         """,
         config=True
     )
 
-    @default("host_whitelist")
-    def _host_whitelist_default(self):
+    @default("host_allowlist")
+    def _host_allowlist_default(self):
         return ["localhost", "127.0.0.1"]
+
+    host_whitelist = Union(
+        trait_types=[List(), Callable()],
+        help="Deprecated, use host_allowlist",
+        config=True)
+
+    @observe("host_whitelist")
+    def _host_whitelist_deprecated(self, change):
+        old_attr = change.name
+        if self.host_allowlist != change.new:
+            # only warn if different
+            # protects backward-compatible config from warnings
+            # if they set the same value under both names
+            # Configurable doesn't have a log
+            # https://github.com/ipython/traitlets/blob/5.0.5/traitlets/config/configurable.py#L181
+            warn(
+                "{cls}.{old} is deprecated in jupyter-server-proxy {version}, use {cls}.{new} instead".format(
+                    cls=self.__class__.__name__,
+                    old=old_attr,
+                    new="host_allowlist",
+                    version="3.0.0",
+                )
+            )
+            self.host_allowlist = change.new
