@@ -1,5 +1,15 @@
 ## [3.0]
 
+### [3.0.1]
+
+#### Bugs fixed
+
+* Fix PyPI url [#259](https://github.com/jupyterhub/jupyter-server-proxy/pull/259) ([@janjagusch](https://github.com/janjagusch))
+
+#### Contributors to this release
+
+[@janjagusch](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajanjagusch+updated%3A2021-03-15..2021-03-16&type=Issues)
+
 ### [3.0.0] - 2020-03-15
 
 This release drops support for Python 3.5 and now packages the JupyterLab
