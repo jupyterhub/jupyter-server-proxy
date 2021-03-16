@@ -1,5 +1,11 @@
 ## [3.0]
 
+### [3.0.2]
+
+#### Bugs fixed
+
+* Include `jupyterlab_server_proxy` in the source tarball.
+
 ### [3.0.1]
 
 #### Bugs fixed
