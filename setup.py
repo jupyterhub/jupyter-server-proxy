@@ -73,7 +73,7 @@ long_description = (HERE / "README.md").read_text()
 pkg_json = json.loads((HERE / "jupyterlab-server-proxy" / "package.json").read_bytes())
 
 setup_args = dict(
-    name=name,
+    name=name.replace("_", "-"),
     version=pkg_json["version"],
     url=pkg_json["homepage"],
     author=pkg_json["author"]["name"],
