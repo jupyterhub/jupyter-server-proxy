@@ -1,1 +1,2 @@
+recursive-include jupyterlab-server-proxy *
 include LICENSE
