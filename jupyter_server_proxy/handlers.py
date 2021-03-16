@@ -230,7 +230,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             response = await client.fetch(req, raise_error=False)
         except httpclient.HTTPError as err:
             # We need to capture the timeout error even with raise_error=False,
-            # because it only affects the HTTPError raised when a non-200 response 
+            # because it only affects the HTTPError raised when a non-200 response
             # code is used, instead of suppressing all errors.
             # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
             if err.code == 599:
@@ -492,6 +492,13 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         # Invariant here should be: when lock isn't being held, either 'proc' is in state &
         # running, or not.
         async with self.state['proc_lock']:
+
+            # Remove 'proc' if it exists and previously exited successfully, if enabled
+            if self.allow_restart_on_graceful_exit:
+                if 'proc' in self.state:
+                    if self.state['proc'].returncode == 0:
+                        del self.state['proc']
+
             if 'proc' not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here

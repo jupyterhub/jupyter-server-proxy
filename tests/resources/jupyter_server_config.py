@@ -24,6 +24,13 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'mappath': mappathf,
     },
+
+    'python-gracefulrestart' : {
+        # Need count=2 because the first request is the proxy checking the server is ready
+        'command': ['python3', './tests/resources/httpinfo.py', '--count=2', '{port}'],
+        'allow_restart_on_graceful_exit': True,
+    },
+
     'python-websocket' : {
         'command': ['python3', './tests/resources/websocket.py', '--port={port}'],
     }
