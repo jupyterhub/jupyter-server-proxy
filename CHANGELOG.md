@@ -1,12 +1,16 @@
 ## [3.0]
 
-### [3.0.2]
+### [3.0.2] - 2020-03-16
 
-#### Bugs fixed
+## Bugs fixed
 
-* Include `jupyterlab_server_proxy` in the source tarball.
+* Include jupyterlab-server-proxy in the sdist [#260](https://github.com/jupyterhub/jupyter-server-proxy/pull/260) ([@xhochy](https://github.com/xhochy))
 
-### [3.0.1]
+## Contributors to this release
+
+[@xhochy](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Axhochy+updated%3A2021-03-16..2021-03-16&type=Issues)
+
+### [3.0.1] - 2020-03-16
 
 #### Bugs fixed
 
