@@ -8,3 +8,4 @@ package-lock.json
 jupyter_server_proxy/labextension
 .ipynb_checkpoints/
 MANIFEST
+build/
