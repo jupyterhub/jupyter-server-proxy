@@ -21,6 +21,12 @@ jobs:
           pip install jupyter_packaging wheel jupyterlab~=3.0
           python setup.py sdist bdist_wheel
 
+      - name: Check dist sizes
+        run: |
+          set -eux
+          ls -lathr dist
+          find dist -type f -size +20k | grep dist
+
       - name: Javascript package
         run: |
           mkdir jsdist

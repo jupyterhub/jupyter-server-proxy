@@ -55,10 +55,6 @@ jobs:
         run: |
           pip install jupyter_packaging wheel jupyterlab
           python setup.py sdist bdist_wheel
-      - name: Check Package Sizes
-        run: |
-          ls -lathr dist
-          find dist -type f -size +200k | grep dist || echo ok
       - name: Install Python dependencies
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
