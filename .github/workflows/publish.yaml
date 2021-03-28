@@ -25,7 +25,7 @@ jobs:
         run: |
           set -eux
           ls -lathr dist
-          find dist -type f -size +20k | grep -v dist
+          find dist -type f -size +20k | grep dist && exit 1
 
       - name: Javascript package
         run: |
