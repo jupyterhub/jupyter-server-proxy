@@ -33,7 +33,7 @@ def _load_jupyter_server_extension(nbapp):
 
     icons = {}
     for sp in server_processes:
-        if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
+        if sp.launcher_entry.icon_path:
             icons[sp.name] = sp.launcher_entry.icon_path
 
     nbapp.web_app.add_handlers('.*', [
