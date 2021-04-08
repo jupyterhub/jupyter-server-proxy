@@ -100,7 +100,7 @@ def make_handlers(base_url, server_processes):
         ))
     return handlers
 
-LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
+LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
 ServerProcess = namedtuple('ServerProcess', [
     'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab'])
 
@@ -117,7 +117,8 @@ def make_server_process(name, server_process_config):
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
             icon_path=le.get('icon_path'),
-            title=le.get('title', name)
+            title=le.get('title', name),
+            path_info=le.get('path_info', name + "/")
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True)
     )
@@ -179,6 +180,10 @@ class ServerProxy(Configurable):
           new_browser_tab
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
             to have it open a new JupyterLab tab. This has no effect in classic notebook.
+
+          path_info
+            The trailing path that is appended to the user's server URL to access the proxied server.
+            By default it is the name of the server followed by a trailing slash.
         """,
         config=True
     )
