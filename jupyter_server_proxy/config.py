@@ -16,7 +16,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, proxy_headers):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -65,8 +65,8 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
         def get_env(self):
             return self._realize_rendered_template(environment)
 
-        def get_proxy_headers(self):
-            return self._realize_rendered_template(proxy_headers)
+        def get_request_headers_override(self):
+            return self._realize_rendered_template(request_headers_override)
 
         def get_timeout(self):
             return timeout
@@ -96,7 +96,7 @@ def make_handlers(base_url, server_processes):
             sp.absolute_url,
             sp.port,
             sp.mappath,
-            sp.proxy_headers,
+            sp.request_headers_override,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -108,7 +108,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'proxy_headers'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -126,7 +126,7 @@ def make_server_process(name, server_process_config):
             title=le.get('title', name)
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True),
-        proxy_headers=server_process_config.get('proxy_headers', {})
+        request_headers_override=server_process_config.get('request_headers_override', {})
     )
 
 class ServerProxy(Configurable):
@@ -187,7 +187,7 @@ class ServerProxy(Configurable):
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
             to have it open a new JupyterLab tab. This has no effect in classic notebook.
 
-          proxy_headers
+          request_headers_override
             A dictionary of additional HTTP headers for the proxy request. As with
             the command traitlet, {{port}} and {{base_url}} will be substituted.
         """,

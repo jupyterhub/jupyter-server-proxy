@@ -330,12 +330,12 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         '''A dictionary of headers to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
         headers = self.request.headers.copy()
-        # Merge any manually configured headers
-        headers.update(self.get_proxy_headers())
+        # Merge any manually configured request headers
+        headers.update(self.get_request_headers_override())
         return headers
 
-    def get_proxy_headers(self):
-        '''Add additional proxy headers. Typically overridden in subclasses.'''
+    def get_request_headers_override(self):
+        '''Add additional request headers. Typically overridden in subclasses.'''
         return {}
 
     def proxy_request_options(self):

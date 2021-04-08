@@ -138,7 +138,7 @@ pairs.
    ``--www-frame-origin=same`` to allow rendering of its pages in an iframe.
 
 
-``proxy_headers``
+``request_headers_override``
 ^^^^^^^^^^^^^^^
 
    One of:

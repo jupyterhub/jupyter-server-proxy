@@ -169,8 +169,8 @@ def test_server_proxy_remote():
     assert r.code == 200
 
 
-def test_server_proxy_headers():
-    r = request_get(PORT, '/python-proxy-headers/', TOKEN, host='127.0.0.1')
+def test_server_request_headers():
+    r = request_get(PORT, '/python-request-headers/', TOKEN, host='127.0.0.1')
     assert r.code == 200
     s = r.read().decode('ascii')
     assert 'X-Custom-Header: pytest-23456\n' in s
