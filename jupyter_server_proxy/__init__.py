@@ -31,7 +31,6 @@ def _load_jupyter_server_extension(nbapp):
     # Set up default handler
     setup_handlers(nbapp.web_app, serverproxy.host_allowlist)
 
-    launcher_entries = []
     icons = {}
     for sp in server_processes:
         if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
