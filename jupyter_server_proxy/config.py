@@ -200,13 +200,19 @@ class ServerProxy(Configurable):
 
             icon_path
               Full path to an svg icon that could be used with a launcher. Currently only used by the
-              JupyterLab launcher
+              JupyterLab launcher.
 
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
             new_browser_tab
-              Override the default tab behavior from the root config
+              Override the default tab behavior from the root config.
+
+            name:
+              A name (default: default) used for constructing URLs and DOM ids for the launcher
+
+            path:
+              A path (default: /) to open. May include ``?`` params and ``#`` fragments.
 
         """,
         config=True
