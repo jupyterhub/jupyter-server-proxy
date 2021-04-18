@@ -34,8 +34,10 @@ def _load_jupyter_server_extension(nbapp):
     launcher_entries = []
     icons = {}
     for sp in server_processes:
-        if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
-            icons[sp.name] = sp.launcher_entry.icon_path
+        for le in sp.launcher_entries:
+            if le.enabled and le.icon_path:
+                icons[(sp.name, le.name)] = le.icon_path
+
 
     nbapp.web_app.add_handlers('.*', [
         (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'server_processes': server_processes}),

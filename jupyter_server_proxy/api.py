@@ -14,18 +14,25 @@ class ServersInfoHandler(JupyterHandler):
         # Pick out and send only metadata
         # Don't send anything that might be a callable, or leak sensitive info
         for sp in self.server_processes:
-            # Manually recurse to convert namedtuples into JSONable structures
             item = {
                 'name': sp.name,
-                'launcher_entry': {
-                    'enabled': sp.launcher_entry.enabled,
-                    'title': sp.launcher_entry.title
-                },
-                'new_browser_tab' : sp.new_browser_tab
+                'launcher_entries': []
             }
-            if sp.launcher_entry.icon_path:
-                icon_url = ujoin(self.base_url, 'server-proxy', 'icon', sp.name)
-                item['launcher_entry']['icon_url'] = icon_url
+
+            for le in sp.launcher_entries:
+                litem = {
+                    'enabled': le.enabled,
+                    'title': le.title,
+                    'new_browser_tab': le.new_browser_tab,
+                    'path': le.path
+                }
+
+                # Manually recurse to convert namedtuples into JSONable structures
+                if le.icon_path:
+                    icon_url = ujoin(self.base_url, 'server-proxy', 'icon', sp.name, le.name)
+                    litem['icon_url'] = icon_url
+
+                item['launcher_entries'].append(litem)
 
             data.append(item)
 
@@ -44,6 +51,7 @@ class IconHandler(JupyterHandler):
         self.icons = icons
 
     async def get(self, name):
+        name = tuple(name.split("/", 1))
         if name not in self.icons:
             raise web.HTTPError(404)
         path = self.icons[name]
@@ -64,6 +72,6 @@ class IconHandler(JupyterHandler):
         else:
             content_type = "application/octet-stream"
 
-        with open(self.icons[name]) as f:
+        with open(self.icons[name], "rb") as f:
             self.write(f.read())
         self.set_header('Content-Type', content_type)

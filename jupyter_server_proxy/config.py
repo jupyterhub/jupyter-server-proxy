@@ -106,12 +106,13 @@ def make_handlers(base_url, server_processes):
         ))
     return handlers
 
-LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
+LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'name', 'new_browser_tab', 'path'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entries', 'request_headers_override'])
+
+
 
 def make_server_process(name, server_process_config):
-    le = server_process_config.get('launcher_entry', {})
     return ServerProcess(
         name=name,
         command=server_process_config['command'],
@@ -120,14 +121,26 @@ def make_server_process(name, server_process_config):
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
         mappath=server_process_config.get('mappath', {}),
-        launcher_entry=LauncherEntry(
-            enabled=le.get('enabled', True),
-            icon_path=le.get('icon_path'),
-            title=le.get('title', name)
-        ),
-        new_browser_tab=server_process_config.get('new_browser_tab', True),
+        launcher_entries=[*make_launcher_entries(name, server_process_config)],
         request_headers_override=server_process_config.get('request_headers_override', {})
     )
+
+
+def make_launcher_entries(name, server_process_config):
+    le = server_process_config.get('launcher_entry', {})
+    les = [le] if isinstance(le, dict) else le
+    new_browser_tab = server_process_config.get('new_browser_tab', True)
+
+    for le in les:
+        yield LauncherEntry(
+            name=le.get('name', 'default'),
+            enabled=le.get('enabled', True),
+            icon_path=le.get('icon_path'),
+            title=le.get('title', le.get('name', name)),
+            path=le.get('path', '/'),
+            new_browser_tab=le.get('new_browser_tab', new_browser_tab)
+        )
+
 
 class ServerProxy(Configurable):
     servers = Dict(
@@ -167,8 +180,17 @@ class ServerProxy(Configurable):
             Either a dictionary of request paths to proxied paths,
             or a callable that takes parameter ``path`` and returns the proxied path.
 
+          new_browser_tab
+            Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
+            to have it open a new JupyterLab tab. This has no effect in classic notebook.
+
+          request_headers_override
+            A dictionary of additional HTTP headers for the proxy request. As with
+            the command traitlet, {{port}} and {{base_url}} will be substituted.
+
           launcher_entry
             A dictionary of various options for entries in classic notebook / jupyterlab launchers.
+            May also be a list of the same, where each must have a ``name`` key.
 
             Keys recognized are:
 
@@ -183,13 +205,9 @@ class ServerProxy(Configurable):
             title
               Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
-          new_browser_tab
-            Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
-            to have it open a new JupyterLab tab. This has no effect in classic notebook.
+            new_browser_tab
+              Override the default tab behavior from the root config
 
-          request_headers_override
-            A dictionary of additional HTTP headers for the proxy request. As with
-            the command traitlet, {{port}} and {{base_url}} will be substituted.
         """,
         config=True
     )
