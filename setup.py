@@ -89,6 +89,17 @@ setup_args = dict(
         "jupyter-server>=1.0",
         "simpervisor>=0.4",
     ],
+    extras_require={
+        # acceptance tests additionally require firefox and geckodriver
+        "test": [
+            "pytest",
+            "pytest-cov",
+            "pytest-html"
+        ],
+        "acceptance": [
+            "robotframework-jupyterlibrary"
+        ]
+    },
     zip_safe=False,
     include_package_data=True,
     python_requires=">=3.6",

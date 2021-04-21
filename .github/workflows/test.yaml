@@ -47,28 +47,44 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-python@v2
         with:
           python-version: "${{ matrix.python }}"
+
       - name: Build Python package
         id: build-package
         run: |
           pip install jupyter_packaging wheel jupyterlab
           python setup.py sdist bdist_wheel
+
       - name: Install Python dependencies
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
+        #
+        #       Pytest options are set in tests/pytest.ini.
         run: |
           pip install --upgrade pip
           pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab_version }}.0
           pip install ./dist/jupyter_server_proxy-*.whl
-          pip install pytest
+          pip install pytest pytest-cov pytest-html
           pip freeze
+
       - name: Run tests
         run: |
           JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter_app }} --config=./tests/resources/jupyter_server_config.py &
           sleep 5
-          pytest --verbose --color=yes
+          cd tests
+          pytest
+
+      - name: Upload pytest and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: unit-tests-${{matrix.python }}-${{ matrix.jupyter_app }}-${{matrix.jupyterlab_version}}-${{ github.run_number }}
+          path: |
+            ./build/pytest
+            ./build/coverage
 
       - name: Check the Notebook Server extension is installed
         run: |
@@ -79,11 +95,30 @@ jobs:
           pip install jupyter-server
           jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
 
+      - name: Install JupyterLab Extension
+        if: matrix.jupyterlab_version == '2'
+        run: |
+          cd jupyterlab-server-proxy
+          jupyter labextension install . --no-build --debug
+          jupyter lab build --minimize=False --debug
+
       - name: Check the lab extension
         run: |
-          if [ ${{ matrix.jupyterlab_version }} = 3 ]; then
-              jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
-              python -m jupyterlab.browser_check
-          else
-              echo "TODO: Check extension works with JupyterLab ${{ matrix.jupyterlab_version }}"
-          fi
+          jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
+          python -m jupyterlab.browser_check
+
+      - name: Install Acceptance test dependencies
+        run: |
+          pip install robotframework-jupyterlibrary
+
+      - name: Run acceptance tests
+        run: |
+          pytest -k acceptance -s
+
+      - name: Upload acceptance test reports
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: acceptance-tests-${{ matrix.python }}-${{ matrix.jupyter_app }}-${{ matrix.jupyterlab_version }}-${{ github.run_number }}
+          path: |
+            ./build/robot

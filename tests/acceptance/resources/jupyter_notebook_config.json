@@ -1,0 +1,19 @@
+{
+  "ServerProxy": {
+    "servers": {
+      "foo": {
+        "command": ["python", "-m", "http.server", "{port}"],
+        "launcher_entry": {
+          "title": "foo"
+        }
+      },
+      "bar": {
+        "command": ["python", "-m", "http.server", "{port}"],
+        "launcher_entry": {
+          "title": "bar"
+        },
+        "new_browser_tab": false
+      }
+    }
+  }
+}
