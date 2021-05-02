@@ -132,6 +132,25 @@ def test_server_proxy_port_absolute():
     assert 'X-Proxycontextpath' not in s
 
 
+def test_server_proxy_host_non_absolute():
+    # note: localhost: is stripped but 127.0.0.1: is not
+    r = request_get(PORT, '/proxy/127.0.0.1:54321/jkl', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /jkl?token=')
+    assert 'X-Forwarded-Context: /proxy/127.0.0.1:54321\n' in s
+    assert 'X-Proxycontextpath: /proxy/127.0.0.1:54321\n' in s
+
+
+def test_server_proxy_host_absolute():
+    r = request_get(PORT, '/proxy/absolute/127.0.0.1:54321/nmo', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /proxy/absolute/127.0.0.1:54321/nmo?token=')
+    assert 'X-Forwarded-Context' not in s
+    assert 'X-Proxycontextpath' not in s
+
+
 @pytest.mark.parametrize(
     "requestpath,expected", [
         ('/', '/index.html?token='),
