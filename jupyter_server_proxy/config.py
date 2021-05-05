@@ -5,10 +5,11 @@ from jupyter_server.utils import url_path_join as ujoin
 from traitlets import Dict, List, Union, default, observe
 from traitlets.config import Configurable
 from warnings import warn
-from .handlers import SuperviseAndProxyHandler, AddSlashHandler
+from .handlers import SuperviseAndProxyHandler, AddSlashHandler, VhostRedirectHandler
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
+import re
 
 try:
     # Traitlets >= 4.3.3
@@ -16,7 +17,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override, vhost_enabled):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -29,6 +30,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.absolute_url = absolute_url
             self.requested_port = port
             self.mappath = mappath
+            self.vhost_enabled = vhost_enabled
 
         @property
         def process_args(self):
@@ -87,7 +89,9 @@ def make_handlers(base_url, server_processes):
     Get tornado handlers for registered server_processes
     """
     handlers = []
+    virtualhosts = []
     for sp in server_processes:
+        vhost = sp.virtualhost
         handler = _make_serverproxy_handler(
             sp.name,
             sp.command,
@@ -97,18 +101,38 @@ def make_handlers(base_url, server_processes):
             sp.port,
             sp.mappath,
             sp.request_headers_override,
+            vhost.get('enabled', False),
         )
-        handlers.append((
-            ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
-        ))
-        handlers.append((
-            ujoin(base_url, sp.name), AddSlashHandler
-        ))
-    return handlers
+        if vhost.get('enabled'):
+            if vhost.get('host_pattern'):
+                pass
+            elif vhost.get('location'):
+                vhost['host_pattern'] = r'^' + re.escape(vhost['location']) + r'$'
+            else:
+                vhost['host_pattern'] = r'^(.*[.])?' + re.escape(sp.name) + r'[.]p[.].*$'
+            virtualhosts.append(
+                (vhost['host_pattern'], [(r'(.*)', handler, dict(state={}))])
+            )
+            # access to /base_url/servername/ redirects to virtualhost
+            args = dict(name=sp.name, location=vhost.get('location'))
+            handlers.append((
+                ujoin(base_url, sp.name, r'(.*)'), VhostRedirectHandler, args,
+            ))
+            handlers.append((
+                ujoin(base_url, sp.name), VhostRedirectHandler, args,
+            ))
+        else:
+            handlers.append((
+                ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
+            ))
+            handlers.append((
+                ujoin(base_url, sp.name), AddSlashHandler
+            ))
+    return handlers, virtualhosts
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'virtualhost'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -126,7 +150,8 @@ def make_server_process(name, server_process_config):
             title=le.get('title', name)
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True),
-        request_headers_override=server_process_config.get('request_headers_override', {})
+        request_headers_override=server_process_config.get('request_headers_override', {}),
+        virtualhost=server_process_config.get('virtualhost', {'enabled': False})
     )
 
 class ServerProxy(Configurable):
@@ -190,6 +215,27 @@ class ServerProxy(Configurable):
           request_headers_override
             A dictionary of additional HTTP headers for the proxy request. As with
             the command traitlet, {{port}} and {{base_url}} will be substituted.
+
+          virtualhost
+            A dictionary of settings for accessing the server via a named virtualhost instead of
+            on path ``baseurl``/``name``.  This is useful if the service cannot be configured to work with
+            a path prefix.
+
+            Keys recognised are:
+
+            enabled
+              Set to True to enable virtualhost processing for this server
+
+            location
+              Name of the virtualhost to redirect to.  If unset, generates ``<srv-name>.p.<http_host>``.
+              Must resolve to your server, either via an entry in ``/etc/hosts`` or in the DNS - you can use
+              for example ``mysrv.127.0.0.1.nip.io``.
+              (TODO: prepend the username to the location when using Jupyter Hub)
+
+            host_pattern
+              A regular expression matching the hostname.  Defaults to a regexp which matches
+              the 'location' value exactly.  If location is also unset, then host_pattern defaults to
+              matching ``<srv-name>.p.<any>`` or ``<user>.<srv-name>.p.<any>``
         """,
         config=True
     )

@@ -151,6 +151,59 @@ def test_server_proxy_host_absolute():
     assert 'X-Proxycontextpath' not in s
 
 
+def test_server_proxy_vhost_default():
+    # Default redirect generates <name>.p.<current-host> (which is localhost)
+    r = request_get(PORT, '/python-http-vhost-default/foo/bar', TOKEN)
+    assert r.code == 302
+    assert r.getheader('Location').startswith('http://python-http-vhost-default.p.localhost:{}/foo/bar'.format(PORT))
+
+    # Access this vhost using <name>.p.<anything-which-resolves>
+    r = request_get(PORT, '/foo/bar', TOKEN, 'python-http-vhost-default.p.127.0.0.1.nip.io')
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /foo/bar')
+    assert 'X-Forwarded-Context' not in s
+    assert 'X-Proxycontextpath' not in s
+    assert 'X-Httpinfo-Args: http-vhost-default' in s
+
+    # Access this vhost using <user>.<name>.p.<anything-which-resolves>
+    r = request_get(PORT, '/foo/bar', TOKEN, 'student4.python-http-vhost-default.p.127.0.0.1.nip.io')
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /foo/bar')
+    assert 'X-Forwarded-Context' not in s
+    assert 'X-Proxycontextpath' not in s
+    assert 'X-Httpinfo-Args: http-vhost-default' in s
+
+    # Invalid access (does not match .p.)
+    r = request_get(PORT, '/foo/bar', TOKEN, 'student4.python-http-vhost-default.127.0.0.1.nip.io')
+    assert r.code == 404
+
+
+def test_server_proxy_vhost_location():
+    r = request_get(PORT, '/python-http-vhost-location/foo/bar', TOKEN)
+    assert r.code == 302
+    assert r.getheader('Location').startswith('http://flurble.127.0.0.1.nip.io:{}/foo/bar'.format(PORT))
+
+    r = request_get(PORT, '/foo/bar', TOKEN, 'flurble.127.0.0.1.nip.io')
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /foo/bar')
+    assert 'X-Forwarded-Context' not in s
+    assert 'X-Proxycontextpath' not in s
+    assert 'X-Httpinfo-Args: http-vhost-location' in s
+
+
+def test_server_proxy_vhost_pattern():
+    r = request_get(PORT, '/foo/bar', TOKEN, 'foo.blah.foo.127.0.0.1.nip.io')
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /foo/bar')
+    assert 'X-Forwarded-Context' not in s
+    assert 'X-Proxycontextpath' not in s
+    assert 'X-Httpinfo-Args: http-vhost-pattern' in s
+
+
 @pytest.mark.parametrize(
     "requestpath,expected", [
         ('/', '/index.html?token='),

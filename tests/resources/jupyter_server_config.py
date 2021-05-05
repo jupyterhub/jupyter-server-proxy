@@ -24,6 +24,27 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'mappath': mappathf,
     },
+    'python-http-vhost-default': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}', 'http-vhost-default'],
+        'virtualhost': {
+            'enabled': True,
+            # default pattern matches "python-http-vhost-default.<anydomain>"
+        }
+    },
+    'python-http-vhost-location': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}', 'http-vhost-location'],
+        'virtualhost': {
+            'enabled': True,
+            'location': 'flurble.127.0.0.1.nip.io',
+        }
+    },
+    'python-http-vhost-pattern': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}', 'http-vhost-pattern'],
+        'virtualhost': {
+            'enabled': True,
+            'host_pattern': '^.*[.]blah[.].*(:\d+)?$',
+        }
+    },
     'python-websocket' : {
         'command': ['python3', './tests/resources/websocket.py', '--port={port}'],
     },
@@ -38,5 +59,6 @@ c.ServerProxy.servers = {
 import sys
 sys.path.append('./tests/resources')
 c.ServerApp.jpserver_extensions = { 'proxyextension': True }
+c.ServerApp.allow_remote_access = True
 c.NotebookApp.nbserver_extensions = { 'proxyextension': True }
 #c.Application.log_level = 'DEBUG'

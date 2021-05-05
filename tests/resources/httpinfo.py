@@ -8,6 +8,8 @@ class EchoRequestInfo(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write('{}\n'.format(self.requestline).encode())
         self.wfile.write('{}\n'.format(self.headers).encode())
+        if sys.argv[2:]:
+            self.wfile.write("X-Httpinfo-Args: {}\n".format(" ".join(sys.argv[2:])).encode())
 
 
 if __name__ == '__main__':

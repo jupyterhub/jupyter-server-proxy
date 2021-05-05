@@ -29,6 +29,45 @@ class AddSlashHandler(JupyterHandler):
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
 
+class VhostRedirectHandler(JupyterHandler):
+    def __init__(self, *args, **kwargs):
+        self.name = kwargs.pop('name')
+        self.location = kwargs.pop('location', None)
+        super().__init__(*args, **kwargs)
+
+    """Redirect to virtualhost."""
+    @web.authenticated
+    def get(self, proxied_path='/'):
+        src = urlparse(self.request.uri)
+        hostport = self.request.host.split(':', 2)
+
+        # Derive new location
+        nhost = self.location
+        if not nhost:
+            # TODO: add {{user}} as a prefix when under JupyterHub
+            nhost = self.name + '.p.' + hostport[0]
+        if ':' not in nhost and len(hostport) > 1:
+            nhost = '{host}:{port}'.format(host=nhost, port=hostport[1])
+
+        # Include token in request to pass on authentication.  This is
+        # ugly as the token appears in the URL bar.
+        # There is currently a problem if the user jumps directly to the vhost
+        # URL without logging in (e.g. because they bookmarked it) - we
+        # get an infinite redirect loop on `/login?next=%2Flogin%3Fnext%3D%252F...`
+        query = src.query
+        if self.token:
+            if query:
+                query += '&'
+            query += 'token={token}'.format(token=quote(self.token))
+
+        dest = src._replace(
+            scheme=self.request.protocol,
+            netloc=nhost,
+            path=proxied_path,
+            query=query,
+        )
+        self.redirect(urlunparse(dest))
+
 class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     """
     A tornado request handler that proxies HTTP and websockets from
@@ -43,6 +82,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
+        self.vhost_enabled = kwargs.pop('vhost_enabled', False)
         self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
         self.subprotocols = None
         super().__init__(*args, **kwargs)
@@ -130,6 +170,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         - {base_url}/{proxy_base}
         """
         host_and_port = str(port) if host == 'localhost' else host + ":" + str(port)
+        if self.vhost_enabled:
+            return '/'
         if self.proxy_base:
             return url_path_join(self.base_url, self.proxy_base)
         if self.absolute_url:
@@ -138,8 +180,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             return url_path_join(self.base_url, 'proxy', host_and_port)
 
     def get_client_uri(self, protocol, host, port, proxied_path):
-        context_path = self._get_context_path(host, port)
-        if self.absolute_url:
+        if self.absolute_url and not self.vhost_enabled:
+            context_path = self._get_context_path(host, port)
             client_path = url_path_join(context_path, proxied_path)
         else:
             client_path = proxied_path
@@ -171,7 +213,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         client_uri = self.get_client_uri('http', host, port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
-        if not self.absolute_url:
+        if not self.absolute_url and not self.vhost_enabled:
             context_path = self._get_context_path(host, port)
             headers['X-Forwarded-Context'] = context_path
             headers['X-ProxyContextPath'] = context_path
@@ -566,7 +608,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
 
 def setup_handlers(web_app, host_allowlist):
-    host_pattern = '.*$'
     web_app.add_handlers('.*', [
         (url_path_join(web_app.settings['base_url'], r'/proxy/([^/]*):(\d+)(.*)'),
          RemoteProxyHandler, {'absolute_url': False, 'host_allowlist': host_allowlist}),
