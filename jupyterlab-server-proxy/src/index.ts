@@ -1,7 +1,10 @@
+import { Menu } from '@lumino/widgets';
+
 import { JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer } from '@jupyterlab/application';
 import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
-import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
+import { ICommandPalette, IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
+import { IMainMenu } from '@jupyterlab/mainmenu';
 
 import '../style/index.css';
 
@@ -19,7 +22,13 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
   return widget;
 }
 
-async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
+async function activate(
+  app: JupyterFrontEnd,
+  launcher?: ILauncher,
+  restorer?: ILayoutRestorer,
+  palette?: ICommandPalette,
+  mainMenu?: IMainMenu
+) : Promise<void> {
   const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
   if (!response.ok) {
     console.log('Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.');
@@ -75,30 +84,54 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     }
   });
 
+  const menuItems: Menu.IItemOptions[] = [];
+
   for (let server_process of data.server_processes) {
-    if (!server_process.launcher_entry.enabled) {
-      continue;
-    }
+    for (let launcher_entry of server_process.launcher_entries) {
+      if (!launcher_entry.enabled) {
+        continue;
+      }
 
-    const url = PageConfig.getBaseUrl() + server_process.name + '/';
-    const title = server_process.launcher_entry.title;
-    const newBrowserTab = server_process.new_browser_tab;
-    const id = namespace + ':' + server_process.name;
-    const launcher_item : ILauncher.IItemOptions = {
-      command: command,
-      args: {
-        url: url,
-        title: title + (newBrowserTab ? ' [↗]': ''),
-        newBrowserTab: newBrowserTab,
-        id: id
-      },
-      category: 'Notebook'
-    };
+      const url = PageConfig.getBaseUrl() + server_process.name + launcher_entry.path;
+      const newBrowserTab = launcher_entry.new_browser_tab;
+      const title = launcher_entry.title + (newBrowserTab ? ' [↗]': '');
+      const id = namespace + ':' + server_process.name + ':' + launcher_entry.name;
+      const launcher_item : ILauncher.IItemOptions = {
+        command: command,
+        args: { url, title, newBrowserTab, id },
+        category: 'Notebook'
+      };
 
-    if (server_process.launcher_entry.icon_url) {
-      launcher_item.kernelIconUrl =  server_process.launcher_entry.icon_url;
+      if (launcher_entry.icon_url) {
+        launcher_item.kernelIconUrl =  launcher_entry.icon_url;
+      }
+
+      if (launcher) {
+        launcher.add(launcher_item);
+      }
+
+      if (palette) {
+        palette.addItem({
+          command,
+          args: {
+            ...launcher_item.args,
+            title: `Launch ${title}`
+          },
+          category: 'Server Proxies'
+        });
+      }
+
+      if (mainMenu) {
+        menuItems.push({
+          command,
+          args: launcher_item.args
+        });
+      }
     }
-    launcher.add(launcher_item);
+  }
+
+  if (mainMenu && menuItems) {
+    mainMenu.fileMenu.newMenu.addGroup(menuItems);
   }
 }
 
@@ -108,8 +141,8 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
 const extension: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-server-proxy',
   autoStart: true,
-  requires: [ILauncher, ILayoutRestorer],
-  activate: activate
+  optional: [ILauncher, ILayoutRestorer, ICommandPalette, IMainMenu],
+  activate
 };
 
 export default extension;

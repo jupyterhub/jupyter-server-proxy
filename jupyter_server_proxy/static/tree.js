@@ -18,33 +18,34 @@ define(['jquery', 'base/js/namespace', 'base/js/utils'], function($, Jupyter, ut
                 .attr('role', 'presentation')
                 .addClass('divider');
 
-            
+
             /* add the divider */
             $menu.append($divider);
 
             $.each(data.server_processes, function(_, server_process) {
-                if (!server_process.launcher_entry.enabled) {
-                    return;
-                }
+                $.each(server_process.launcher_entries, function(_, launcher_entry) {
+                    if (!launcher_entry.enabled) {
+                        return;
+                    }
 
-                /* create our list item */
-                var $entry_container = $('<li>')
-                    .attr('role', 'presentation')
-                    .addClass('new-' + server_process.name);
+                    /* create our list item */
+                    var $entry_container = $('<li>')
+                        .attr('role', 'presentation')
+                        .addClass('new-' + server_process.name + '-' + launcher_entry.name);
 
-                /* create our list item's link */
-                var $entry_link = $('<a>')
-                    .attr('role', 'menuitem')
-                    .attr('tabindex', '-1')
-                    .attr('href', base_url + server_process.name + '/')
-                    .attr('target', '_blank')
-                    .text(server_process.launcher_entry.title);
+                    /* create our list item's link */
+                    var $entry_link = $('<a>')
+                        .attr('role', 'menuitem')
+                        .attr('tabindex', '-1')
+                        .attr('href', base_url + server_process.name + launcher_entry.path)
+                        .attr('target', '_blank')
+                        .text(launcher_entry.title);
 
-                /* add the link to the item and
-                * the item to the menu */
-                $entry_container.append($entry_link);
-                $menu.append($entry_container);
-
+                    /* add the link to the item and
+                    * the item to the menu */
+                    $entry_container.append($entry_link);
+                    $menu.append($entry_container);
+                });
             });
         });
     }
