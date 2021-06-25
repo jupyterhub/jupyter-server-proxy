@@ -19,7 +19,8 @@ class ServersInfoHandler(JupyterHandler):
                 'name': sp.name,
                 'launcher_entry': {
                     'enabled': sp.launcher_entry.enabled,
-                    'title': sp.launcher_entry.title
+                    'title': sp.launcher_entry.title,
+                    'launcher_url': sp.launcher_entry.launcher.url
                 },
                 'new_browser_tab' : sp.new_browser_tab
             }
