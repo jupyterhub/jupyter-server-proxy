@@ -10,7 +10,7 @@ the README.md file.
 ### Python package
 
 ```bash
-pip install -e .
+pip install -e .[test]
 
 # explicit install needed with editable mode (-e) jupyter
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
@@ -25,9 +25,37 @@ JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_
 
 Run the tests:
 
-```
+```bash
 pytest --verbose
 ```
+
+These generate test and coverage reports in `build/pytest` and `build/coverage`.
+
+### Acceptance tests
+
+If you have `robotframework-jupyterlibary` installed, the acceptance tests will run.
+
+To install these in addition to the [Python package](#python-package) test
+dependencies, run:
+
+```bash
+pip install -e .[test,acceptance]
+```
+
+In addition, compatible versions of:
+- `geckodriver`
+- `firefox`
+
+Needs to be on your `$PATH` and compatible with each other.
+
+To run _only_ the acceptance tests, use the `-k` switch:
+
+```bash
+pytest -k acceptance
+```
+
+These are slower than the rest of the `pytest` tests, and generate screenshots,
+browser logs, server logs, and report HTML in `build/robot`.
 
 ### JupyterLab extension
 

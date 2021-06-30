@@ -138,6 +138,19 @@ pairs.
    ``--www-frame-origin=same`` to allow rendering of its pages in an iframe.
 
 
+``request_headers_override``
+^^^^^^^^^^^^^^^
+
+   One of:
+
+   * A dictionary of strings that are passed in as HTTP headers to the proxy
+     request. The strings ``{port}`` and ``{base_url}`` will be replaced as
+     for **command**.
+
+   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+     and returns a dictionary of strings that are used & treated same as above.
+
+
 .. _server-processes/callable-arguments:
 
 Callable arguments

@@ -16,7 +16,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -51,17 +51,22 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             else:
                 raise ValueError('Value of unrecognized type {}'.format(type(value)))
 
+        def _realize_rendered_template(self, attribute):
+            '''Call any callables, then render any templated values.'''
+            if callable(attribute):
+                attribute = self._render_template(
+                    call_with_asked_args(attribute, self.process_args)
+                )
+            return self._render_template(attribute)
+
         def get_cmd(self):
-            if callable(command):
-                return self._render_template(call_with_asked_args(command, self.process_args))
-            else:
-                return self._render_template(command)
+            return self._realize_rendered_template(command)
 
         def get_env(self):
-            if callable(environment):
-                return self._render_template(call_with_asked_args(environment, self.process_args))
-            else:
-                return self._render_template(environment)
+            return self._realize_rendered_template(environment)
+
+        def get_request_headers_override(self):
+            return self._realize_rendered_template(request_headers_override)
 
         def get_timeout(self):
             return timeout
@@ -91,6 +96,7 @@ def make_handlers(base_url, server_processes):
             sp.absolute_url,
             sp.port,
             sp.mappath,
+            sp.request_headers_override,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -102,7 +108,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -120,7 +126,8 @@ def make_server_process(name, server_process_config):
             title=le.get('title', name),
             path_info=le.get('path_info', name + "/")
         ),
-        new_browser_tab=server_process_config.get('new_browser_tab', True)
+        new_browser_tab=server_process_config.get('new_browser_tab', True),
+        request_headers_override=server_process_config.get('request_headers_override', {})
     )
 
 class ServerProxy(Configurable):
@@ -141,8 +148,8 @@ class ServerProxy(Configurable):
             Could also be a callable. It should return a list.
 
           environment
-            A dictionary of environment variable mappings. {{port}} and {{base_url}} will be
-            substituted as for command.
+            A dictionary of environment variable mappings. As with the command
+            traitlet, {{port}} and {{base_url}} will be substituted.
 
             Could also be a callable. It should return a dictionary.
 
@@ -180,6 +187,10 @@ class ServerProxy(Configurable):
           new_browser_tab
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
             to have it open a new JupyterLab tab. This has no effect in classic notebook.
+
+          request_headers_override
+            A dictionary of additional HTTP headers for the proxy request. As with
+            the command traitlet, {{port}} and {{base_url}} will be substituted.
 
           path_info
             The trailing path that is appended to the user's server URL to access the proxied server.
