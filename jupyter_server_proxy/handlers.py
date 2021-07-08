@@ -222,7 +222,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             else:
                 body = None
 
-        client = httpclient.AsyncHTTPClient()
+        client = httpclient.AsyncHTTPClient(**self.get_proxy_client_options())
 
         req = self._build_proxy_request(host, port, proxied_path, body)
 
@@ -336,6 +336,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
     def get_request_headers_override(self):
         '''Add additional request headers. Typically overridden in subclasses.'''
+        return {}
+
+    def get_proxy_client_options(self):
+        '''A dictionary of options to be used when constructing
+        a tornado.httpclient.AsyncHTTPClient for the proxy request.'''
         return {}
 
     def proxy_request_options(self):
