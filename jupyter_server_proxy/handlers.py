@@ -494,7 +494,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         async with self.state['proc_lock']:
 
             # Remove 'proc' if it exists and previously exited successfully, if enabled
-            if self.allow_restart_on_graceful_exit:
+            if self.restart_policy == 'always':
                 if 'proc' in self.state:
                     if self.state['proc'].returncode == 0:
                         del self.state['proc']

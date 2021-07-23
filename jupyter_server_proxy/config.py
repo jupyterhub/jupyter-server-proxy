@@ -15,7 +15,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, allow_restart_on_graceful_exit):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, restart_policy):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -28,7 +28,9 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.absolute_url = absolute_url
             self.requested_port = port
             self.mappath = mappath
-            self.allow_restart_on_graceful_exit = allow_restart_on_graceful_exit
+            self.restart_policy = restart_policy or 'on-failure'
+            if self.restart_policy not in ('always', 'on-failure'):
+                raise ValueError(f'Invalid restart_policy: {self.restart_policy}')
 
         @property
         def process_args(self):
@@ -91,7 +93,7 @@ def make_handlers(base_url, server_processes):
             sp.absolute_url,
             sp.port,
             sp.mappath,
-            sp.allow_restart_on_graceful_exit,
+            sp.restart_policy,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -103,7 +105,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'allow_restart_on_graceful_exit'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'restart_policy'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -121,7 +123,7 @@ def make_server_process(name, server_process_config):
             title=le.get('title', name)
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True),
-        allow_restart_on_graceful_exit=server_process_config.get('allow_restart_on_graceful_exit', False)
+        restart_policy=server_process_config.get('restart_policy', False)
     )
 
 class ServerProxy(Configurable):
@@ -182,9 +184,9 @@ class ServerProxy(Configurable):
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
             to have it open a new JupyterLab tab. This has no effect in classic notebook.
 
-          allow_restart_on_graceful_exit
-            Set to True to allow the proxied server to be started after it has previously exited gracefully. Set
-            to False (default) to disable this.
+          restart_policy
+            "always" if the server should always be restarted if it terminates.
+            "on-failure" (default) if the server should only be restarted if it terminated with an error code.
         """,
         config=True
     )

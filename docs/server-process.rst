@@ -138,9 +138,9 @@ pairs.
    ``--www-frame-origin=same`` to allow rendering of its pages in an iframe.
 
 
-#. **allow_restart_on_graceful_exit**
-   *True* if the proxied server should be restartable even after exiting gracefully. *False* (default) if
-   an error should be thrown if attempting to start a process that previously exited gracefully.
+#. **restart_policy**
+   *`"always"`* if the server should always be restarted if it terminates.
+   *`"on-failure"`* (default) if the server should only be restarted if it terminated with an error code.
 
 
 .. _server-processes/callable-arguments:
