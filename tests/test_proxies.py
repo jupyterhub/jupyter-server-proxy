@@ -23,25 +23,65 @@ def request_get(port, path, token, host='localhost'):
 def test_server_proxy_minimal_proxy_path_encoding():
     """Test that we don't encode anything more than we must to have a valid web
     request."""
-    special_path = quote("Hello world 123 åäö 🎉你好世界±¥ :/[]@!$&'()*+,;=-._~", safe=":/?#[]@!$&'()*+,;=-._~")
-    # NOTE: we left out ?# as they would interact badly with our requests_get
-    # function's ability to pass the token query parameter.
+    special_path = quote("Hello world 123 åäö 🎉你好世界±¥ :/[]@!$&'()*+,;=-._~?key1=value1", safe=":/?#[]@!$&'()*+,;=-._~")
     test_url = '/python-http/' + special_path
     r = request_get(PORT, test_url, TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert 'GET /{}?token='.format(special_path) in s
+    assert 'GET /{}&token='.format(special_path) in s
 
-def test_server_proxy_minimal_proxy_path_encoding_complement():
-    """Test that we don't encode ?# as a complement to the other test."""
-    test_url = '/python-http/?token={}#test'.format(TOKEN)
-    h = HTTPConnection('localhost', PORT, 10)
-    r = request_get(PORT, test_url, TOKEN)
-    h.request('GET', test_url)
-    return h.getresponse()
+
+def test_server_proxy_hash_sign_encoding():
+    """
+    FIXME: This is a test to establish the current behavior, but if it should be
+           like this is a separate question not yet addressed.
+
+           Related: https://github.com/jupyterhub/jupyter-server-proxy/issues/109
+    """
+    h = HTTPConnection("localhost", PORT, 10)
+
+    # Case 0: a reference case
+    path = "?token={}".format(TOKEN)
+    h.request('GET', '/python-http/' + path)
+    r = h.getresponse()
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert 'GET /{}?token='.format(test_url) in s
+    assert 'GET /{} '.format(path) in s
+
+    # Case 1: #bla?token=secret -> everything following # ignored -> redirect because no token
+    path = "#bla?token={}".format(TOKEN)
+    h.request('GET', '/python-http/' + path)
+    r = h.getresponse()
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert 'GET / ' in s
+
+    # Case 2: %23bla?token=secret -> %23 is # -> everything following # ignored -> redirect because no token
+    path = "%23?token={}".format(TOKEN)
+    h.request('GET', '/python-http/' + path)
+    r = h.getresponse()
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert 'GET / ' in s
+
+    # Case 3: ?token=secret#test -> invalid token -> jupyter notebook server errors: NoneType can't be used in 'await' expression
+    #
+    #   [E 11:37:49.991 NotebookApp] Uncaught exception GET /python-http/?token=secrettest (127.0.0.1)
+    #   HTTPServerRequest(protocol='http', host='localhost:8888', method='GET', uri='/python-http/?token=secrettest', version='HTTP/1.1', remote_ip='127.0.0.1')
+    #   Traceback (most recent call last):
+    #   File "/home/erik/py/lib/python3.7/site-packages/tornado/web.py", line 1704, in _execute
+    #       result = await result
+    #   File "/home/erik/py/lib/python3.7/site-packages/jupyter_server_proxy/websocket.py", line 97, in get
+    #       return await self.http_get(*args, **kwargs)
+    #   File "/home/erik/py/lib/python3.7/site-packages/jupyter_server_proxy/handlers.py", line 539, in http_get
+    #       return await self.proxy(self.port, path)
+    #   TypeError: object NoneType can't be used in 'await' expression
+    path = "?token={}#test".format(TOKEN)
+    h.request('GET', '/python-http/' + path)
+    r = h.getresponse()
+    assert r.code == 302
+    s = r.read().decode('ascii')
+    assert s == ''
 
 
 def test_server_proxy_non_absolute():
@@ -92,6 +132,25 @@ def test_server_proxy_port_absolute():
     assert 'X-Proxycontextpath' not in s
 
 
+def test_server_proxy_host_non_absolute():
+    # note: localhost: is stripped but 127.0.0.1: is not
+    r = request_get(PORT, '/proxy/127.0.0.1:54321/jkl', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /jkl?token=')
+    assert 'X-Forwarded-Context: /proxy/127.0.0.1:54321\n' in s
+    assert 'X-Proxycontextpath: /proxy/127.0.0.1:54321\n' in s
+
+
+def test_server_proxy_host_absolute():
+    r = request_get(PORT, '/proxy/absolute/127.0.0.1:54321/nmo', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /proxy/absolute/127.0.0.1:54321/nmo?token=')
+    assert 'X-Forwarded-Context' not in s
+    assert 'X-Proxycontextpath' not in s
+
+
 @pytest.mark.parametrize(
     "requestpath,expected", [
         ('/', '/index.html?token='),
@@ -127,6 +186,13 @@ def test_server_proxy_mappath_callable(requestpath, expected):
 def test_server_proxy_remote():
     r = request_get(PORT, '/newproxy', TOKEN, host='127.0.0.1')
     assert r.code == 200
+
+
+def test_server_request_headers():
+    r = request_get(PORT, '/python-request-headers/', TOKEN, host='127.0.0.1')
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert 'X-Custom-Header: pytest-23456\n' in s
 
 
 @pytest.fixture(scope="module")

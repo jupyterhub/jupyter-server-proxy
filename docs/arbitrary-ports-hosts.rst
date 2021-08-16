@@ -18,7 +18,7 @@ This works for all ports listening on the local machine.
 You can also specify arbitrary hosts in order to proxy traffic from
 another machine on the network ``<notebook-base>/proxy/<host>:<port>``.
 
-For security reasons the host must match an entry in the whitelist in your configuration.
+For security reasons the host must match an entry in the ``host_allowlist`` in your configuration.
 
 With JupyterHub
 ===============

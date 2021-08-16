@@ -1,7 +1,7 @@
 {
   "name": "@jupyterlab/server-proxy",
-  "version": "2.1.1",
-  "description": "Launcher icons for proxied applications",
+  "version": "3.1.0",
+  "description": "Jupyter server extension to supervise and proxy web services",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -12,7 +12,10 @@
     "url": "https://github.com/jupyterhub/jupyter-server-proxy/issues"
   },
   "license": "BSD-3-Clause",
-  "author": "Yuvi Panda",
+  "author": {
+    "name": "Ryan Lovett & Yuvi Panda",
+    "email": "rylo@berkeley.edu"
+  },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
@@ -24,21 +27,34 @@
     "url": "https://github.com/jupyterhub/jupyter-server-proxy.git"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib",
-    "prepare": "npm run clean && npm run build",
-    "watch": "tsc -w"
+    "build": "jlpm run build:lib && jlpm run build:labextension:dev",
+    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc",
+    "clean": "jlpm run clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:labextension": "rimraf jupyter_server_proxy/labextension",
+    "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
+    "eslint": "eslint . --ext .ts,.tsx --fix",
+    "eslint:check": "eslint . --ext .ts,.tsx",
+    "install:extension": "jupyter labextension develop --overwrite .",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyterlab/application": "^1.0.0 || ^2.0.0",
-    "@jupyterlab/apputils": "^1.0.0 || ^2.0.0",
-    "@jupyterlab/launcher": "^1.0.0 || ^2.0.0"
+    "@jupyterlab/application": "^2.0.0 || ^3.0.0",
+    "@jupyterlab/apputils": "^2.0.0 || ^3.0.0",
+    "@jupyterlab/launcher": "^2.0.0 || ^3.0.0"
   },
   "devDependencies": {
+    "@jupyterlab/builder": "^3.0.2",
     "rimraf": "^2.6.1",
     "typescript": "~3.7.0"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "outputDir": "../jupyter_server_proxy/labextension"
   }
 }

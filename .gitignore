@@ -1,7 +1,12 @@
-*.pyc
-*.egg-info/
-docs/_build
-node_modules
-dist
+.coverage*
+.ipynb_checkpoints/
 .vscode
+*.egg-info/
+*.pyc
+build/
+dist
+docs/_build
+jupyter_server_proxy/labextension
+MANIFEST
+node_modules
 package-lock.json

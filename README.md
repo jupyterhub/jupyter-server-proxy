@@ -34,6 +34,10 @@ contains information on installation & usage.
 
 ## Install
 
+### Requirements
+
+* `jupyterlab>=2` or `notebook`
+
 ### Python package
 
 #### pip
@@ -54,54 +58,13 @@ Note that as the JupyterLab extension only is a graphical interface to
 launch registered applications in the python package, the extension
 requires the python package to be installed.
 
+As of version 3.0.0 the Python package ships with a JupyterLab 3 compatible
+extension, making this step only needed for JupyterLab 2.
+
 ```
 jupyter labextension install @jupyterlab/server-proxy
 ```
 
-## Contributing
+## Local development
 
-### Python package
-
-```
-pip install -e .
-
-# explicit install needed with editable mode (-e) jupyter
-jupyter serverextension enable --sys-prefix jupyter_server_proxy
-```
-
-### JupyterLab extension
-
-The `jlpm` command is JupyterLab's pinned version of `yarn` that is
-installed with JupyterLab. You may use `yarn` or `npm` instead of `jlpm`
-below.
-
-```
-cd jupyterlab-server-proxy
-
-# Install dependencies
-jlpm
-
-# Build Typescript source
-jlpm build
-
-# Link your development version of the extension with JupyterLab
-jupyter labextension link .
-
-# Rebuild Typescript source after making changes
-jlpm build
-
-# Rebuild JupyterLab after making any changes
-jupyter lab build
-```
-
-You can watch the source directory and run JupyterLab in watch mode to
-watch for changes in the extension's source and automatically rebuild
-the extension and application.
-
-```
-# Watch the source directory in another terminal tab
-jlpm watch
-
-# Run jupyterlab in watch mode in one terminal tab
-jupyter lab --watch
-```
+See [CONTRIBUTING.md].
