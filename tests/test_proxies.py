@@ -210,8 +210,23 @@ async def _websocket_echo():
     msg = await conn.read_message()
     assert msg == expected_msg
 
+
 def test_server_proxy_websocket(event_loop):
     event_loop.run_until_complete(_websocket_echo())
+
+
+async def _websocket_headers():
+    url = "ws://localhost:{}/python-websocket/headerssocket".format(PORT)
+    conn = await websocket_connect(url)
+    await conn.write_message("Hello")
+    msg = await conn.read_message()
+    headers = json.loads(msg)
+    assert 'X-Custom-Header' in headers
+    assert headers['X-Custom-Header'] == 'pytest-23456'
+
+
+def test_server_proxy_websocket_headers(event_loop):
+    event_loop.run_until_complete(_websocket_headers())
 
 
 async def _websocket_subprotocols():
