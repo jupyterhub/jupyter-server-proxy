@@ -20,7 +20,7 @@ Before running tests, you need a [notebook
 server](https://github.com/jupyter/notebook) that we can test against.
 
 ```
-JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py
+JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py --no-browser
 ```
 
 Run the tests:
