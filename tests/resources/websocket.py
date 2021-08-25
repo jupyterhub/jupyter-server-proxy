@@ -39,6 +39,7 @@ class Application(tornado.web.Application):
             (r"/", MainHandler),
             (r"/echosocket", EchoWebSocket),
             (r"/subprotocolsocket", SubprotocolWebSocket),
+            (r"/headerssocket", HeadersWebSocket),
         ]
         settings = dict(
             cookie_secret="__RANDOM_VALUE__",
@@ -57,6 +58,11 @@ class MainHandler(tornado.web.RequestHandler):
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         self.write_message(message)
+
+
+class HeadersWebSocket(tornado.websocket.WebSocketHandler):
+    def on_message(self, message):
+        self.write_message(json.dumps(dict(self.request.headers)))
 
 
 class SubprotocolWebSocket(tornado.websocket.WebSocketHandler):

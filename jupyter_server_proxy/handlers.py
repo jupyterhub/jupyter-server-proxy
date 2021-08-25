@@ -282,7 +282,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             proxied_path = '/' + proxied_path
 
         client_uri = self.get_client_uri('ws', host, port, proxied_path)
-        headers = self.request.headers
+        headers = self.proxy_request_headers()
         current_loop = ioloop.IOLoop.current()
         ws_connected = current_loop.asyncio_loop.create_future()
 

@@ -26,13 +26,16 @@ c.ServerProxy.servers = {
     },
     'python-websocket' : {
         'command': ['python3', './tests/resources/websocket.py', '--port={port}'],
+        'request_headers_override': {
+            'X-Custom-Header': 'pytest-23456',
+        }
     },
     'python-request-headers': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'request_headers_override': {
             'X-Custom-Header': 'pytest-23456',
         }
-    }
+    },
 }
 
 import sys
