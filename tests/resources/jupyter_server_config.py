@@ -36,6 +36,9 @@ c.ServerProxy.servers = {
             'X-Custom-Header': 'pytest-23456',
         }
     },
+    'python-gzipserver': {
+        'command': ['python3', './tests/resources/gzipserver.py', '{port}'],
+    },
 }
 
 import sys

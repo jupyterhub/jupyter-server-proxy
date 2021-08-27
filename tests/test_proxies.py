@@ -1,4 +1,6 @@
 import asyncio
+import gzip
+from io import BytesIO
 import json
 import os
 from http.client import HTTPConnection
@@ -193,6 +195,14 @@ def test_server_request_headers():
     assert r.code == 200
     s = r.read().decode('ascii')
     assert 'X-Custom-Header: pytest-23456\n' in s
+
+
+def test_server_content_encoding_header():
+    r = request_get(PORT, '/python-gzipserver/', TOKEN, host='127.0.0.1')
+    assert r.code == 200
+    assert r.headers['Content-Encoding'] == 'gzip'
+    with gzip.GzipFile(fileobj=BytesIO(r.read()), mode='r') as f:
+        assert f.read() == b'this is a test'
 
 
 @pytest.fixture(scope="module")

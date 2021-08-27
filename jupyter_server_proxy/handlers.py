@@ -180,6 +180,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         req = httpclient.HTTPRequest(
             client_uri, method=self.request.method, body=body,
+            decompress_response=False,
             headers=headers, **self.proxy_request_options())
         return req
 
@@ -256,7 +257,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
             for header, v in response.headers.get_all():
                 if header not in ('Content-Length', 'Transfer-Encoding',
-                                  'Content-Encoding', 'Connection'):
+                                  'Connection'):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
