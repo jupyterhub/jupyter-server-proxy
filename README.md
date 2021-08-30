@@ -67,4 +67,4 @@ jupyter labextension install @jupyterlab/server-proxy
 
 ## Local development
 
-See [CONTRIBUTING.md].
+See [CONTRIBUTING.md](CONTRIBUTING.md).
