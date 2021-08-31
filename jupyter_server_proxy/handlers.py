@@ -283,8 +283,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         client_uri = self.get_client_uri('ws', host, port, proxied_path)
         headers = self.proxy_request_headers()
-        current_loop = ioloop.IOLoop.current()
-        ws_connected = current_loop.asyncio_loop.create_future()
 
         def message_cb(message):
             """
@@ -316,15 +314,13 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.ws = await pingable_ws_connect(request=request,
                 on_message_callback=message_cb, on_ping_callback=ping_cb,
                 subprotocols=self.subprotocols)
-            ws_connected.set_result(True)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
-        current_loop.add_callback(start_websocket_connection)
         # Wait for the WebSocket to be connected before resolving.
         # Otherwise, messages sent by the client before the
         # WebSocket successful connection would be dropped.
-        await ws_connected
+        await start_websocket_connection()
 
     def proxy_request_headers(self):
         '''A dictionary of headers to be used when constructing
