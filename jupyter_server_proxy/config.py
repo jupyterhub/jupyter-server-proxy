@@ -16,7 +16,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override, proxy_client_options):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -68,6 +68,9 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
         def get_request_headers_override(self):
             return self._realize_rendered_template(request_headers_override)
 
+        def get_proxy_client_options(self):
+            return proxy_client_options
+
         def get_timeout(self):
             return timeout
 
@@ -97,6 +100,7 @@ def make_handlers(base_url, server_processes):
             sp.port,
             sp.mappath,
             sp.request_headers_override,
+            sp.proxy_client_options,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -108,7 +112,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'proxy_client_options'])
 
 def make_server_process(name, server_process_config):
     le = server_process_config.get('launcher_entry', {})
@@ -127,7 +131,8 @@ def make_server_process(name, server_process_config):
             path_info=le.get('path_info', name + "/")
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True),
-        request_headers_override=server_process_config.get('request_headers_override', {})
+        request_headers_override=server_process_config.get('request_headers_override', {}),
+        proxy_client_options=server_process_config.get('proxy_client_options', {})
     )
 
 class ServerProxy(Configurable):
@@ -191,6 +196,9 @@ class ServerProxy(Configurable):
           request_headers_override
             A dictionary of additional HTTP headers for the proxy request. As with
             the command traitlet, {{port}} and {{base_url}} will be substituted.
+
+          proxy_client_options
+            A dictionary of additional options passed to the proxy client.
 
           path_info
             The trailing path that is appended to the user's server URL to access the proxied server.

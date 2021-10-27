@@ -150,6 +150,15 @@ pairs.
    * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
      and returns a dictionary of strings that are used & treated same as above.
 
+``proxy_client_options``
+^^^^^^^^^^^^^^^
+
+   One of:
+
+   * A dictionary of arguments that are used to construct the proxy HTTP client.
+
+   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+     and returns a dictionary of strings that are used & treated same as above.
 
 .. _server-processes/callable-arguments:
 
