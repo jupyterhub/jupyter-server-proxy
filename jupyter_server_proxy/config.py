@@ -16,7 +16,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override, rewrite_response):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -29,6 +29,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.absolute_url = absolute_url
             self.requested_port = port
             self.mappath = mappath
+            self.rewrite_response = rewrite_response
 
         @property
         def process_args(self):
@@ -74,11 +75,13 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
     return _Proxy
 
 
-def get_entrypoint_server_processes():
+def get_entrypoint_server_processes(serverproxy_config):
     sps = []
     for entry_point in pkg_resources.iter_entry_points('jupyter_serverproxy_servers'):
+        name = entry_point.name
+        server_process_config = entry_point.load()()
         sps.append(
-            make_server_process(entry_point.name, entry_point.load()())
+            make_server_process(name, server_process_config, serverproxy_config)
         )
     return sps
 
@@ -97,6 +100,7 @@ def make_handlers(base_url, server_processes):
             sp.port,
             sp.mappath,
             sp.request_headers_override,
+            sp.rewrite_response,
         )
         handlers.append((
             ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
@@ -108,9 +112,11 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override'])
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port',
+    'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'rewrite_response',
+])
 
-def make_server_process(name, server_process_config):
+def make_server_process(name, server_process_config, serverproxy_config):
     le = server_process_config.get('launcher_entry', {})
     return ServerProcess(
         name=name,
@@ -127,7 +133,11 @@ def make_server_process(name, server_process_config):
             path_info=le.get('path_info', name + "/")
         ),
         new_browser_tab=server_process_config.get('new_browser_tab', True),
-        request_headers_override=server_process_config.get('request_headers_override', {})
+        request_headers_override=server_process_config.get('request_headers_override', {}),
+        rewrite_response=server_process_config.get(
+            'rewrite_response',
+            lambda host, port, path, response: response.body
+        ),
     )
 
 class ServerProxy(Configurable):
@@ -195,6 +205,29 @@ class ServerProxy(Configurable):
           path_info
             The trailing path that is appended to the user's server URL to access the proxied server.
             By default it is the name of the server followed by a trailing slash.
+
+          rewrite_response
+            An optional function to rewrite the response for the given service.
+            Input arguments are ``host`` which is ``"localhost"``, the service
+            port ``port``, the ``path`` from the requested URL, and
+            ``response`` is a `tornado.httpclient.HTTPResponse object
+            <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
+            Output is bytes.
+            Defaults to ``lambda host, port, path, response: response.body``.
+        """,
+        config=True
+    )
+
+    non_service_rewrite_response = Callable(
+        lambda host, port, path, response: response.body,
+        help="""
+        A function to rewrite the response for a non-service request, for
+        example a request to ``/proxy/<host>:<port><path>``. Input arguments
+        ``host``, ``port``, and ``path`` come from the requested URL, and
+        "response" is a `tornado.httpclient.HTTPResponse object
+        <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
+        Output is bytes.
+        Defaults to ``lambda host, port, path, response: response.body``.
         """,
         config=True
     )

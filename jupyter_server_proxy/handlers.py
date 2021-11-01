@@ -44,6 +44,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
+        self.rewrite_response = kwargs.pop(
+            'rewrite_response',
+            lambda host, port, path, response: response.body
+        )
         self.subprotocols = None
         super().__init__(*args, **kwargs)
 
@@ -228,6 +232,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         req = self._build_proxy_request(host, port, proxied_path, body)
 
         try:
+            # Here, "response" is a tornado.httpclient.HTTPResponse object.
             response = await client.fetch(req, raise_error=False)
         except httpclient.HTTPError as err:
             # We need to capture the timeout error even with raise_error=False,
@@ -262,7 +267,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                     self.add_header(header, v)
 
             if response.body:
-                self.write(response.body)
+                # Note: self.rewrite_response is defined as
+                #   lambda host, port, path, response: response.body
+                # unless overridden in configuration.
+                self.write(self.rewrite_response(host, port, proxied_path, response))
 
     async def proxy_open(self, host, port, proxied_path=''):
         """
@@ -362,6 +370,10 @@ class LocalProxyHandler(ProxyHandler):
     A tornado request handler that proxies HTTP and websockets
     from a port on the local system. Same as the above ProxyHandler,
     but specific to 'localhost'.
+
+    The arguments "port" and "proxied_path" in each method are extracted from
+    the URL as capture groups in the regex specified in the add_handlers
+    method.
     """
     async def http_get(self, port, proxied_path):
         return await self.proxy(port, proxied_path)
@@ -394,6 +406,10 @@ class RemoteProxyHandler(ProxyHandler):
     """
     A tornado request handler that proxies HTTP and websockets
     from a port on a specified remote system.
+
+    The arguments "host", "port" and "proxied_path" in each method are
+    extracted from the URL as capture groups in the regex specified in the
+    add_handlers method.
     """
 
     async def http_get(self, host, port, proxied_path):
@@ -562,17 +578,56 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.proxy(self.port, path)
 
 
-def setup_handlers(web_app, host_allowlist):
-    host_pattern = '.*$'
+def setup_handlers(web_app, serverproxy_config):
+    host_allowlist = serverproxy_config.host_allowlist
+    rewrite_response = serverproxy_config.non_service_rewrite_response
     web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/([^/]*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': False, 'host_allowlist': host_allowlist}),
-        (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/([^/]*):(\d+)(.*)'),
-         RemoteProxyHandler, {'absolute_url': True, 'host_allowlist': host_allowlist}),
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': False}),
-        (url_path_join(web_app.settings['base_url'], r'/proxy/absolute/(\d+)(.*)'),
-         LocalProxyHandler, {'absolute_url': True}),
+        (
+            url_path_join(
+                web_app.settings['base_url'],
+                r'/proxy/([^/]*):(\d+)(.*)',
+            ),
+            RemoteProxyHandler,
+            {
+                'absolute_url': False,
+                'host_allowlist': host_allowlist,
+                'rewrite_response': rewrite_response,
+            }
+        ),
+        (
+            url_path_join(
+                web_app.settings['base_url'],
+                r'/proxy/absolute/([^/]*):(\d+)(.*)',
+            ),
+            RemoteProxyHandler,
+            {
+                'absolute_url': True,
+                'host_allowlist': host_allowlist,
+                'rewrite_response': rewrite_response,
+            }
+        ),
+        (
+            url_path_join(
+                web_app.settings['base_url'],
+                r'/proxy/(\d+)(.*)',
+            ),
+            LocalProxyHandler,
+            {
+                'absolute_url': False,
+                'rewrite_response': rewrite_response,
+            },
+        ),
+        (
+            url_path_join(
+                web_app.settings['base_url'],
+                r'/proxy/absolute/(\d+)(.*)',
+            ),
+            LocalProxyHandler,
+            {
+                'absolute_url': True,
+                'rewrite_response': rewrite_response,
+            },
+        ),
     ])
 
 # vim: set et ts=4 sw=4:
