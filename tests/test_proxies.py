@@ -87,7 +87,7 @@ def test_server_proxy_hash_sign_encoding():
 
 
 def test_server_rewrite_response():
-    r = request_get(PORT, '/python-http/ciao-a-tutti', TOKEN)
+    r = request_get(PORT, '/python-http-rewrite-response/ciao-a-tutti', TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
     assert s.startswith('GET /hello-a-tutti?token=')

@@ -5,7 +5,6 @@ def mappathf(path):
 c.ServerProxy.servers = {
     'python-http': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
-        'rewrite_response': lambda host, port, path, response: response.body.replace(b"ciao", b"hello")
     },
     'python-http-abs': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
@@ -40,10 +39,14 @@ c.ServerProxy.servers = {
     'python-gzipserver': {
         'command': ['python3', './tests/resources/gzipserver.py', '{port}'],
     },
+    'python-http-rewrite-response': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'rewrite_response': lambda host, port, path, response: dict(body=response.body.replace(b"ciao", b"hello"))
+    },
 }
 
 c.ServerProxy.non_service_rewrite_response = \
-    lambda host, port, path, response: response.body.replace(b"bar", b"foo")
+    lambda host, port, path, response: dict(body=response.body.replace(b"bar", b"foo"))
 
 import sys
 sys.path.append('./tests/resources')

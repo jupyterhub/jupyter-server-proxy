@@ -136,7 +136,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         request_headers_override=server_process_config.get('request_headers_override', {}),
         rewrite_response=server_process_config.get(
             'rewrite_response',
-            lambda host, port, path, response: response.body
+            lambda host, port, path, response: {}
         ),
     )
 
@@ -212,22 +212,22 @@ class ServerProxy(Configurable):
             port ``port``, the ``path`` from the requested URL, and
             ``response`` is a `tornado.httpclient.HTTPResponse object
             <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
-            Output is bytes.
-            Defaults to ``lambda host, port, path, response: response.body``.
+            Output is a dictionary with optional keys for "code", "reason", "headers", and "body". If a key is unspecified, the corresponding response value will not be altered. The value types match those in a `tornado.httpclient.HTTPResponse` object.
+            Defaults to ``lambda host, port, path, response: {}``.
         """,
         config=True
     )
 
     non_service_rewrite_response = Callable(
-        lambda host, port, path, response: response.body,
+        lambda host, port, path, response: {},
         help="""
         A function to rewrite the response for a non-service request, for
         example a request to ``/proxy/<host>:<port><path>``. Input arguments
         ``host``, ``port``, and ``path`` come from the requested URL, and
         "response" is a `tornado.httpclient.HTTPResponse object
         <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
-        Output is bytes.
-        Defaults to ``lambda host, port, path, response: response.body``.
+        See the description for ``rewrite_response`` for more information.
+        Defaults to ``lambda host, port, path, response: {}``.
         """,
         config=True
     )
