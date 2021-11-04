@@ -37,7 +37,7 @@ jobs:
         # gain meaning on how job steps use them.
         jupyterlab_version: [2, 3]
         python: [3.6, 3.7, 3.8, 3.9]
-        jupyter_app: [notebook]
+        jupyter_app: [notebook, lab]
         include:
           # includes a new variable of npm with a value of 2
           # for the matrix leg matching the os and version
