@@ -16,11 +16,10 @@ pip install -e .[test]
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
 ```
 
-Before running tests, you need a [notebook
-server](https://github.com/jupyter/notebook) that we can test against.
+Before running tests, you need a server that we can test against.
 
 ```
-JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py --no-browser
+JUPYTER_TOKEN=secret jupyter-lab --config=./tests/resources/jupyter_server_config.py --no-browser
 ```
 
 Run the tests:
