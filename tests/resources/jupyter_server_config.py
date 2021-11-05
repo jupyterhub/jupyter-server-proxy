@@ -41,12 +41,12 @@ c.ServerProxy.servers = {
     },
     'python-http-rewrite-response': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
-        'rewrite_response': lambda host, port, path, response: dict(body=response.body.replace(b"ciao", b"hello"))
+        'rewrite_response': lambda request, host, port, path, response: dict(body=response.body.replace(b"ciao", b"hello"))
     },
 }
 
 c.ServerProxy.non_service_rewrite_response = \
-    lambda host, port, path, response: dict(body=response.body.replace(b"bar", b"foo"))
+    lambda request, host, port, path, response: dict(body=response.body.replace(b"bar", b"foo"))
 
 import sys
 sys.path.append('./tests/resources')
