@@ -4,8 +4,9 @@ Traitlets based configuration for jupyter_server_proxy
 from jupyter_server.utils import url_path_join as ujoin
 from traitlets import Dict, List, Union, default, observe
 from traitlets.config import Configurable
+from tornado import httpclient
 from warnings import warn
-from .handlers import SuperviseAndProxyHandler, AddSlashHandler
+from .handlers import SuperviseAndProxyHandler, AddSlashHandler, RewritableResponse
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
@@ -136,7 +137,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         request_headers_override=server_process_config.get('request_headers_override', {}),
         rewrite_response=server_process_config.get(
             'rewrite_response',
-            lambda request, host, port, path, response: {}
+            lambda response: None,
         ),
     )
 
@@ -208,25 +209,26 @@ class ServerProxy(Configurable):
 
           rewrite_response
             An optional function to rewrite the response for the given service.
-            Input arguments are the proxy handler's ``request`` object, ``host``
-            which is ``"localhost"``, the service port ``port``, the ``path``
-            from the requested URL, and ``response`` is a
-            `tornado.httpclient.HTTPResponse object
-            <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
-            Output is a dictionary with optional keys for "code", "reason", "headers", and "body". If a key is unspecified, the corresponding response value will not be altered. The value types match those in a `tornado.httpclient.HTTPResponse` object.
-            Defaults to ``lambda request, host, port, path, response: {}``.
+            Input is a RewritableResponse object. The function should modify one or
+            more of the attributes ``body``, ``headers``, ``code``, or ``reason``.
+            For example:
+
+                def rewrite_response(response):
+                    response.body = response.body.replace(b'cat', b'dog')
+
+            Defaults to the do-nothing function ``lambda response: None``.
         """,
         config=True
     )
 
     non_service_rewrite_response = Callable(
-        lambda request, host, port, path, response: {},
+        lambda response: None,
         help="""
         A function to rewrite the response for a non-service request, for
         example a request to ``/proxy/<host>:<port><path>``.
 
         See the description for ``rewrite_response`` for more information.
-        Defaults to ``lambda request, host, port, path, response: {}``.
+        Defaults to the do-nothing function ``lambda response: None``.
         """,
         config=True
     )

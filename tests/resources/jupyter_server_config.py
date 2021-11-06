@@ -2,6 +2,12 @@ def mappathf(path):
     p = path + 'mapped'
     return p
 
+def translate_ciao(response):
+    response.body = response.body.replace(b"ciao", b"hello")
+
+def bar_to_foo(response):
+    response.body = response.body.replace(b"bar", b"foo")
+
 c.ServerProxy.servers = {
     'python-http': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
@@ -41,12 +47,11 @@ c.ServerProxy.servers = {
     },
     'python-http-rewrite-response': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
-        'rewrite_response': lambda request, host, port, path, response: dict(body=response.body.replace(b"ciao", b"hello"))
+        'rewrite_response': translate_ciao,
     },
 }
 
-c.ServerProxy.non_service_rewrite_response = \
-    lambda request, host, port, path, response: dict(body=response.body.replace(b"bar", b"foo"))
+c.ServerProxy.non_service_rewrite_response = bar_to_foo
 
 import sys
 sys.path.append('./tests/resources')
