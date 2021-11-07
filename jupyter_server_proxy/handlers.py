@@ -85,7 +85,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
         self.rewrite_response = kwargs.pop(
             'rewrite_response',
-            lambda response: None,
+            tuple(),
         )
         self.subprotocols = None
         super().__init__(*args, **kwargs)
@@ -300,8 +300,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 port=port,
                 path=proxied_path
             )
-            # Rewrite the original response by mutation
-            self.rewrite_response(rewritable_response)
+            rewrite_response = self.rewrite_response
+            if not isinstance(rewrite_response, (list, tuple)):
+                rewrite_response = [rewrite_response]
+            for rewrite in rewrite_response:
+                rewrite(rewritable_response)
 
             ## status
             self.set_status(rewritable_response.code, rewritable_response.reason)

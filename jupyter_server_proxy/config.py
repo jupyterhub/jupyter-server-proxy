@@ -2,7 +2,7 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from jupyter_server.utils import url_path_join as ujoin
-from traitlets import Dict, List, Union, default, observe
+from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
 from tornado import httpclient
 from warnings import warn
@@ -137,7 +137,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         request_headers_override=server_process_config.get('request_headers_override', {}),
         rewrite_response=server_process_config.get(
             'rewrite_response',
-            lambda response: None,
+            tuple(),
         ),
     )
 
@@ -213,22 +213,31 @@ class ServerProxy(Configurable):
             more of the attributes ``body``, ``headers``, ``code``, or ``reason``.
             For example:
 
-                def rewrite_response(response):
+                def cat_to_dog(response):
                     response.body = response.body.replace(b'cat', b'dog')
 
-            Defaults to the do-nothing function ``lambda response: None``.
+                c.ServerProxy.servers['my_server']['rewrite_response'] = cat_to_dog
+
+            The RewritableRespone object also has attributes ``host``, ``port``, and
+            ``path`` corresponding to the URL ``/proxy/<host>:<port><path>``.
+
+            A list or tuple of functions can also be specified for multiple
+            rewrites.
+
+            Defaults to the empty tuple ``tuple()``.
         """,
         config=True
     )
 
-    non_service_rewrite_response = Callable(
-        lambda response: None,
+    non_service_rewrite_response = Union(
+        default_value=tuple(),
+        trait_types=[List(), Tuple(), Callable()],
         help="""
-        A function to rewrite the response for a non-service request, for
-        example a request to ``/proxy/<host>:<port><path>``.
+        A function (or list or tuple of functions) to rewrite the response for a
+        non-service request, for example a request to ``/proxy/<host>:<port><path>``.
 
         See the description for ``rewrite_response`` for more information.
-        Defaults to the do-nothing function ``lambda response: None``.
+        Defaults to the empty tuple ``tuple()``.
         """,
         config=True
     )
