@@ -294,33 +294,28 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.set_status(500)
             self.write(str(response.error))
         else:
-            original_response = RewritableResponse(
+            rewritable_response = RewritableResponse(
                 raw_response=response,
                 host=host,
                 port=port,
                 path=proxied_path
             )
             # Rewrite the original response by mutation
-            self.rewrite_response(original_response)
-            rewritten_response = original_response
-            del original_response
-
-            if rewritten_response is None:
-                raise RuntimeError("rewrite_response must provide the response as a return value.")
+            self.rewrite_response(rewritable_response)
 
             ## status
-            self.set_status(rewritten_response.code, rewritten_response.reason)
+            self.set_status(rewritable_response.code, rewritable_response.reason)
 
             # clear tornado default header
             self._headers = httputil.HTTPHeaders()
-            for header, v in rewritten_response.headers.get_all():
+            for header, v in rewritable_response.headers.get_all():
                 if header not in ('Content-Length', 'Transfer-Encoding',
                                   'Connection'):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
-            if rewritten_response.body:
-                self.write(rewritten_response.body)
+            if rewritable_response.body:
+                self.write(rewritable_response.body)
 
     async def proxy_open(self, host, port, proxied_path=''):
         """
