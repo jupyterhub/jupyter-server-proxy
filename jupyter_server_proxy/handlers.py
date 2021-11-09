@@ -10,6 +10,7 @@ import os
 from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
+from copy import copy
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
@@ -63,14 +64,9 @@ class RewritableResponse(HasTraits):
         """
         Apply a function to a copy of self, and return the copy
         """
-        new = self._copy()
+        new = copy(self)
         func(new)
         return new
-
-    def _copy(self):
-        return RewritableResponse(
-            **{name: getattr(self, name) for name in self.traits()}
-        )
 
 
 class AddSlashHandler(JupyterHandler):
