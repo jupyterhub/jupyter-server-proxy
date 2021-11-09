@@ -59,6 +59,19 @@ class RewritableResponse(HasTraits):
     def raw_request(self):
         return self.raw_response.request
 
+    def _apply_to_copy(self, func):
+        """
+        Apply a function to a copy of self, and return the copy
+        """
+        new = self._copy()
+        func(new)
+        return new
+
+    def _copy(self):
+        return RewritableResponse(
+            **{name: getattr(self, name) for name in self.traits()}
+        )
+
 
 class AddSlashHandler(JupyterHandler):
     """Add trailing slash to URLs that need them."""
@@ -294,7 +307,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.set_status(500)
             self.write(str(response.error))
         else:
-            rewritable_response = RewritableResponse(
+            original_response = RewritableResponse(
                 raw_response=response,
                 host=host,
                 port=port,
@@ -303,22 +316,24 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             rewrite_response = self.rewrite_response
             if not isinstance(rewrite_response, (list, tuple)):
                 rewrite_response = [rewrite_response]
+
+            rewritten_response = original_response
             for rewrite in rewrite_response:
-                rewrite(rewritable_response)
+                rewritten_response = rewritten_response._apply_to_copy(rewrite)
 
             ## status
-            self.set_status(rewritable_response.code, rewritable_response.reason)
+            self.set_status(rewritten_response.code, rewritten_response.reason)
 
             # clear tornado default header
             self._headers = httputil.HTTPHeaders()
-            for header, v in rewritable_response.headers.get_all():
+            for header, v in rewritten_response.headers.get_all():
                 if header not in ('Content-Length', 'Transfer-Encoding',
                                   'Connection'):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
-            if rewritable_response.body:
-                self.write(rewritable_response.body)
+            if rewritten_response.body:
+                self.write(rewritten_response.body)
 
     async def proxy_open(self, host, port, proxied_path=''):
         """
