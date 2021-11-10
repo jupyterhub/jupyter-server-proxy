@@ -491,7 +491,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         url = 'http://localhost:{}'.format(self.port)
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url) as resp:
+                async with session.get(url, allow_redirects=False) as resp:
                     # We only care if we get back *any* response, not just 200
                     # If there's an error response, that can be shown directly to the user
                     self.log.debug('Got code {} back from {}'.format(resp.status, url))
