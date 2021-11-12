@@ -51,6 +51,12 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         self.subprotocols = None
         super().__init__(*args, **kwargs)
 
+    # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
+    # to enable cross origin requests propagated by e.g. inverting proxies.
+
+    def check_origin(self, origin=None):
+        return JupyterHandler.check_origin(self, origin)
+
     # Support all the methods that tornado does by default except for GET which
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
