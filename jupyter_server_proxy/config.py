@@ -209,20 +209,22 @@ class ServerProxy(Configurable):
 
           rewrite_response
             An optional function to rewrite the response for the given service.
-            Input is a RewritableResponse object. The function should modify one or
-            more of the attributes ``.body``, ``.headers``, ``.code``, or ``.reason``.
-            For example:
+            Input is a RewritableResponse object which is an argument that MUST be named
+            ``response``. The function should modify one or more of the attributes
+            ``.body``, ``.headers``, ``.code``, or ``.reason`` of the ``response``
+            argument. For example:
 
                 def cat_to_dog(response):
                     response.body = response.body.replace(b'cat', b'dog')
 
                 c.ServerProxy.servers['my_server']['rewrite_response'] = cat_to_dog
 
-            The RewritableRespone object also has attributes ``.host``, ``.port``, and
-            ``.path`` corresponding to the URL ``/proxy/<host>:<port><path>``. In
+            The ``rewrite_response`` function can also accept several optional
+            positional arguments. Arguments named ``host``, ``port``, and ``path`` will
+            receive values corresponding to the URL ``/proxy/<host>:<port><path>``. In
             addition, the original Tornado ``HTTPRequest`` and ``HTTPResponse`` objects
-            are available as ``.raw_request`` and ``.raw_response``. (These attributes
-            should not be modified.)
+            are available as arguments named ``orig_request`` and ``orig_response``.
+            (These objects should not be modified.)
 
             A list or tuple of functions can also be specified for chaining multiple
             rewrites.
