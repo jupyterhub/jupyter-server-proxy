@@ -312,7 +312,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
             # To be passed on-demand as args to the rewrite_response functions.
             optional_args_to_rewrite_function = {
-                'request': req,
+                'request': self.request,
                 'orig_response': original_response,
                 'host': host,
                 'port': port,
