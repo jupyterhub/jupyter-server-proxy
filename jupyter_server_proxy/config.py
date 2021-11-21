@@ -223,8 +223,8 @@ class ServerProxy(Configurable):
             positional arguments. Arguments named ``host``, ``port``, and ``path`` will
             receive values corresponding to the URL ``/proxy/<host>:<port><path>``. In
             addition, the original Tornado ``HTTPRequest`` and ``HTTPResponse`` objects
-            are available as arguments named ``orig_request`` and ``orig_response``.
-            (These objects should not be modified.)
+            are available as arguments named ``request`` and ``orig_response``. (These
+            objects should not be modified.)
 
             A list or tuple of functions can also be specified for chaining multiple
             rewrites.
