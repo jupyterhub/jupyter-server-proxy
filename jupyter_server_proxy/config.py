@@ -183,16 +183,20 @@ class ServerProxy(Configurable):
 
             Keys recognized are:
 
-            enabled
-              Set to True (default) to make an entry in the launchers. Set to False to have no
-              explicit entry.
+              enabled
+                Set to True (default) to make an entry in the launchers. Set to False to have no
+                explicit entry.
 
-            icon_path
-              Full path to an svg icon that could be used with a launcher. Currently only used by the
-              JupyterLab launcher
+              icon_path
+                Full path to an svg icon that could be used with a launcher. Currently only used by the
+                JupyterLab launcher
 
-            title
-              Title to be used for the launcher entry. Defaults to the name of the server if missing.
+              title
+                Title to be used for the launcher entry. Defaults to the name of the server if missing.
+
+              path_info
+                The trailing path that is appended to the user's server URL to access the proxied server.
+                By default it is the name of the server followed by a trailing slash.
 
           new_browser_tab
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
@@ -201,10 +205,6 @@ class ServerProxy(Configurable):
           request_headers_override
             A dictionary of additional HTTP headers for the proxy request. As with
             the command traitlet, {{port}} and {{base_url}} will be substituted.
-
-          path_info
-            The trailing path that is appended to the user's server URL to access the proxied server.
-            By default it is the name of the server followed by a trailing slash.
 
           rewrite_response
             An optional function to rewrite the response for the given service.
