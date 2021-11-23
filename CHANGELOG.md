@@ -1,16 +1,16 @@
-## [3.0]
+## 3.0
 
-### [3.0.2] - 2020-03-16
+### 3.0.2 - 2020-03-16
 
-## Bugs fixed
+#### Bugs fixed
 
 * Include jupyterlab-server-proxy in the sdist [#260](https://github.com/jupyterhub/jupyter-server-proxy/pull/260) ([@xhochy](https://github.com/xhochy))
 
-## Contributors to this release
+#### Contributors to this release
 
 [@xhochy](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Axhochy+updated%3A2021-03-16..2021-03-16&type=Issues)
 
-### [3.0.1] - 2020-03-16
+### 3.0.1 - 2020-03-16
 
 #### Bugs fixed
 
@@ -20,7 +20,7 @@
 
 [@janjagusch](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajanjagusch+updated%3A2021-03-15..2021-03-16&type=Issues)
 
-### [3.0.0] - 2020-03-15
+### 3.0.0 - 2020-03-15
 
 This release drops support for Python 3.5 and now packages the JupyterLab
 extension with the Python package for use with JupyterLab 3. The JupyterLab
@@ -52,9 +52,9 @@ version jumps from 2.1.2 to 3.0.0.
 
 [@AlJohri](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AAlJohri+updated%3A2021-02-08..2021-03-15&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-02-08..2021-03-15&type=Issues) | [@ian-r-rose](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aian-r-rose+updated%3A2021-02-08..2021-03-15&type=Issues) | [@janjagusch](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajanjagusch+updated%3A2021-02-08..2021-03-15&type=Issues) | [@JanJaguschQC](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AJanJaguschQC+updated%3A2021-02-08..2021-03-15&type=Issues) | [@jtpio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajtpio+updated%3A2021-02-08..2021-03-15&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2021-02-08..2021-03-15&type=Issues) | [@maresb](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amaresb+updated%3A2021-02-08..2021-03-15&type=Issues) | [@minrk](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aminrk+updated%3A2021-02-08..2021-03-15&type=Issues) | [@ryanlovett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2021-02-08..2021-03-15&type=Issues) | [@todo](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Atodo+updated%3A2021-02-08..2021-03-15&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-02-08..2021-03-15&type=Issues)
 
-## [1.6]
+## 1.6
 
-### [1.6.0] - 2021-02-10
+### 1.6.0 - 2021-02-10
 
 This release adds support for JupyterLab 3.
 
