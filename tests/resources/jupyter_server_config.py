@@ -10,8 +10,8 @@ def translate_ciao(path, host, response, port):
     response.headers["Proxied-Path"] = path
     response.body = response.body.replace(b"ciao", b"hello")
 
-def bar_to_foo(response):
-    response.body = response.body.replace(b"bar", b"foo")
+def hello_to_foo(path, host, response, port):
+    response.body = response.body.replace(b"hello", b"foo")
 
 c.ServerProxy.servers = {
     'python-http': {
@@ -53,10 +53,15 @@ c.ServerProxy.servers = {
     'python-http-rewrite-response': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'rewrite_response': translate_ciao,
+        'port': 54323,
+    },
+    'python-chained-rewrite-response': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'rewrite_response': [translate_ciao, hello_to_foo],
     },
 }
 
-c.ServerProxy.non_service_rewrite_response = bar_to_foo
+c.ServerProxy.non_service_rewrite_response = hello_to_foo
 
 import sys
 sys.path.append('./tests/resources')
