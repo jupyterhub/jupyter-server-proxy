@@ -2,7 +2,12 @@ def mappathf(path):
     p = path + 'mapped'
     return p
 
-def translate_ciao(response):
+def translate_ciao(path, host, response, port):
+    response.code = 418
+    response.reason = "I'm a teapot"
+    response.headers["i-like"] = "tacos"
+    response.headers["Proxied-Host-Port"] = f"{host}:{port}"
+    response.headers["Proxied-Path"] = path
     response.body = response.body.replace(b"ciao", b"hello")
 
 def bar_to_foo(response):

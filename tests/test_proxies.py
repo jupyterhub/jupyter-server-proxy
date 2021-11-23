@@ -88,7 +88,11 @@ def test_server_proxy_hash_sign_encoding():
 
 def test_server_rewrite_response():
     r = request_get(PORT, '/python-http-rewrite-response/ciao-a-tutti', TOKEN)
-    assert r.code == 200
+    assert r.code == 418
+    assert r.reason == "I'm a teapot"
+    assert ("I-Like", "tacos") in r.headers.items()
+    assert ("Proxied-Host-Port", "localhost:54323") in r.headers.items()
+    assert ("Proxied-Path", "/ciao-a-tutti") in r.headers.items()
     s = r.read().decode('ascii')
     assert s.startswith('GET /hello-a-tutti?token=')
 

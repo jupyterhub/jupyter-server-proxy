@@ -215,6 +215,7 @@ class ServerProxy(Configurable):
             argument. For example:
 
                 def cat_to_dog(response):
+                    response.headers["I-Like"] = "tacos"
                     response.body = response.body.replace(b'cat', b'dog')
 
                 c.ServerProxy.servers['my_server']['rewrite_response'] = cat_to_dog
