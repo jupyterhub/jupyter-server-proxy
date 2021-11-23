@@ -2,7 +2,10 @@ def mappathf(path):
     p = path + 'mapped'
     return p
 
-def translate_ciao(path, host, response, port):
+def translate_ciao(path, host, response, orig_response, port):
+    # Assume that the body has not been modified by any previous rewrite
+    assert response.body == orig_response.body
+
     response.code = 418
     response.reason = "I'm a teapot"
     response.headers["i-like"] = "tacos"
