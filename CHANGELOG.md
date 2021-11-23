@@ -1,3 +1,37 @@
+## 3.1
+
+### 3.1.0 - 2021-07-02
+
+#### New features added
+
+- Add path_info option under launcher_entry [#279](https://github.com/jupyterhub/jupyter-server-proxy/pull/279) ([@ryanlovett](https://github.com/ryanlovett))
+- Add request_headers_override configuration [#252](https://github.com/jupyterhub/jupyter-server-proxy/pull/252) ([@ryanlovett](https://github.com/ryanlovett))
+
+#### Bugs fixed
+
+- More precise regexp matching for /proxy/absolute/<host>:<port> [#271](https://github.com/jupyterhub/jupyter-server-proxy/pull/271) ([@candlerb](https://github.com/candlerb))
+
+#### Maintenance and upkeep improvements
+
+- Reduce (and test) sdist size [#263](https://github.com/jupyterhub/jupyter-server-proxy/pull/263) ([@bollwyvl](https://github.com/bollwyvl))
+
+#### Continuous integration
+
+- Add acceptance testing with robotframework(-jupyterlibrary) [#269](https://github.com/jupyterhub/jupyter-server-proxy/pull/269) ([@bollwyvl](https://github.com/bollwyvl))
+
+#### #### Dependency updates
+
+- Bump postcss from 7.0.35 to 7.0.36 in /jupyterlab-server-proxy [#277](https://github.com/jupyterhub/jupyter-server-proxy/pull/277) ([@dependabot](https://github.com/dependabot))
+- Bump normalize-url from 4.5.0 to 4.5.1 in /jupyterlab-server-proxy [#276](https://github.com/jupyterhub/jupyter-server-proxy/pull/276) ([@dependabot](https://github.com/dependabot))
+- Bump ws from 7.4.4 to 7.4.6 in /jupyterlab-server-proxy [#275](https://github.com/jupyterhub/jupyter-server-proxy/pull/275) ([@dependabot](https://github.com/dependabot))
+- Bump browserslist from 4.16.3 to 4.16.6 in /jupyterlab-server-proxy [#274](https://github.com/jupyterhub/jupyter-server-proxy/pull/274) ([@dependabot](https://github.com/dependabot))
+
+#### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2021-03-16&to=2021-07-03&type=c))
+
+[@bollwyvl](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2021-03-16..2021-07-03&type=Issues) | [@candlerb](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Acandlerb+updated%3A2021-03-16..2021-07-03&type=Issues) | [@jhgoebbert](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajhgoebbert+updated%3A2021-03-16..2021-07-03&type=Issues) | [@jtpio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajtpio+updated%3A2021-03-16..2021-07-03&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2021-03-16..2021-07-03&type=Issues) | [@ryanlovett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2021-03-16..2021-07-03&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-03-16..2021-07-03&type=Issues)
+
 ## 3.0
 
 ### 3.0.2 - 2020-03-16
