@@ -2,10 +2,11 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from jupyter_server.utils import url_path_join as ujoin
-from traitlets import Dict, List, Union, default, observe
+from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
+from tornado import httpclient
 from warnings import warn
-from .handlers import SuperviseAndProxyHandler, AddSlashHandler
+from .handlers import SuperviseAndProxyHandler, AddSlashHandler, RewritableResponse
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
@@ -136,7 +137,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         request_headers_override=server_process_config.get('request_headers_override', {}),
         rewrite_response=server_process_config.get(
             'rewrite_response',
-            lambda host, port, path, response: response.body
+            tuple(),
         ),
     )
 
@@ -208,26 +209,41 @@ class ServerProxy(Configurable):
 
           rewrite_response
             An optional function to rewrite the response for the given service.
-            Input arguments are ``host`` which is ``"localhost"``, the service
-            port ``port``, the ``path`` from the requested URL, and
-            ``response`` is a `tornado.httpclient.HTTPResponse object
-            <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
-            Output is bytes.
-            Defaults to ``lambda host, port, path, response: response.body``.
+            Input is a RewritableResponse object which is an argument that MUST be named
+            ``response``. The function should modify one or more of the attributes
+            ``.body``, ``.headers``, ``.code``, or ``.reason`` of the ``response``
+            argument. For example:
+
+                def cat_to_dog(response):
+                    response.headers["I-Like"] = "tacos"
+                    response.body = response.body.replace(b'cat', b'dog')
+
+                c.ServerProxy.servers['my_server']['rewrite_response'] = cat_to_dog
+
+            The ``rewrite_response`` function can also accept several optional
+            positional arguments. Arguments named ``host``, ``port``, and ``path`` will
+            receive values corresponding to the URL ``/proxy/<host>:<port><path>``. In
+            addition, the original Tornado ``HTTPRequest`` and ``HTTPResponse`` objects
+            are available as arguments named ``request`` and ``orig_response``. (These
+            objects should not be modified.)
+
+            A list or tuple of functions can also be specified for chaining multiple
+            rewrites.
+
+            Defaults to the empty tuple ``tuple()``.
         """,
         config=True
     )
 
-    non_service_rewrite_response = Callable(
-        lambda host, port, path, response: response.body,
+    non_service_rewrite_response = Union(
+        default_value=tuple(),
+        trait_types=[List(), Tuple(), Callable()],
         help="""
-        A function to rewrite the response for a non-service request, for
-        example a request to ``/proxy/<host>:<port><path>``. Input arguments
-        ``host``, ``port``, and ``path`` come from the requested URL, and
-        "response" is a `tornado.httpclient.HTTPResponse object
-        <https://www.tornadoweb.org/en/stable/httpclient.html#response-objects>`.
-        Output is bytes.
-        Defaults to ``lambda host, port, path, response: response.body``.
+        A function (or list or tuple of functions) to rewrite the response for a
+        non-service request, for example a request to ``/proxy/<host>:<port><path>``.
+
+        See the description for ``rewrite_response`` for more information.
+        Defaults to the empty tuple ``tuple()``.
         """,
         config=True
     )

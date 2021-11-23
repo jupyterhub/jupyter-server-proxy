@@ -87,10 +87,22 @@ def test_server_proxy_hash_sign_encoding():
 
 
 def test_server_rewrite_response():
-    r = request_get(PORT, '/python-http/ciao-a-tutti', TOKEN)
-    assert r.code == 200
+    r = request_get(PORT, '/python-http-rewrite-response/ciao-a-tutti', TOKEN)
+    assert r.code == 418
+    assert r.reason == "I'm a teapot"
+    assert ("I-Like", "tacos") in r.headers.items()
+    assert ("Proxied-Host-Port", "localhost:54323") in r.headers.items()
+    assert ("Proxied-Path", "/ciao-a-tutti") in r.headers.items()
     s = r.read().decode('ascii')
     assert s.startswith('GET /hello-a-tutti?token=')
+
+
+def test_chained_rewrite_response():
+    r = request_get(PORT, '/python-chained-rewrite-response/ciao-a-tutti', TOKEN)
+    assert r.code == 418
+    assert r.reason == "I'm a teapot"
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /foo-a-tutti?token=')
 
 
 def test_server_proxy_non_absolute():
@@ -160,11 +172,11 @@ def test_server_proxy_host_absolute():
     assert 'X-Proxycontextpath' not in s
 
 def test_server_proxy_port_non_service_rewrite_response():
-    """Test that 'bar' is replaced by 'foo'."""
-    r = request_get(PORT, '/proxy/54321/baz-bar-foo', TOKEN)
+    """Test that 'hello' is replaced by 'foo'."""
+    r = request_get(PORT, '/proxy/54321/hello', TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
-    assert s.startswith('GET /baz-foo-foo?token=')
+    assert s.startswith('GET /foo?token=')
 
 
 @pytest.mark.parametrize(

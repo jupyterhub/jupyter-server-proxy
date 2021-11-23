@@ -10,15 +10,57 @@ import os
 from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
+from copy import copy
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
 from jupyter_server.utils import ensure_async, url_path_join
 from jupyter_server.base.handlers import JupyterHandler, utcnow
+from traitlets.traitlets import HasTraits
+from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default
 
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
+
+
+class RewritableResponse(HasTraits):
+    """
+    A class to hold the response to be rewritten by rewrite_response
+    """
+    # The following should not be modified (or even accessed) by rewrite_response.
+    # It is used to initialize the default values of the traits.
+    orig_response = Instance(klass=httpclient.HTTPResponse)
+
+    # The following are modifiable by rewrite_response
+    headers = Union(trait_types=[Dict(), Instance(klass=httputil.HTTPHeaders)])
+    body = Bytes()
+    code = Integer()
+    reason = Unicode(allow_none=True)
+
+    @default('headers')
+    def _default_headers(self):
+        return copy(self.orig_response.headers)
+
+    @default('body')
+    def _default_body(self):
+        return self.orig_response.body
+
+    @default('code')
+    def _default_code(self):
+        return self.orig_response.code
+
+    @default('reason')
+    def _default_reason(self):
+        return self.orig_response.reason
+
+    def _apply_to_copy(self, func):
+        """
+        Apply a function to a copy of self, and return the copy
+        """
+        new = copy(self)
+        func(new)
+        return new
 
 
 class AddSlashHandler(JupyterHandler):
@@ -46,7 +88,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
         self.rewrite_response = kwargs.pop(
             'rewrite_response',
-            lambda host, port, path, response: response.body
+            tuple(),
         )
         self.subprotocols = None
         super().__init__(*args, **kwargs)
@@ -261,22 +303,62 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.set_status(500)
             self.write(str(response.error))
         else:
-            self.set_status(response.code, response.reason)
+            # Represent the original response as a RewritableResponse object.
+            original_response = RewritableResponse(orig_response=response)
+            
+            # The function (or list of functions) which should be applied to modify the
+            # response.
+            rewrite_response = self.rewrite_response
+
+            # If this is a single function, wrap it in a list.
+            if isinstance(rewrite_response, (list, tuple)):
+                rewrite_responses = rewrite_response
+            else:
+                rewrite_responses = [rewrite_response]
+
+            # To be passed on-demand as args to the rewrite_response functions.
+            optional_args_to_rewrite_function = {
+                'request': self.request,
+                'orig_response': original_response,
+                'host': host,
+                'port': port,
+                'path': proxied_path
+            }
+
+            # Initial value for rewriting
+            rewritten_response = original_response
+
+            for rewrite in rewrite_responses:
+                # The rewrite function is a function of the RewritableResponse object
+                # ``response`` as well as several other optional arguments. We need to
+                # convert it to a function of only ``response`` by plugging in the
+                # known values for all the other parameters. (This is called partial
+                # evaluation.)
+                def rewrite_pe(rewritable_response: RewritableResponse):
+                    return call_with_asked_args(
+                        rewrite,
+                        {
+                            'response': rewritable_response,
+                            **optional_args_to_rewrite_function
+                        }
+                    )
+                # Now we can cleanly apply the partially evaulated function to a copy of
+                # the rewritten response.
+                rewritten_response = rewritten_response._apply_to_copy(rewrite_pe)
+
+            ## status
+            self.set_status(rewritten_response.code, rewritten_response.reason)
 
             # clear tornado default header
             self._headers = httputil.HTTPHeaders()
-
-            for header, v in response.headers.get_all():
+            for header, v in rewritten_response.headers.get_all():
                 if header not in ('Content-Length', 'Transfer-Encoding',
                                   'Connection'):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
-            if response.body:
-                # Note: self.rewrite_response is defined as
-                #   lambda host, port, path, response: response.body
-                # unless overridden in configuration.
-                self.write(self.rewrite_response(host, port, proxied_path, response))
+            if rewritten_response.body:
+                self.write(rewritten_response.body)
 
     async def proxy_open(self, host, port, proxied_path=''):
         """
