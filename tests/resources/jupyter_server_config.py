@@ -13,8 +13,20 @@ def translate_ciao(path, host, response, orig_response, port):
     response.headers["Proxied-Path"] = path
     response.body = response.body.replace(b"ciao", b"hello")
 
-def hello_to_foo(path, host, response, port):
+def hello_to_foo(response):
     response.body = response.body.replace(b"hello", b"foo")
+
+# Example from the rewrite_response docstring
+def dog_to_cat(response):
+    response.headers["I-Like"] = "tacos"
+    response.body = response.body.replace(b'dog', b'cat')
+
+
+# Example from the rewrite_response docstring
+def cats_only(response, path):
+    if path.startswith("/cat-club"):
+        response.code = 403
+        response.body = b"dogs not allowed"
 
 c.ServerProxy.servers = {
     'python-http': {
@@ -61,6 +73,14 @@ c.ServerProxy.servers = {
     'python-chained-rewrite-response': {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'rewrite_response': [translate_ciao, hello_to_foo],
+    },
+    'python-cats-only-rewrite-response': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'rewrite_response': [dog_to_cat, cats_only],
+    },
+    'python-dogs-only-rewrite-response': {
+        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'rewrite_response': [cats_only, dog_to_cat],
     },
 }
 

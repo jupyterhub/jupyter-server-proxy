@@ -105,6 +105,21 @@ def test_chained_rewrite_response():
     assert s.startswith('GET /foo-a-tutti?token=')
 
 
+def test_cats_and_dogs_rewrite_response():
+    r = request_get(PORT, '/python-cats-only-rewrite-response/goats', TOKEN)
+    assert r.code == 200
+    r = request_get(PORT, '/python-cats-only-rewrite-response/cat-club', TOKEN)
+    s = r.read().decode('ascii')
+    assert r.code == 403
+    assert r.reason == "Forbidden"
+    assert s == "dogs not allowed"
+    r = request_get(PORT, '/python-dogs-only-rewrite-response/cat-club', TOKEN)
+    s = r.read().decode('ascii')
+    assert r.code == 403
+    assert r.reason == "Forbidden"
+    assert s == "cats not allowed"
+
+
 def test_server_proxy_non_absolute():
     r = request_get(PORT, '/python-http/abc', TOKEN)
     assert r.code == 200

@@ -17,7 +17,7 @@ from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, 
 from jupyter_server.utils import ensure_async, url_path_join
 from jupyter_server.base.handlers import JupyterHandler, utcnow
 from traitlets.traitlets import HasTraits
-from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default
+from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
@@ -53,6 +53,20 @@ class RewritableResponse(HasTraits):
     @default('reason')
     def _default_reason(self):
         return self.orig_response.reason
+
+    @observe('code')
+    def _observe_code(self, change):
+        # Automatically update reason if code changes and previous reason was default.
+        old_default_reason = httputil.responses.get(change['old'], 'Unknown')
+        new_default_reason = httputil.responses.get(change['new'], 'Unknown')
+        if self.reason == old_default_reason:
+            self.reason = new_default_reason
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Trigger the default value to be set from orig_response on instantiation.
+        # Otherwise _observe_code will receive change['old'] == 0.
+        self.code
 
     def _apply_to_copy(self, func):
         """
