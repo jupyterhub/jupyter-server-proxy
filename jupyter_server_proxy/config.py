@@ -237,8 +237,9 @@ class ServerProxy(Configurable):
 
                 c.ServerProxy.servers['my_server']['rewrite_response'] = [dog_to_cat, cats_only]
 
-            Note that if the order is reversed to ``[cats_only, dog_to_cat]``, accessing
-            ``/cat-club`` will produce a body with "cats not allowed" instead of "dogs not allowed".
+            Note that if the order is reversed to ``[cats_only, dog_to_cat]``, then accessing
+            ``/cat-club`` will produce a "403 Forbidden" response with body "cats not allowed"
+            instead of "dogs not allowed".
 
             Defaults to the empty tuple ``tuple()``.
         """,
