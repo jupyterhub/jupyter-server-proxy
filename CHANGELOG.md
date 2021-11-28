@@ -1,6 +1,6 @@
 ## 3.2
 
-### 3.2.0 - 2021-11-24
+### 3.2.0 - 2021-11-29
 
 #### New features added
 
@@ -8,6 +8,7 @@
 
 #### Enhancements made
 
+- Enable rewrite_response to modify status and headers [#300](https://github.com/jupyterhub/jupyter-server-proxy/pull/300) ([@ryanlovett](https://github.com/ryanlovett))
 - Apply `request_headers_override` to websocket requests [#287](https://github.com/jupyterhub/jupyter-server-proxy/pull/287) ([@sk1p](https://github.com/sk1p))
 
 #### Bugs fixed
@@ -19,8 +20,8 @@
 
 #### Maintenance and upkeep improvements
 
+- Change the rewrite_response function signature to take a RewritableResponse object [#301](https://github.com/jupyterhub/jupyter-server-proxy/pull/301) ([@maresb](https://github.com/maresb))
 - Simplify wait logic for websocket connection [#292](https://github.com/jupyterhub/jupyter-server-proxy/pull/292) ([@mcg1969](https://github.com/mcg1969))
-- Bump to v3.1.0. [#280](https://github.com/jupyterhub/jupyter-server-proxy/pull/280) ([@ryanlovett](https://github.com/ryanlovett))
 
 #### Documentation improvements
 
