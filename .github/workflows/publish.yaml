@@ -1,8 +1,30 @@
+# This is a GitHub workflow defining a set of jobs with a set of steps.
+# ref: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+#
 # Publish PyPI and NPM artifacts
+#
 name: Publish
+
 on:
-  push:
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "contrib/**"
+      - "**.md"
+      - "**.rst"
+      - ".github/workflows/*"
+      - "!.github/workflows/publish.yaml"
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "contrib/**"
+      - "**.md"
+      - "**.rst"
+      - ".github/workflows/*"
+      - "!.github/workflows/publish.yaml"
+    branches-ignore:
+      - "dependabot/**"
+      - "pre-commit-ci-update-config"
   workflow_dispatch:
 
 jobs:
