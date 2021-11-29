@@ -55,7 +55,7 @@ For you to follow along according to these instructions, you need:
    ```
    git add jupyterlab-server-proxy/package.json
    VERSION=...  # e.g. 1.2.3
-   git commit -m "release $VERSION"
+   git commit -m "release v$VERSION"
    ```
 
 2. Push your commit to main.
@@ -78,7 +78,7 @@ For you to follow along according to these instructions, you need:
    git log
 
    # then push it
-   git push $ORIGIN refs/tags/$VERSION
+   git push $ORIGIN refs/tags/v$VERSION
    ```
 
 4. Following the release to PyPI, an automated PR should arrive to
