@@ -50,3 +50,4 @@ def _load_jupyter_server_extension(nbapp):
 
 # For backward compatibility
 load_jupyter_server_extension = _load_jupyter_server_extension
+_jupyter_server_extension_paths = _jupyter_server_extension_points
