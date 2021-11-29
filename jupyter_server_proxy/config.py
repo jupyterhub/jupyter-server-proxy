@@ -214,11 +214,11 @@ class ServerProxy(Configurable):
             ``.body``, ``.headers``, ``.code``, or ``.reason`` of the ``response``
             argument. For example:
 
-                def cat_to_dog(response):
+                def dog_to_cat(response):
                     response.headers["I-Like"] = "tacos"
-                    response.body = response.body.replace(b'cat', b'dog')
+                    response.body = response.body.replace(b'dog', b'cat')
 
-                c.ServerProxy.servers['my_server']['rewrite_response'] = cat_to_dog
+                c.ServerProxy.servers['my_server']['rewrite_response'] = dog_to_cat
 
             The ``rewrite_response`` function can also accept several optional
             positional arguments. Arguments named ``host``, ``port``, and ``path`` will
@@ -228,7 +228,18 @@ class ServerProxy(Configurable):
             objects should not be modified.)
 
             A list or tuple of functions can also be specified for chaining multiple
-            rewrites.
+            rewrites. For example:
+
+                def cats_only(response, path):
+                    if path.startswith("/cat-club"):
+                        response.code = 403
+                        response.body = b"dogs not allowed"
+
+                c.ServerProxy.servers['my_server']['rewrite_response'] = [dog_to_cat, cats_only]
+
+            Note that if the order is reversed to ``[cats_only, dog_to_cat]``, then accessing
+            ``/cat-club`` will produce a "403 Forbidden" response with body "cats not allowed"
+            instead of "dogs not allowed".
 
             Defaults to the empty tuple ``tuple()``.
         """,

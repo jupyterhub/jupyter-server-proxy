@@ -17,7 +17,7 @@ from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, 
 from jupyter_server.utils import ensure_async, url_path_join
 from jupyter_server.base.handlers import JupyterHandler, utcnow
 from traitlets.traitlets import HasTraits
-from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default
+from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
@@ -53,6 +53,25 @@ class RewritableResponse(HasTraits):
     @default('reason')
     def _default_reason(self):
         return self.orig_response.reason
+
+    @observe('code')
+    def _observe_code(self, change):
+        # HTTP status codes are mapped to short descriptions in the
+        # httputil.responses dictionary, 200 maps to "OK", 403 maps to
+        # "Forbidden" etc.
+        #
+        # If code is updated and it previously had a reason matching its short
+        # description, we update reason to match the new code's short
+        # description.
+        #
+        if self.reason == httputil.responses.get(change['old'], 'Unknown'):
+            self.reason = httputil.responses.get(change['new'], 'Unknown')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Trigger the default value to be set from orig_response on instantiation.
+        # Otherwise _observe_code will receive change['old'] == 0.
+        self.code
 
     def _apply_to_copy(self, func):
         """
