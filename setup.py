@@ -106,8 +106,7 @@ setup_args = dict(
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
     classifiers=[
         "Framework :: Jupyter",
-        # TODO: JupyterLab 2 is theoretically supported, but is not tested
-        # "Framework :: Jupyter :: JupyterLab :: 2",
+        "Framework :: Jupyter :: JupyterLab :: 2",
         "Framework :: Jupyter :: JupyterLab :: 3",
         "Framework :: Jupyter :: JupyterLab :: Extensions",
         "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
