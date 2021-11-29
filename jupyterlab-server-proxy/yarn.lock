@@ -126,40 +126,12 @@
     sanitize-html "~2.3.3"
     url "^0.11.0"
 
-"@jupyterlab/apputils@~2.0 || ~3.0":
-  version "3.0.10"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/apputils/-/apputils-3.0.10.tgz#77c262aa26f4286dce04916b45b23e5177009f24"
-  integrity sha512-M2MPHbGIFxkGOhj6TTlDugyaAo/MEYLLw++LV/DKQGvUDkiCWihBff9GnDWINJmJowkeM2niWxKOHAV83XSk0Q==
+"@jupyterlab/builder@^3.2.4":
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/builder/-/builder-3.2.4.tgz#d5572cb675a5c80ef4e620dcf0c984f29cc97d66"
+  integrity sha512-pW+ZwwAzlZFWq41dsUpxuV2A5ZOQ7K0q7mcJuMYPDn6vsT93dMitd/t0FZGDTqyDoG+EsxzeigF12xArCfrkNQ==
   dependencies:
-    "@jupyterlab/coreutils" "^5.0.7"
-    "@jupyterlab/services" "^6.0.10"
-    "@jupyterlab/settingregistry" "^3.0.7"
-    "@jupyterlab/statedb" "^3.0.7"
-    "@jupyterlab/translation" "^3.0.10"
-    "@jupyterlab/ui-components" "^3.0.8"
-    "@lumino/algorithm" "^1.3.3"
-    "@lumino/commands" "^1.12.0"
-    "@lumino/coreutils" "^1.5.3"
-    "@lumino/disposable" "^1.4.3"
-    "@lumino/domutils" "^1.2.3"
-    "@lumino/messaging" "^1.4.3"
-    "@lumino/properties" "^1.2.3"
-    "@lumino/signaling" "^1.4.3"
-    "@lumino/virtualdom" "^1.8.0"
-    "@lumino/widgets" "^1.16.1"
-    "@types/react" "^17.0.0"
-    buffer "^5.6.0"
-    react "^17.0.1"
-    react-dom "^17.0.1"
-    sanitize-html "~2.3.3"
-    url "^0.11.0"
-
-"@jupyterlab/builder@~3.1":
-  version "3.1.18"
-  resolved "https://registry.yarnpkg.com/@jupyterlab/builder/-/builder-3.1.18.tgz#30c7b473db076c5899b5bf09e2eee86581235ac4"
-  integrity sha512-7WfT0EgDDl9jI/U4Mj7a87a/Ig9CqYsSZb/yUTJ60OhXLe01T4n03OcrbvuGimDUpOPSLVMCF5ybM1l0q8U7mg==
-  dependencies:
-    "@jupyterlab/buildutils" "^3.1.18"
+    "@jupyterlab/buildutils" "^3.2.4"
     "@lumino/algorithm" "^1.3.3"
     "@lumino/application" "^1.16.0"
     "@lumino/commands" "^1.12.0"
@@ -195,7 +167,7 @@
     webpack-merge "^5.1.2"
     worker-loader "^3.0.2"
 
-"@jupyterlab/buildutils@^3.1.18":
+"@jupyterlab/buildutils@^3.2.4":
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/@jupyterlab/buildutils/-/buildutils-3.2.4.tgz#ade40b14b626a099fa452e6f8cf3a826984715b0"
   integrity sha512-8vOS3tEXLcfSgsWAANxk6uQif8h1eYyqNrf9GzfcrvR+3NqN493noOzEaWrZgiCJ1k8H9dJvedhrd6bsFTliDQ==
@@ -392,7 +364,7 @@
     node-fetch "^2.6.0"
     ws "^7.4.6"
 
-"@jupyterlab/settingregistry@^3.0.7", "@jupyterlab/settingregistry@^3.2.4":
+"@jupyterlab/settingregistry@^3.2.4":
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/@jupyterlab/settingregistry/-/settingregistry-3.2.4.tgz#6d863891702769769c4840435602206be06e84a6"
   integrity sha512-kyr6y32YTD4S2XGthy17yRa6BdEQyuXqIl2hIKrn9oPdfM0OF3TDkAByB8W79KLQojsKcmGka19LvQov/N4+6A==
