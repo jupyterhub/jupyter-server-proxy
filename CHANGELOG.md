@@ -8,6 +8,7 @@
 
 #### Enhancements made
 
+- rewrite_response hook: (HTTP status) `code` updates should sometimes automatically update `reason` [#304](https://github.com/jupyterhub/jupyter-server-proxy/pull/304) ([@maresb](https://github.com/maresb))
 - Enable rewrite_response to modify status and headers [#300](https://github.com/jupyterhub/jupyter-server-proxy/pull/300) ([@ryanlovett](https://github.com/ryanlovett))
 - Apply `request_headers_override` to websocket requests [#287](https://github.com/jupyterhub/jupyter-server-proxy/pull/287) ([@sk1p](https://github.com/sk1p))
 
