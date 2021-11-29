@@ -56,11 +56,16 @@ class RewritableResponse(HasTraits):
 
     @observe('code')
     def _observe_code(self, change):
-        # Automatically update reason if code changes and previous reason was default.
-        old_default_reason = httputil.responses.get(change['old'], 'Unknown')
-        new_default_reason = httputil.responses.get(change['new'], 'Unknown')
-        if self.reason == old_default_reason:
-            self.reason = new_default_reason
+        # HTTP status codes are mapped to short descriptions in the
+        # httputil.responses dictionary, 200 maps to "OK", 403 maps to
+        # "Forbidden" etc.
+        #
+        # If code is updated and it previously had a reason matching its short
+        # description, we update reason to match the new code's short
+        # description.
+        #
+        if self.reason == httputil.responses.get(change['old'], 'Unknown'):
+            self.reason = httputil.responses.get(change['new'], 'Unknown')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
