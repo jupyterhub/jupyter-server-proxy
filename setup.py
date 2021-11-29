@@ -106,6 +106,10 @@ setup_args = dict(
     keywords=["Jupyter", "JupyterLab", "JupyterLab3"],
     classifiers=[
         "Framework :: Jupyter",
+        "Framework :: Jupyter :: JupyterLab :: 2",
+        "Framework :: Jupyter :: JupyterLab :: 3",
+        "Framework :: Jupyter :: JupyterLab :: Extensions",
+        "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS :: MacOS X",
