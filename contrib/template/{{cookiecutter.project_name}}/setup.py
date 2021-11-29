@@ -3,7 +3,7 @@ import setuptools
 setuptools.setup(
     name="jupyter-{{cookiecutter.project_name}}-proxy",
     version='1.0dev',
-    url="https://github.com/jupyterhub/jupyter-server-proxy/tree/master/contrib/{{cookiecutter.project_name}}",
+    url="https://github.com/jupyterhub/jupyter-server-proxy/tree/HEAD/contrib/{{cookiecutter.project_name}}",
     author="{{cookiecutter.author_name}}",
     description="{{cookiecutter.author_email}}",
     packages=setuptools.find_packages(),

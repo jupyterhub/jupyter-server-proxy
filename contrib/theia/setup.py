@@ -3,7 +3,7 @@ import setuptools
 setuptools.setup(
     name="jupyter-theia-proxy",
     version='1.0dev',
-    url="https://github.com/jupyterhub/jupyter-server-proxy/tree/master/contrib/theia",
+    url="https://github.com/jupyterhub/jupyter-server-proxy/tree/HEAD/contrib/theia",
     author="Project Jupyter Contributors",
     description="projectjupyter@gmail.com",
     packages=setuptools.find_packages(),
