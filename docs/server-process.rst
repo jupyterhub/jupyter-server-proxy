@@ -33,7 +33,7 @@ pairs.
      For example, if the application needs to know its full path it can
      be constructed from ``{base_url}/proxy/{port}``
 
-   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+   * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a list of strings that are used & treated same as above.
   
    This key is required.
@@ -56,7 +56,7 @@ pairs.
      process itself. The strings ``{port}`` and ``{base_url}`` will be
      replaced as for **command**.
 
-   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+   * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a dictionary of strings that are used & treated same as above.
 
 ``absolute_url``
@@ -139,7 +139,7 @@ pairs.
 
 
 ``request_headers_override``
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    One of:
 
@@ -147,11 +147,11 @@ pairs.
      request. The strings ``{port}`` and ``{base_url}`` will be replaced as
      for **command**.
 
-   * A callable that takes any :ref:`callable arguments <server-process/callable-argument>`,
+   * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a dictionary of strings that are used & treated same as above.
 
 
-.. _server-processes/callable-arguments:
+.. _server-process/callable-arguments:
 
 Callable arguments
 ------------------
