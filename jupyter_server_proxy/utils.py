@@ -1,5 +1,4 @@
 from traitlets import TraitType
-import six
 
 def call_with_asked_args(callback, args):
     """
@@ -45,7 +44,7 @@ class Callable(TraitType):
     info_text = 'a callable'
 
     def validate(self, obj, value):
-        if six.callable(value):
+        if callable(value):
             return value
         else:
             self.error(obj, value)
