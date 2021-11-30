@@ -234,7 +234,7 @@ if we want tighter control over what process is spawned.
         }
       }
 
-   This will start `OpenRefine <http://openrefine.org/>`_ with the
+   This will start `OpenRefine <https://openrefine.org/>`_ with the
    ``refine`` command (which must be in $PATH) on a randomly
    generated port, and make it available under ``/openrefine``
    in your notebook url. The URL path is specified by the key,

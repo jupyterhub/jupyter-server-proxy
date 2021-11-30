@@ -4,7 +4,7 @@
 Making a new convenience package
 ================================
 
-There is a `cookiecutter <https://github.com/audreyr/cookiecutter>`_
+There is a `cookiecutter <https://github.com/cookiecutter/cookiecutter>`_
 template provided in this repo that can be used to make new packages.
 
 .. code:: bash
