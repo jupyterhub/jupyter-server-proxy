@@ -3,8 +3,6 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
 
-import '../style/index.css';
-
 function newServerProxyWidget(id: string, url: string, text: string): MainAreaWidget<IFrame> {
   const content = new IFrame({
     sandbox: ['allow-same-origin', 'allow-scripts', 'allow-popups', 'allow-forms'],
