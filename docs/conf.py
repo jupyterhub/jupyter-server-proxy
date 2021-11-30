@@ -58,32 +58,28 @@ pygments_style = None
 
 
 # -- Options for HTML output -------------------------------------------------
+# ref: http://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = 'alabaster'
+# FIXME: change to pydata_sphinx_theme
+html_theme = "alabaster"
+html_theme_options = {
+    "github_url": "https://github.com/jupyterhub/jupyter-server-proxy/",
+    "use_edit_page_button": True,
+}
+html_context = {
+    "github_user": "jupyterhub",
+    "github_repo": "jupyter-server-proxy",
+    "github_version": "main",
+    "doc_path": "docs",
+}
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
+html_favicon = "_static/images/logo/favicon.ico"
+html_logo = "_static/images/logo/logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# The default sidebars (for documents that don't match any pattern) are
-# defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
-#
-# html_sidebars = {}
+html_static_path = ["_static"]
 
 
 # -- Options for intersphinx extension ---------------------------------------
