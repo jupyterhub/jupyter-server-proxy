@@ -33,7 +33,8 @@ def call_with_asked_args(callback, args):
         )
     return callback(*asked_arg_values)
 
-# copy-pasted from the master of Traitlets source
+# copy-pasted from the ipython/traitlets source code, see
+# https://github.com/ipython/traitlets/blob/a1425327460c4a3ae970aeaef17e0c22da4c53c6/traitlets/traitlets.py#L3232-L3246
 class Callable(TraitType):
     """A trait which is callable.
     Notes
