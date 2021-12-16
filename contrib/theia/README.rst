@@ -2,7 +2,7 @@
 Theia IDE
 =========
 
-`Theia <https://www.theia-ide.org/>`_ is a configurable web based IDE
+`Theia <https://theia-ide.org/>`_ is a configurable web based IDE
 built with components from `Visual Studio Code <https://code.visualstudio.com/>`_.
 
 This package is a plugin for `jupyter-server-proxy <https://jupyter-server-proxy.readthedocs.io/>`_
@@ -12,12 +12,12 @@ in a JupyterHub / Binder environment.
 Installing Theia
 ================
 
-#. `Install the ``yarn`` package manager <https://yarnpkg.com/lang/en/docs/install/#alternatives-stable>`_
+#. `Install the ``yarn`` package manager <https://classic.yarnpkg.com/en/docs/install/>`_
     with one of the available methods.
 
 #. Theia is highly configurable, so you need to decide which features you want
    in your theia install. Make a ``package.json`` with the list of extensions you want,
-   following `the instructions here <https://www.theia-ide.org/doc/Composing_Applications.html>`_.
+   following `the instructions here <https://theia-ide.org/docs/composing_applications/>`_.
 
    Here is an example:
 
