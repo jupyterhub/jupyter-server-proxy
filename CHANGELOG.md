@@ -1,5 +1,27 @@
 ## 3.2
 
+### 3.2.1 - 2022-01-24
+
+3.2.1 is a security release, fixing a vulnerability [GHSA-gcv9-6737-pjqw](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-gcv9-6737-pjqw) where `allowed_hosts` were not validated correctly.
+
+## Maintenance and upkeep improvements
+
+- Modernize docs without making changes to its content [#313](https://github.com/jupyterhub/jupyter-server-proxy/pull/313) ([@consideRatio](https://github.com/consideRatio))
+- Remove no longer needed logic involving six [#312](https://github.com/jupyterhub/jupyter-server-proxy/pull/312) ([@consideRatio](https://github.com/consideRatio))
+- Update language, from master to main [#311](https://github.com/jupyterhub/jupyter-server-proxy/pull/311) ([@consideRatio](https://github.com/consideRatio))
+
+## Other merged PRs
+
+- Remove empty JupyterLab style [#314](https://github.com/jupyterhub/jupyter-server-proxy/pull/314) ([@bollwyvl](https://github.com/bollwyvl))
+- ci: avoid triggering ci twice on pre-commit.ci/dependabot prs [#310](https://github.com/jupyterhub/jupyter-server-proxy/pull/310) ([@consideRatio](https://github.com/consideRatio))
+
+## Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2021-11-29&to=2022-01-19&type=c))
+
+[@bollwyvl](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2021-11-29..2022-01-19&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-11-29..2022-01-19&type=Issues) | [@welcome](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Awelcome+updated%3A2021-11-29..2022-01-19&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-11-29..2022-01-19&type=Issues)
+
+
 ### 3.2.0 - 2021-11-29
 
 #### New features added
