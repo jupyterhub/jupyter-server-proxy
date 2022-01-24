@@ -298,7 +298,7 @@ def test_server_proxy_websocket_subprotocols(event_loop):
         ("127.0.0.1/path", 404),
         ("127.0.0.1@192.168.1.1", 404),
         ("127.0.0.1@192.168.1.1/path", 404),
-        ("user:pass@host:123/foo", 403),
+        ("user:pass@host:123/foo", 404),
         ("user:pass@host/foo", 404),
         ("absolute/127.0.0.1:123@192.168.1.1/path", 404),
     ]
