@@ -209,11 +209,15 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             return url_path_join(self.base_url, 'proxy', host_and_port)
 
     def get_client_uri(self, protocol, host, port, proxied_path):
-        context_path = self._get_context_path(host, port)
         if self.absolute_url:
+            context_path = self._get_context_path(host, port)
             client_path = url_path_join(context_path, proxied_path)
         else:
             client_path = proxied_path
+
+        # ensure client_path always starts with '/'
+        if not client_path.startswith("/"):
+            client_path = "/" + client_path
 
         # Quote spaces, åäö and such, but only enough to send a valid web
         # request onwards. To do this, we mark the RFC 3986 specs' "reserved"
@@ -228,7 +232,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             protocol=protocol,
             host=host,
             port=port,
-            path=client_path
+            path=client_path,
         )
         if self.request.query:
             client_uri += '?' + self.request.query
@@ -297,13 +301,14 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         client = httpclient.AsyncHTTPClient()
 
         req = self._build_proxy_request(host, port, proxied_path, body)
+        self.log.debug(f"Proxying request to {req.url}")
 
         try:
             # Here, "response" is a tornado.httpclient.HTTPResponse object.
             response = await client.fetch(req, raise_error=False)
         except httpclient.HTTPError as err:
             # We need to capture the timeout error even with raise_error=False,
-            # because it only affects the HTTPError raised when a non-200 response 
+            # because it only affects the HTTPError raised when a non-200 response
             # code is used, instead of suppressing all errors.
             # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
             if err.code == 599:
@@ -324,7 +329,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             # Represent the original response as a RewritableResponse object.
             original_response = RewritableResponse(orig_response=response)
-            
+
             # The function (or list of functions) which should be applied to modify the
             # response.
             rewrite_response = self.rewrite_response
@@ -688,53 +693,57 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 def setup_handlers(web_app, serverproxy_config):
     host_allowlist = serverproxy_config.host_allowlist
     rewrite_response = serverproxy_config.non_service_rewrite_response
-    web_app.add_handlers('.*', [
-        (
-            url_path_join(
-                web_app.settings['base_url'],
-                r'/proxy/([^/]*):(\d+)(.*)',
+    web_app.add_handlers(
+        ".*",
+        [
+            (
+                url_path_join(
+                    web_app.settings["base_url"],
+                    r"/proxy/([^/:@]+):(\d+)(/.*|)",
+                ),
+                RemoteProxyHandler,
+                {
+                    "absolute_url": False,
+                    "host_allowlist": host_allowlist,
+                    "rewrite_response": rewrite_response,
+                },
             ),
-            RemoteProxyHandler,
-            {
-                'absolute_url': False,
-                'host_allowlist': host_allowlist,
-                'rewrite_response': rewrite_response,
-            }
-        ),
-        (
-            url_path_join(
-                web_app.settings['base_url'],
-                r'/proxy/absolute/([^/]*):(\d+)(.*)',
+            (
+                url_path_join(
+                    web_app.settings["base_url"],
+                    r"/proxy/absolute/([^/:@]+):(\d+)(/.*|)",
+                ),
+                RemoteProxyHandler,
+                {
+                    "absolute_url": True,
+                    "host_allowlist": host_allowlist,
+                    "rewrite_response": rewrite_response,
+                },
             ),
-            RemoteProxyHandler,
-            {
-                'absolute_url': True,
-                'host_allowlist': host_allowlist,
-                'rewrite_response': rewrite_response,
-            }
-        ),
-        (
-            url_path_join(
-                web_app.settings['base_url'],
-                r'/proxy/(\d+)(.*)',
+            (
+                url_path_join(
+                    web_app.settings["base_url"],
+                    r"/proxy/(\d+)(/.*|)",
+                ),
+                LocalProxyHandler,
+                {
+                    "absolute_url": False,
+                    "rewrite_response": rewrite_response,
+                },
             ),
-            LocalProxyHandler,
-            {
-                'absolute_url': False,
-                'rewrite_response': rewrite_response,
-            },
-        ),
-        (
-            url_path_join(
-                web_app.settings['base_url'],
-                r'/proxy/absolute/(\d+)(.*)',
+            (
+                url_path_join(
+                    web_app.settings["base_url"],
+                    r"/proxy/absolute/(\d+)(/.*|)",
+                ),
+                LocalProxyHandler,
+                {
+                    "absolute_url": True,
+                    "rewrite_response": rewrite_response,
+                },
             ),
-            LocalProxyHandler,
-            {
-                'absolute_url': True,
-                'rewrite_response': rewrite_response,
-            },
-        ),
-    ])
+        ],
+    )
+
 
 # vim: set et ts=4 sw=4:
