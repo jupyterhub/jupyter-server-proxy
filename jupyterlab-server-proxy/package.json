@@ -1,6 +1,6 @@
 {
   "name": "@jupyterlab/server-proxy",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Jupyter server extension to supervise and proxy web services",
   "keywords": [
     "jupyter",
