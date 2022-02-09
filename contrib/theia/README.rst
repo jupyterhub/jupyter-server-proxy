@@ -12,8 +12,9 @@ in a JupyterHub / Binder environment.
 Installing Theia
 ================
 
-#. `Install the ``yarn`` package manager <https://classic.yarnpkg.com/en/docs/install/>`_
-    with one of the available methods.
+#. `Install the Yarn package manager
+   <https://classic.yarnpkg.com/en/docs/install/>`_ with one of the available
+   methods.
 
 #. Theia is highly configurable, so you need to decide which features you want
    in your theia install. Make a ``package.json`` with the list of extensions you want,
