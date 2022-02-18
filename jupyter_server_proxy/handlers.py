@@ -282,6 +282,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         if 'Proxy-Connection' in self.request.headers:
             del self.request.headers['Proxy-Connection']
+        if 'Transfer-Encoding' in self.request.headers:
+            del self.request.headers['Transfer-Encoding']
 
         self._record_activity()
 
