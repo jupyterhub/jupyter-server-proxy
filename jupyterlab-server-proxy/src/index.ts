@@ -5,7 +5,7 @@ import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
 
 function newServerProxyWidget(id: string, url: string, text: string): MainAreaWidget<IFrame> {
   const content = new IFrame({
-    sandbox: ['allow-same-origin', 'allow-scripts', 'allow-popups', 'allow-forms'],
+    sandbox: ['allow-same-origin', 'allow-scripts', 'allow-popups', 'allow-forms', 'allow-downloads', 'allow-modals'],
   });
   content.title.label = text;
   content.title.closable = true;
