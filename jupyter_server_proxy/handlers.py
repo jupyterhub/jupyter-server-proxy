@@ -316,7 +316,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             else:
                 body = None
 
-        if isinstance(port, (str, bytes)):
+        if isinstance(port, (str, bytes)) and not port.isdigit():
             # Port points to a Unix domain socket
             self.log.debug("Making client for Unix socket %r", port)
             assert host == 'localhost', "Unix sockets only possible on localhost"
