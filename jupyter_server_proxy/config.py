@@ -17,7 +17,7 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override, rewrite_response):
+def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, unix, mappath, request_headers_override, rewrite_response):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -30,6 +30,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.proxy_base = name
             self.absolute_url = absolute_url
             self.requested_port = port
+            self.unix_sock = unix
             self.mappath = mappath
             self.rewrite_response = rewrite_response
 
@@ -100,6 +101,7 @@ def make_handlers(base_url, server_processes):
             sp.timeout,
             sp.absolute_url,
             sp.port,
+            sp.unix,
             sp.mappath,
             sp.request_headers_override,
             sp.rewrite_response,
@@ -114,7 +116,7 @@ def make_handlers(base_url, server_processes):
 
 LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
 ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port',
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'unix',
     'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'rewrite_response',
 ])
 
@@ -127,6 +129,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
+        unix=server_process_config.get('unix', False),
         mappath=server_process_config.get('mappath', {}),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),

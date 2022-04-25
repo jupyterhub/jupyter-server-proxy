@@ -11,6 +11,7 @@ from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
 from copy import copy
+from tempfile import mkdtemp
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
 
@@ -19,6 +20,7 @@ from jupyter_server.base.handlers import JupyterHandler, utcnow
 from traitlets.traitlets import HasTraits
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 
+from .unixsock import UnixResolver
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
@@ -313,7 +315,12 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             else:
                 body = None
 
-        client = httpclient.AsyncHTTPClient()
+        if isinstance(port, (str, bytes)):
+            # Port points to a Unix domain socket
+            assert host == 'localhost', "Unix sockets only possible on localhost"
+            client = httpclient.AsyncHTTPClient(resolver=UnixResolver(port))
+        else:
+            client = httpclient.AsyncHTTPClient()
 
         req = self._build_proxy_request(host, port, proxied_path, body)
         self.log.debug(f"Proxying request to {req.url}")
@@ -572,6 +579,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
+        self.unix_sock = False
         self.mappath = {}
         self.command = list()
         super().__init__(*args, **kwargs)
@@ -590,13 +598,16 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         application
         """
         if 'port' not in self.state and self.command:
-            sock = socket.socket()
-            sock.bind(('', self.requested_port))
-            self.state['port'] = sock.getsockname()[1]
-            sock.close()
+            if self.unix_sock:
+                sock_dir = mkdtemp(prefix='jupyter-server-proxy-')
+                self.state['port'] = os.path.join(sock_dir, 'socket')
+            else:
+                sock = socket.socket()
+                sock.bind(('', self.requested_port))
+                self.state['port'] = sock.getsockname()[1]
+                sock.close()
         elif 'port' not in self.state:
             self.state['port'] = self.requested_port
-        
         return self.state['port']
 
     def get_cwd(self):
@@ -619,8 +630,13 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return 5
 
     async def _http_ready_func(self, p):
-        url = 'http://localhost:{}'.format(self.port)
-        async with aiohttp.ClientSession() as session:
+        if isinstance(self.port, (str, bytes)):
+            url = 'http://localhost'
+            connector = aiohttp.UnixConnector(self.port)
+        else:
+            url = 'http://localhost:{}'.format(self.port)
+            connector = None  # Default, TCP connector
+        async with aiohttp.ClientSession(connector=connector) as session:
             try:
                 async with session.get(url, allow_redirects=False) as resp:
                     # We only care if we get back *any* response, not just 200
@@ -694,6 +710,10 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
+        if isinstance(self.port, (str, bytes)):
+            self.set_status(501)
+            self.write("Proxying websockets on a Unix socket is not supported yet")
+            return
         await self.ensure_process()
         return await super().open(self.port, path)
 
