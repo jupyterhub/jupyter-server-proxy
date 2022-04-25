@@ -14,6 +14,7 @@ from copy import copy
 from tempfile import mkdtemp
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
+from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
 from jupyter_server.utils import ensure_async, url_path_join
 from jupyter_server.base.handlers import JupyterHandler, utcnow
@@ -317,8 +318,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         if isinstance(port, (str, bytes)):
             # Port points to a Unix domain socket
+            self.log.debug("Making client for Unix socket %r", port)
             assert host == 'localhost', "Unix sockets only possible on localhost"
-            client = httpclient.AsyncHTTPClient(resolver=UnixResolver(port))
+            client = SimpleAsyncHTTPClient(resolver=UnixResolver(port))
         else:
             client = httpclient.AsyncHTTPClient()
 
