@@ -692,6 +692,10 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                     del self.state['proc']
                     raise
 
+    def get_client_uri(self, protocol, host, port, proxied_path):
+        if isinstance(port, (str, bytes)):
+            port = 0   # Unix socket - port won't be used
+        return super().get_client_uri(protocol, host, port, proxied_path)
 
     @web.authenticated
     async def proxy(self, port, path):
