@@ -271,7 +271,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     @staticmethod
     def is_unix_sock(port):
         """Distinguish Unix socket path from numeric TCP port"""
-        return isinstance(port, (str, bytes)) and port.isdigit()
+        return isinstance(port, (str, bytes)) and not port.isdigit()
 
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
