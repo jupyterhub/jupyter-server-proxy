@@ -268,6 +268,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             return host in self.host_allowlist
 
+    @staticmethod
+    def is_unix_sock(port):
+        """Distinguish Unix socket path from numeric TCP port"""
+        return isinstance(port, (str, bytes)) and port.isdigit()
+
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
         '''
@@ -316,7 +321,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             else:
                 body = None
 
-        if isinstance(port, (str, bytes)) and not port.isdigit():
+        if self.is_unix_sock(port):
             # Port points to a Unix domain socket
             self.log.debug("Making client for Unix socket %r", port)
             assert host == 'localhost', "Unix sockets only possible on localhost"
@@ -632,7 +637,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return 5
 
     async def _http_ready_func(self, p):
-        if isinstance(self.port, (str, bytes)):
+        if self.is_unix_sock(p):
             url = 'http://localhost'
             connector = aiohttp.UnixConnector(self.port)
         else:
@@ -693,7 +698,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                     raise
 
     def get_client_uri(self, protocol, host, port, proxied_path):
-        if isinstance(port, (str, bytes)):
+        if self.is_unix_sock(port):
             port = 0   # Unix socket - port won't be used
         return super().get_client_uri(protocol, host, port, proxied_path)
 
@@ -716,7 +721,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
-        if isinstance(self.port, (str, bytes)):
+        if self.is_unix_sock(self.port):
             self.set_status(501)
             self.write("Proxying websockets on a Unix socket is not supported yet")
             return
