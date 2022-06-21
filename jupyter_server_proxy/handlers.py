@@ -558,6 +558,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
         self.mappath = {}
+        self.command = list()
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
@@ -573,11 +574,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         Allocate either the requested port or a random empty port for use by
         application
         """
-        if 'port' not in self.state:
+        if 'port' not in self.state and self.command:
             sock = socket.socket()
             sock.bind(('', self.requested_port))
             self.state['port'] = sock.getsockname()[1]
             sock.close()
+        elif 'port' not in self.state:
+            self.state['port'] = self.requested_port
+        
         return self.state['port']
 
     def get_cwd(self):

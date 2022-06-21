@@ -26,6 +26,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = name
+            self.command = command
             self.proxy_base = name
             self.absolute_url = absolute_url
             self.requested_port = port
@@ -62,7 +63,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             return self._render_template(attribute)
 
         def get_cmd(self):
-            return self._realize_rendered_template(command)
+            return self._realize_rendered_template(self.command)
 
         def get_env(self):
             return self._realize_rendered_template(environment)
@@ -121,7 +122,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
     le = server_process_config.get('launcher_entry', {})
     return ServerProcess(
         name=name,
-        command=server_process_config['command'],
+        command=server_process_config.get('command', list()),
         environment=server_process_config.get('environment', {}),
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
@@ -152,11 +153,15 @@ class ServerProxy(Configurable):
 
         Value should be a dictionary with the following keys:
           command
-            A list of strings that should be the full command to be executed.
+            An optional list of strings that should be the full command to be executed.
             The optional template arguments {{port}} and {{base_url}} will be substituted with the
             port the process should listen on and the base-url of the notebook.
 
             Could also be a callable. It should return a list.
+
+            If the command is not specified or is an empty list, it is assumed the process is already
+            running, therefore the port checking is skipped and the proxy is set up on the specified
+            port.
 
           environment
             A dictionary of environment variable mappings. As with the command
