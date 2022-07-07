@@ -280,8 +280,23 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                        "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
             return
 
-        if 'Proxy-Connection' in self.request.headers:
-            del self.request.headers['Proxy-Connection']
+        # Remove hop-by-hop headers that don't necessarily apply to the request we are making
+        # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
+        # for more information
+        hop_by_hop_headers = [
+            'Proxy-Connection',
+            'Keep-Alive',
+            'Transfer-Encoding',
+            'TE',
+            'Connection',
+            'Trailer',
+            'Upgrade',
+            'Proxy-Authorization',
+            'Proxy-Authenticate'
+        ]
+        for header_to_remove in hop_by_hop_headers:
+            if header_to_remove in self.request.headers:
+                del self.request.headers[header_to_remove]
 
         self._record_activity()
 

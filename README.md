@@ -65,6 +65,31 @@ extension, making this step only needed for JupyterLab 2.
 jupyter labextension install @jupyterlab/server-proxy
 ```
 
+## Disable
+
+### Server extension
+
+``` 
+jupyter serverextension disable jupyter_server_proxy
+```
+
+### Notebook classic extension
+
+```
+jupyter nbextension disable --py jupyter_server_proxy
+```
+
+### JupyterLab extension
+
+Note that the extension name provided to the command (`jupyterlab-server-proxy`) does not correspond
+to the extension package name (`@jupyterlab/server-proxy`). The `jupyter labextension list` will
+incorrectly report the extension as still being enabled after executing the disable command.
+This will be fixed in the next major release of jupyter-server-proxy.
+
+```
+jupyter labextension disable jupyterlab-server-proxy
+```
+
 ## Local development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
