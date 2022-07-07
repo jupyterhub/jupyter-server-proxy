@@ -654,6 +654,9 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log)
                 self.state['proc'] = proc
 
+                if not cmd:
+                    return
+
                 try:
                     await proc.start()
 
