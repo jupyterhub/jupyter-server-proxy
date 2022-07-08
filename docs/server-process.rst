@@ -36,7 +36,8 @@ pairs.
    * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a list of strings that are used & treated same as above.
   
-   This key is required.
+   If the command is not specified or is an empty list, it is assumed by the
+   proxy that the process is already running and available on ``{port}``.
 
 ``timeout``
 ^^^^^^^^^^^
