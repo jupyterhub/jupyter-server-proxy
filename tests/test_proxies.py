@@ -150,6 +150,18 @@ def test_server_proxy_requested_port():
     assert direct.code == 200
 
 
+def test_server_proxy_on_requested_port_no_command():
+    r = request_get(PORT, '/python-proxyto54321-no-command/ghi', TOKEN)
+    assert r.code == 200
+    s = r.read().decode('ascii')
+    assert s.startswith('GET /ghi?token=')
+    assert 'X-Forwarded-Context: /python-proxyto54321-no-command\n' in s
+    assert 'X-Proxycontextpath: /python-proxyto54321-no-command\n' in s
+
+    direct = request_get(54321, '/ghi', TOKEN)
+    assert direct.code == 200
+
+
 def test_server_proxy_port_non_absolute():
     r = request_get(PORT, '/proxy/54321/jkl', TOKEN)
     assert r.code == 200

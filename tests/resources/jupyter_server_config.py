@@ -82,6 +82,9 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
         'rewrite_response': [cats_only, dog_to_cat],
     },
+    'python-proxyto54321-no-command': {
+        'port': 54321
+    }
 }
 
 c.ServerProxy.non_service_rewrite_response = hello_to_foo
