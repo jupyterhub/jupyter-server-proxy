@@ -63,6 +63,10 @@ jobs:
           pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab_version }}.0
           pip install ./dist/jupyter_server_proxy-*.whl
           pip install pytest pytest-cov pytest-html
+          # Ensure we don't accidentally depend on notebook
+          if [ "${{ matrix.jupyter_app }}" == "notebook" ]; then
+            pip install "notebook<7"
+          fi
           pip freeze
 
       - name: Run tests
@@ -107,7 +111,8 @@ jobs:
 
       - name: Install Acceptance test dependencies
         run: |
-          pip install robotframework-jupyterlibrary
+          # the acceptance test requires notebook to run
+          pip install "notebook<7" robotframework-jupyterlibrary
 
       - name: Run acceptance tests
         run: |
