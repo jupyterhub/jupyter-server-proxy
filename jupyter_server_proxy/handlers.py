@@ -645,7 +645,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return 5
 
     async def _http_ready_func(self, p):
-        if self.is_unix_sock(p):
+        if self.is_unix_sock(self.port):
             url = 'http://localhost'
             connector = aiohttp.UnixConnector(self.port)
         else:
