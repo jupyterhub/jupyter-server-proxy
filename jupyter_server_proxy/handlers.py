@@ -326,12 +326,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.log.debug("Making client for Unix socket %r", port)
             assert host == 'localhost', "Unix sockets only possible on localhost"
             client = SimpleAsyncHTTPClient(resolver=UnixResolver(port))
-            # Use a phony numeric port to make a normal URL so the path can be
-            # parsed back out of it. The host & port in the URL aren't used.
-            req = self._build_proxy_request(host, 0, proxied_path, body)
         else:
             client = httpclient.AsyncHTTPClient()
-            req = self._build_proxy_request(host, port, proxied_path, body)
+
+        req = self._build_proxy_request(host, port, proxied_path, body)
 
         self.log.debug(f"Proxying request to {req.url}")
 
@@ -438,12 +436,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             assert host == 'localhost', "Unix sockets only possible on localhost"
             self.log.debug("Opening websocket on Unix socket %r", port)
             resolver = UnixResolver(port)  # Requires tornado >= 6.3
-            # Use a phony numeric port to make a normal URL so the path can be
-            # parsed back out of it. The host & port in the URL aren't used.
-            client_uri = self.get_client_uri('ws', host, 0, proxied_path)
         else:
             resolver = None
-            client_uri = self.get_client_uri('ws', host, port, proxied_path)
+
+        client_uri = self.get_client_uri('ws', host, port, proxied_path)
         headers = self.proxy_request_headers()
 
         def message_cb(message):
