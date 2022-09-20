@@ -326,10 +326,13 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.log.debug("Making client for Unix socket %r", port)
             assert host == 'localhost', "Unix sockets only possible on localhost"
             client = SimpleAsyncHTTPClient(resolver=UnixResolver(port))
+            # Use a phony numeric port to make a normal URL so the path can be
+            # parsed back out of it. The host & port in the URL aren't used.
+            req = self._build_proxy_request(host, 0, proxied_path, body)
         else:
             client = httpclient.AsyncHTTPClient()
+            req = self._build_proxy_request(host, port, proxied_path, body)
 
-        req = self._build_proxy_request(host, port, proxied_path, body)
         self.log.debug(f"Proxying request to {req.url}")
 
         try:
@@ -431,7 +434,16 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
-        client_uri = self.get_client_uri('ws', host, port, proxied_path)
+        if self.is_unix_sock(port):
+            assert host == 'localhost', "Unix sockets only possible on localhost"
+            self.log.debug("Opening websocket on Unix socket %r", port)
+            resolver = UnixResolver(port)  # Requires tornado >= 6.3
+            # Use a phony numeric port to make a normal URL so the path can be
+            # parsed back out of it. The host & port in the URL aren't used.
+            client_uri = self.get_client_uri('ws', host, 0, proxied_path)
+        else:
+            resolver = None
+            client_uri = self.get_client_uri('ws', host, port, proxied_path)
         headers = self.proxy_request_headers()
 
         def message_cb(message):
@@ -463,7 +475,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await pingable_ws_connect(request=request,
                 on_message_callback=message_cb, on_ping_callback=ping_cb,
-                subprotocols=self.subprotocols)
+                subprotocols=self.subprotocols, resolver=resolver)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
@@ -721,10 +733,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
-        if self.is_unix_sock(self.port):
-            self.set_status(501)
-            self.write("Proxying websockets on a Unix socket is not supported yet")
-            return
         await self.ensure_process()
         return await super().open(self.port, path)
 
