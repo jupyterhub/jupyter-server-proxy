@@ -37,7 +37,7 @@ jobs:
         # specified below, these parameters have no meaning on their own and
         # gain meaning on how job steps use them.
         jupyterlab_version: [2, 3]
-        python: [3.6, 3.7, 3.8, 3.9]
+        python: ["3.6", "3.11"]
         jupyter_app: [notebook, lab]
 
     steps:
