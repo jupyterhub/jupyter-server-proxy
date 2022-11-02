@@ -30,15 +30,14 @@ on:
   workflow_dispatch:
 
 jobs:
-
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+    runs-on: ubuntu-22.04
 
-      - uses: actions/setup-python@v2
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: "3.11"
 
       - name: Build dist
         run: |
@@ -58,14 +57,14 @@ jobs:
           jlpm pack --filename ../jsdist/jupyterlab-server-proxy-jlpmpack.tgz
 
       - name: Upload Python artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist
           if-no-files-found: error
 
       - name: Upload Javascript artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: jsdist
           path: jsdist
@@ -73,39 +72,48 @@ jobs:
 
   # https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
   publish-pypi:
+    runs-on: ubuntu-22.04
     needs:
       - build
-    runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
       - name: Download artifacts from build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist
+
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@v1.3.0
+        uses: pypa/gh-action-pypi-publish@v1.5.1
         with:
           password: ${{ secrets.PYPI_PASSWORD }}
 
   # https://docs.github.com/en/actions/language-and-framework-guides/publishing-nodejs-packages#publishing-packages-to-the-npm-registry
   publish-npm:
+    runs-on: ubuntu-22.04
     needs:
       - build
-    runs-on: ubuntu-latest
+
     steps:
       # actions/setup-node creates an .npmrc file that references NODE_AUTH_TOKEN
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org
+
       - name: Download artifacts from build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: jsdist
           path: jsdist
+
       - run: npm publish --dry-run ./jsdist/jupyterlab-server-proxy-jlpmpack.tgz
+
       - run: npm publish ./jsdist/jupyterlab-server-proxy-jlpmpack.tgz
         if: startsWith(github.ref, 'refs/tags')
         env:
