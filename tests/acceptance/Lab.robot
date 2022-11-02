@@ -1,3 +1,7 @@
+*** Comments ***
+To learn more about these .robot files, see
+https://robotframework-jupyterlibrary.readthedocs.io/en/stable/.
+
 *** Settings ***
 Documentation     Server Proxies in Lab
 Library           JupyterLibrary
