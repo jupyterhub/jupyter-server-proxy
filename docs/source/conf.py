@@ -2,84 +2,86 @@
 #
 # Configuration reference: https://www.sphinx-doc.org/en/master/usage/configuration.html
 #
-
-
-# -- Project specific imports ------------------------------------------------
-
 import datetime
 
 
 # -- Project information -----------------------------------------------------
-
+# ref: https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+#
 project = "Jupyter Server Proxy"
 copyright = f"{datetime.date.today().year}, Project Jupyter Contributors"
 author = "Project Jupyter Contributors"
 
 
-# -- General configuration ---------------------------------------------------
-
-# If your documentation needs a minimal Sphinx version, state it here.
+# -- General Sphinx configuration ---------------------------------------------------
+# ref: https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 #
-# needs_sphinx = '1.0'
-
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
+# Add any Sphinx extension module names here, as strings. They can be extensions
+# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+#
 extensions = [
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    "sphinx_copybutton",
     "myst_parser",
+    "sphinx_copybutton",
+    "sphinxext.opengraph",
+    "sphinxext.rediraffe",
 ]
-
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
-
-# The suffix(es) of source filenames.
+root_doc = "index"
 source_suffix = [".md", ".rst"]
-
-# The root toctree document.
-root_doc = master_doc = 'index'
-
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
-
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
-# ref: http://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
-# FIXME: change to sphinx_book_theme or pydata_sphinx_theme
+# ref: https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 #
-# Alabaster theme options: https://alabaster.readthedocs.io/en/latest/customization.html#theme-options
-html_theme = "alabaster"
-html_theme_options = {
-    "github_user": "jupyterhub",
-    "github_repo": "jupyter-server-proxy",
-}
-html_context = {}
-
-html_favicon = "_static/images/logo/favicon.ico"
-# FIXME: Add project logo
 # html_logo = "_static/images/logo/logo.png"
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+html_favicon = "_static/images/logo/favicon.ico"
 html_static_path = ["_static"]
 
+# sphinx_book_theme reference: https://sphinx-book-theme.readthedocs.io/en/latest/?badge=latest
+html_theme = "sphinx_book_theme"
+html_theme_options = {
+    "home_page_in_toc": True,
+    "repository_url": "https://github.com/jupyterhub/jupyter-server-proxy/",
+    "repository_branch": "main",
+    "path_to_docs": "docs/source",
+    "use_download_button": False,
+    "use_edit_page_button": True,
+    "use_issues_button": True,
+    "use_repository_button": True,
+}
 
-# -- Options for intersphinx extension ---------------------------------------
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+# -- Options for linkcheck builder -------------------------------------------
+# ref: https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-the-linkcheck-builder
+#
+linkcheck_ignore = [
+    r"(.*)github\.com(.*)#",  # javascript based anchors
+    r"(.*)/#%21(.*)/(.*)",  # /#!forum/jupyter - encoded anchor edge case
+    r"https://github.com/[^/]*$",  # too many github usernames / searches in changelog
+    "https://github.com/jupyterhub/jupyter-server-proxy/pull/",  # too many PRs in changelog
+    "https://github.com/jupyterhub/jupyter-server-proxy/compare/",  # too many comparisons in changelog
+]
+linkcheck_anchors_ignore = [
+    "/#!",
+    "/#%21",
+]
 
 
-# -- Options for todo extension ----------------------------------------------
+# -- Options for the opengraph extension -------------------------------------
+# ref: https://github.com/wpilibsuite/sphinxext-opengraph#options
+#
+# ogp_site_url is set automatically by RTD
+# ogp_image = "_static/images/logo/logo.png"
+ogp_use_first_image = True
 
-# If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
+
+# -- Options for the rediraffe extension -------------------------------------
+# ref: https://github.com/wpilibsuite/sphinxext-rediraffe#readme
+#
+# This extensions help us relocated content without breaking links. If a
+# document is moved internally, we should configure a redirect like below.
+#
+rediraffe_branch = "main"
+rediraffe_redirects = {
+    # "old-file": "new-folder/new-file-name",
+}
