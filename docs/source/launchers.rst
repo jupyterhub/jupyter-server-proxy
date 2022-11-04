@@ -16,7 +16,7 @@ menu in the notebook's default tree view. Note that a new instance
 is **not** launched every time you click an item - if the process
 is already running, it is reused.
 
-.. image:: images/nbextension-tree.png
+.. image:: _static/images/nbextension-tree.png
 
 JupyterLab Launcher Extension
 =============================
@@ -31,6 +31,6 @@ to provide launcher icons for registered server processes.
 This should provide icons for each registered process in the main
 JupyterLab launcher
 
-.. image:: images/labextension-launcher.png
+.. image:: _static/images/labextension-launcher.png
 
 Clicking on them will open the application in a new window.

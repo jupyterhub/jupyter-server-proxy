@@ -27,7 +27,7 @@ The primary use cases are:
     JupyterLab extensions) to access web APIs of other processes running
     locally in a safe manner. This is used by the [JupyterLab
     extension](https://github.com/dask/dask-labextension) for
-    [dask](https://dask.org/).
+    [dask](https://www.dask.org/).
 
 [The documentation](https://jupyter-server-proxy.readthedocs.io/)
 contains information on installation & usage.

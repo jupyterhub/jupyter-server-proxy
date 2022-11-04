@@ -53,18 +53,15 @@ pygments_style = None
 # -- Options for HTML output -------------------------------------------------
 # ref: http://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-# FIXME: change to pydata_sphinx_theme
+# FIXME: change to sphinx_book_theme or pydata_sphinx_theme
+#
+# Alabaster theme options: https://alabaster.readthedocs.io/en/latest/customization.html#theme-options
 html_theme = "alabaster"
 html_theme_options = {
-    "github_url": "https://github.com/jupyterhub/jupyter-server-proxy/",
-    "use_edit_page_button": True,
-}
-html_context = {
     "github_user": "jupyterhub",
     "github_repo": "jupyter-server-proxy",
-    "github_version": "main",
-    "doc_path": "docs",
 }
+html_context = {}
 
 html_favicon = "_static/images/logo/favicon.ico"
 # FIXME: Add project logo
