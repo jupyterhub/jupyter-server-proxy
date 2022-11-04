@@ -21,7 +21,7 @@ The primary use cases are:
    JupyterLab extensions) to access web APIs of other processes
    running locally in a safe manner. This is used by the `JupyterLab
    extension <https://github.com/dask/dask-labextension>`_ for
-   `dask <https://dask.org/>`_.
+   `dask <https://www.dask.org/>`_.
 
 
 Contents
@@ -72,3 +72,11 @@ Contributions of all kinds - documentation, issues, blog posts, code, are most w
 
    contributing/release
    convenience/new
+
+Changelog
+=========
+
+.. toctree::
+   :maxdepth: 2
+
+   changelog
