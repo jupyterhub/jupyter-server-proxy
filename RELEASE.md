@@ -29,9 +29,9 @@ For you to follow along according to these instructions, you need:
    python setup.py sdist bdist_wheel
    ```
 
-2. Update [CHANGELOG.md](CHANGELOG.md). Doing this can be made easier with the
-   help of the
-   [choldgraf/github-activity](https://github.com/choldgraf/github-activity)
+2. Update [changelog.md](docs/source/changelog.md). Doing this can be made
+   easier with the help of the
+   [executablebooks/github-activity](https://github.com/executablebooks/github-activity)
    utility.
 
 ## Steps to make a release

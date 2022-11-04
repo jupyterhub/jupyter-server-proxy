@@ -72,3 +72,11 @@ Contributions of all kinds - documentation, issues, blog posts, code, are most w
 
    contributing/release
    convenience/new
+
+Changelog
+=========
+
+.. toctree::
+   :maxdepth: 2
+
+   changelog
