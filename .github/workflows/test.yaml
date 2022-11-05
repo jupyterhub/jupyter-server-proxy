@@ -98,8 +98,6 @@ jobs:
         if: matrix.jupyterlab-version == '2'
         run: |
           cd jupyterlab-server-proxy
-          jlpm
-          jlpm build:lib
           jupyter labextension install . --no-build --debug
           jupyter lab build --minimize=False --debug
 
