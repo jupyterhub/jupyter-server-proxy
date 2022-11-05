@@ -14,6 +14,7 @@ pip install -e .[test]
 
 # explicit install needed with editable mode (-e) jupyter
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
+jupyter server extension enable --sys-prefix jupyter_server_proxy
 ```
 
 Before running tests, you need a server that we can test against.
@@ -42,6 +43,7 @@ pip install -e .[test,acceptance]
 ```
 
 In addition, compatible versions of:
+
 - `geckodriver`
 - `firefox`
 
@@ -59,36 +61,24 @@ browser logs, server logs, and report HTML in `build/robot`.
 ### JupyterLab extension
 
 The `jlpm` command is JupyterLab's pinned version of `yarn` that is
-installed with JupyterLab. You may use `yarn` or `npm` instead of `jlpm`
-below.
+installed with JupyterLab.
+
+> You may use `yarn` or `npm run` instead of `jlpm` below.
 
 ```bash
-cd jupyterlab-server-proxy
-
-# Install dependencies
-jlpm
-
-# Build Typescript source
-jlpm build
-
-# Link your development version of the extension with JupyterLab
-jupyter labextension link .
-
-# Rebuild Typescript source after making changes
-jlpm build
-
-# Rebuild JupyterLab after making any changes
-jupyter lab build
+cd jupyterlab-server-proxy # Change to the root of the labextension
+jlpm                       # Install dependencies (or `npm i`)
+jlpm build:prod            # Build:
+                           # - `jupyterlab-server-proxy/lib`
+                           # - `jupyter_server_proxy/labextension`
+jlpm install:extension     # Symlink into `{sys.prefix}/share/jupyter/labextensions`
 ```
 
-You can watch the source directory and run JupyterLab in watch mode to
-watch for changes in the extension's source and automatically rebuild
-the extension and application.
+You can watch the source directory and automatically rebuild the `lib` folder:
 
 ```bash
-# Watch the source directory in another terminal tab
-jlpm watch
-
-# Run jupyterlab in watch mode in one terminal tab
-jupyter lab --watch
+jlpm watch   # ... watch the source directory in another terminal tab
 ```
+
+However, the built-in `jupyter labextension watch` does _not_ work with this repo,
+as the `package.json` and `setup.py` would need to be at the same level.

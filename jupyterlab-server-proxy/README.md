@@ -2,31 +2,30 @@
 
 Launcher icons for proxied applications
 
-
 ## Prerequisites
 
-* JupyterLab
+- JupyterLab >=2,<3
 
 ## Installation
+
+For JupyterLab 3, use your preferred Python package manager to install `jupyter-server-proxy`:
+
+```bash
+pip install jupyter-server-proxy
+```
+
+or
+
+```bash
+conda install jupyter-server-proxy
+```
+
+As a _prebuilt_ extension, it will "just work," and requires not
+
+### JupyterLab 2
+
+For JupyterLab 2, ensure `nodejs` is installed, and run:
 
 ```bash
 jupyter labextension install @jupyterlab/server-proxy
 ```
-
-## Development
-
-For a development install (requires npm version 4 or later), do the following in the repository directory:
-
-```bash
-npm install
-npm run build
-jupyter labextension link .
-```
-
-To rebuild the package and the JupyterLab app:
-
-```bash
-npm run build
-jupyter lab build
-```
-
