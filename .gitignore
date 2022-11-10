@@ -1,10 +1,11 @@
 # Manually added entries
 #
-jsdist
-jupyter_server_proxy/labextension
-node_modules
+jsdist/
+jupyter_server_proxy/labextension/
+node_modules/
 package-lock.json
-
+.yarn-packages/
+*.tsbuildinfo
 
 
 # Copy pasted entries from:

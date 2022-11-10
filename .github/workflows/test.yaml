@@ -47,7 +47,6 @@ jobs:
           python-version: "${{ matrix.python-version }}"
 
       - name: Build Python package
-        id: build-package
         run: |
           pip install jupyter_packaging wheel jupyterlab
           python setup.py sdist bdist_wheel
