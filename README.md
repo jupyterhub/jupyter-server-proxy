@@ -32,6 +32,9 @@ The primary use cases are:
 [The documentation](https://jupyter-server-proxy.readthedocs.io/)
 contains information on installation & usage.
 
+**Warning:** Jupyter Server Proxy is designed for containerised environments.
+It has access to all local network services that the user has access to.
+
 ## Install
 
 ### Requirements
