@@ -18,6 +18,8 @@ Server Process options
 Server Processes are configured with a dictionary of key value
 pairs.
 
+.. _server-process-cmd:
+
 ``command``
 ^^^^^^^^^^^
 
@@ -26,7 +28,8 @@ pairs.
    * A list of strings that is the command used to start the
      process. The following template strings will be replaced:
 
-     * ``{port}`` the port the process should listen on.
+     * ``{port}`` the port (or path if :ref:`server-process-unix-socket` is True)
+       that the process should listen on.
 
      * ``{base_url}`` the base URL of the notebook
 
@@ -94,6 +97,23 @@ pairs.
 
      Set the port that the service will listen on. The default is to
      automatically select an unused port.
+
+.. _server-process-unix-socket:
+
+``unix_socket``
+^^^^^^^^^^^^^^^
+
+    If *True*, the server will listen on a Unix socket at a filesystem path, instead
+    of a TCP port. The ``{port}`` argument (see :ref:`server-process-cmd`) will be a
+    filesystem path for this socket instead of a port number. The server should
+    create a Unix socket bound to this path and listen for HTTP requests on it.
+
+    The Unix socket will only be available to the user the server belongs to,
+    whereas TCP sockets are available to any users on the same host.
+
+    If this is used, the ``port`` configuration key is ignored.
+
+    Defaults to *False*.
 
 
 ``mappath``
