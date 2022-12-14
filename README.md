@@ -35,7 +35,7 @@ contains information on installation & usage.
 ## Security warning
 
 Jupyter Server Proxy is often used to start a user defined process listening to
-some network port (http://localhost:4567) for a user starting a Jupyter Server
+some network port (e.g. http://localhost:4567) for a user starting a Jupyter Server
 that only that user has permission to access. The user can then access the
 started process proxied through the Jupyter Server.
 
@@ -45,9 +45,7 @@ the Jupyter Server's authorization!
 
 A common strategy to enforce access proxied via Jupyter Server is to start
 Jupyter Server within a container and only allow network access to the Jupyter
-Server through to the container. Another strategy is to communicate with the
-started process through a unix socket as proposed in [Pull request
-#337](https://github.com/jupyterhub/jupyter-server-proxy/pull/337).
+Server via the container.
 
 For more insights, see [Ryan Lovetts comment about
 it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-1350118197).
