@@ -32,8 +32,25 @@ The primary use cases are:
 [The documentation](https://jupyter-server-proxy.readthedocs.io/)
 contains information on installation & usage.
 
-**Warning:** Jupyter Server Proxy is designed for containerised environments.
-It has access to all local network services that the user has access to.
+## Security warning
+
+Jupyter Server Proxy is often used to start a user defined process listening to
+some network port (http://localhost:4567) for a user starting a Jupyter Server
+that only that user has permission to access. The user can then access the
+started process proxied through the Jupyter Server.
+
+For safe use of Jupyter Server Proxy, you should ensure that the process started
+by Jupyter Server proxy can't be accessed directly by another user and bypass
+the Jupyter Server's authorization!
+
+A common strategy to enforce access proxied via Jupyter Server is to start
+Jupyter Server within a container and only allow network access to the Jupyter
+Server through to the container. Another strategy is to communicate with the
+started process through a unix socket as proposed in [Pull request
+#337](https://github.com/jupyterhub/jupyter-server-proxy/pull/337).
+
+For more insights, see [Ryan Lovetts comment about
+it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-1350118197).
 
 ## Install
 
