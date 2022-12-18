@@ -1,3 +1,7 @@
+*** Comments ***
+To learn more about these .robot files, see
+https://robotframework-jupyterlibrary.readthedocs.io/en/stable/.
+
 *** Settings ***
 Documentation     Acceptance tests for jupyter-server-proxy
 Library           JupyterLibrary
@@ -9,6 +13,9 @@ Suite Teardown    Clean Up
 Set Up
     ${notebook dir} =    Set Variable    ${OUTPUT DIR}${/}notebooks
     Copy Directory    resources    ${notebook dir}
+    Set Environment Variable
+    ...    name=JUPYTER_CONFIG_DIR
+    ...    value=${notebook dir}
     Wait For New Jupyter Server To Be Ready
     ...    stdout=${OUTPUT DIR}${/}server.log
     ...    notebook_dir=${notebook dir}

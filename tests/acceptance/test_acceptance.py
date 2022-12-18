@@ -15,7 +15,7 @@ def test_robot():
         shutil.rmtree(OUTPUT)
 
     return_code = subprocess.call(
-        [*map(str, ["robot", "--outputdir", OUTPUT, HERE])],
+        ["robot", "--consolecolors=on", f"--outputdir={OUTPUT}", str(HERE)],
         cwd=str(HERE)
     )
 

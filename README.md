@@ -27,10 +27,28 @@ The primary use cases are:
     JupyterLab extensions) to access web APIs of other processes running
     locally in a safe manner. This is used by the [JupyterLab
     extension](https://github.com/dask/dask-labextension) for
-    [dask](https://dask.org/).
+    [dask](https://www.dask.org/).
 
 [The documentation](https://jupyter-server-proxy.readthedocs.io/)
 contains information on installation & usage.
+
+## Security warning
+
+Jupyter Server Proxy is often used to start a user defined process listening to
+some network port (e.g. http://localhost:4567) for a user starting a Jupyter Server
+that only that user has permission to access. The user can then access the
+started process proxied through the Jupyter Server.
+
+For safe use of Jupyter Server Proxy, you should ensure that the process started
+by Jupyter Server proxy can't be accessed directly by another user and bypass
+the Jupyter Server's authorization!
+
+A common strategy to enforce access proxied via Jupyter Server is to start
+Jupyter Server within a container and only allow network access to the Jupyter
+Server via the container.
+
+For more insights, see [Ryan Lovetts comment about
+it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-1350118197).
 
 ## Install
 

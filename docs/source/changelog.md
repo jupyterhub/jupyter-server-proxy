@@ -1,25 +1,27 @@
+# Changelog
+
 ## 3.2
 
 ### 3.2.1 - 2022-01-24
 
 3.2.1 is a security release, fixing a vulnerability [GHSA-gcv9-6737-pjqw](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-gcv9-6737-pjqw) where `allowed_hosts` were not validated correctly.
 
-## Maintenance and upkeep improvements
+#### Maintenance and upkeep improvements
 
+- Remove empty JupyterLab style [#314](https://github.com/jupyterhub/jupyter-server-proxy/pull/314) ([@bollwyvl](https://github.com/bollwyvl))
 - Modernize docs without making changes to its content [#313](https://github.com/jupyterhub/jupyter-server-proxy/pull/313) ([@consideRatio](https://github.com/consideRatio))
 - Remove no longer needed logic involving six [#312](https://github.com/jupyterhub/jupyter-server-proxy/pull/312) ([@consideRatio](https://github.com/consideRatio))
 - Update language, from master to main [#311](https://github.com/jupyterhub/jupyter-server-proxy/pull/311) ([@consideRatio](https://github.com/consideRatio))
 
-## Other merged PRs
+#### Continuous integration improvements
 
-- Remove empty JupyterLab style [#314](https://github.com/jupyterhub/jupyter-server-proxy/pull/314) ([@bollwyvl](https://github.com/bollwyvl))
 - ci: avoid triggering ci twice on pre-commit.ci/dependabot prs [#310](https://github.com/jupyterhub/jupyter-server-proxy/pull/310) ([@consideRatio](https://github.com/consideRatio))
 
-## Contributors to this release
+#### Contributors to this release
 
 ([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2021-11-29&to=2022-01-19&type=c))
 
-[@bollwyvl](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2021-11-29..2022-01-19&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-11-29..2022-01-19&type=Issues) | [@welcome](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Awelcome+updated%3A2021-11-29..2022-01-19&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-11-29..2022-01-19&type=Issues)
+[@bollwyvl](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2021-11-29..2022-01-19&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-11-29..2022-01-19&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-11-29..2022-01-19&type=Issues)
 
 
 ### 3.2.0 - 2021-11-29
@@ -51,7 +53,7 @@
 
 - Fix link to contributing.md [#291](https://github.com/jupyterhub/jupyter-server-proxy/pull/291) ([@kinow](https://github.com/kinow))
 
-#### Continuous integration
+#### Continuous integration improvements
 
 - Test with lab [#298](https://github.com/jupyterhub/jupyter-server-proxy/pull/298) ([@maresb](https://github.com/maresb))
 - Open browser not required for running pytests [#273](https://github.com/jupyterhub/jupyter-server-proxy/pull/273) ([@candlerb](https://github.com/candlerb))
@@ -85,11 +87,11 @@
 
 - Reduce (and test) sdist size [#263](https://github.com/jupyterhub/jupyter-server-proxy/pull/263) ([@bollwyvl](https://github.com/bollwyvl))
 
-#### Continuous integration
+#### Continuous integration improvements
 
 - Add acceptance testing with robotframework(-jupyterlibrary) [#269](https://github.com/jupyterhub/jupyter-server-proxy/pull/269) ([@bollwyvl](https://github.com/bollwyvl))
 
-#### #### Dependency updates
+#### Dependency updates
 
 - Bump postcss from 7.0.35 to 7.0.36 in /jupyterlab-server-proxy [#277](https://github.com/jupyterhub/jupyter-server-proxy/pull/277) ([@dependabot](https://github.com/dependabot))
 - Bump normalize-url from 4.5.0 to 4.5.1 in /jupyterlab-server-proxy [#276](https://github.com/jupyterhub/jupyter-server-proxy/pull/276) ([@dependabot](https://github.com/dependabot))
@@ -143,7 +145,7 @@ version jumps from 2.1.2 to 3.0.0.
 * Breaking: Replace host_whitelist with host_allowlist [#256](https://github.com/jupyterhub/jupyter-server-proxy/pull/256) ([@manics](https://github.com/manics))
 * Switch from notebook to jupyter-server [#254](https://github.com/jupyterhub/jupyter-server-proxy/pull/254) ([@manics](https://github.com/manics))
 
-#### Continuous integration
+#### Continuous integration improvements
 
 * Move build.yaml into test.yaml [#255](https://github.com/jupyterhub/jupyter-server-proxy/pull/255) ([@manics](https://github.com/manics))
 * Fix build.yaml workflow [#249](https://github.com/jupyterhub/jupyter-server-proxy/pull/249) ([@manics](https://github.com/manics))

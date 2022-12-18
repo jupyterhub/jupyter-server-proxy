@@ -217,7 +217,7 @@ mechanism used by Jupyter Notebook. It can take config in Python
 and we can use that to specify Server Processes - including functions
 if we want tighter control over what process is spawned.
 
-#. Create a file called ``jupyter_notebook_config.py`` in one of the
+#. Create a file called ``jupyter_server_config.py`` in one of the
    Jupyter config directories. You can get a list of these directories
    by running ``jupyter --paths`` and looking under the 'config'
    section

@@ -27,28 +27,26 @@ on:
 
 jobs:
   test:
+    # FIXME: We need ubutnu-20.04 until firefox and geckowebdriver is available
+    #        in ubuntu-22.04. To check if we can upgrade to ubuntu-22.04, see
+    #        https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#browsers-and-drivers
+    #
     runs-on: ubuntu-20.04
 
     strategy:
-      # Keep running even if one variation of the job fail
       fail-fast: false
       matrix:
-        # We run this job multiple times with different parameterization
-        # specified below, these parameters have no meaning on their own and
-        # gain meaning on how job steps use them.
-        jupyterlab_version: [2, 3]
-        python: [3.6, 3.7, 3.8, 3.9]
-        jupyter_app: [notebook, lab]
+        jupyterlab-version: ["2", "3"]
+        python-version: ["3.7", "3.11"]
+        jupyter-app: [notebook, lab]
 
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: "${{ matrix.python }}"
+          python-version: "${{ matrix.python-version }}"
 
       - name: Build Python package
-        id: build-package
         run: |
           pip install jupyter_packaging wheel jupyterlab
           python setup.py sdist bdist_wheel
@@ -60,27 +58,27 @@ jobs:
         #       Pytest options are set in tests/pytest.ini.
         run: |
           pip install --upgrade pip
-          pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab_version }}.0
+          pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab-version }}.0
           pip install ./dist/jupyter_server_proxy-*.whl
           pip install pytest pytest-cov pytest-html
           # Ensure we don't accidentally depend on notebook
-          if [ "${{ matrix.jupyter_app }}" == "notebook" ]; then
+          if [ "${{ matrix.jupyter-app }}" == "notebook" ]; then
             pip install "notebook<7"
           fi
           pip freeze
 
       - name: Run tests
         run: |
-          JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter_app }} --config=./tests/resources/jupyter_server_config.py &
+          JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter-app }} --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           cd tests
           pytest
 
       - name: Upload pytest and coverage reports
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: unit-tests-${{matrix.python }}-${{ matrix.jupyter_app }}-${{matrix.jupyterlab_version}}-${{ github.run_number }}
+          name: unit-tests-${{matrix.python }}-${{ matrix.jupyter-app }}-${{matrix.jupyterlab-version}}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage
@@ -97,7 +95,7 @@ jobs:
           jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
 
       - name: Install JupyterLab Extension
-        if: matrix.jupyterlab_version == '2'
+        if: matrix.jupyterlab-version == '2'
         run: |
           cd jupyterlab-server-proxy
           jupyter labextension install . --no-build --debug
@@ -120,8 +118,8 @@ jobs:
 
       - name: Upload acceptance test reports
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: acceptance-tests-${{ matrix.python }}-${{ matrix.jupyter_app }}-${{ matrix.jupyterlab_version }}-${{ github.run_number }}
+          name: acceptance-tests-${{ matrix.python }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/robot
