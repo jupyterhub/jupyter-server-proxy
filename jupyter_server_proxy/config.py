@@ -159,9 +159,9 @@ class ServerProxy(Configurable):
 
             Could also be a callable. It should return a list.
 
-            If the command is not specified or is an empty list, it is assumed the process is already
-            running, therefore the port checking is skipped and the proxy is set up on the specified
-            port.
+            If the command is not specified or is an empty list, the server
+            process is assumed to be started ahead of time and already available
+            to be proxied to.
 
           environment
             A dictionary of environment variable mappings. As with the command

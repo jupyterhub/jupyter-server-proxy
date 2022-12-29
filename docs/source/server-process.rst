@@ -36,8 +36,8 @@ pairs.
    * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a list of strings that are used & treated same as above.
   
-   If the command is not specified or is an empty list, it is assumed by the
-   proxy that the process is already running and available on ``{port}``.
+   If the command is not specified or is an empty list, the server process is
+   assumed to be started ahead of time and already available to be proxied to.
 
 ``timeout``
 ^^^^^^^^^^^
