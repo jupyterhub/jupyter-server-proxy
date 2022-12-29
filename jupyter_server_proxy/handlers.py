@@ -643,7 +643,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             if 'proc' not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
+
+                # When command option isn't truthy, it means its a process not
+                # to be managed/started by jupyter-server-proxy. This means we
+                # won't await its readiness or similar either.
                 cmd = self.get_cmd()
+                if not cmd:
+                    self.state['proc'] = "process not managed by jupyter-server-proxy"
+                    return
 
                 # Set up extra environment variables for process
                 server_env = os.environ.copy()
@@ -653,9 +660,6 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
                 proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log)
                 self.state['proc'] = proc
-
-                if not cmd:
-                    return
 
                 try:
                     await proc.start()
