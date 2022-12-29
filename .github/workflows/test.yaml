@@ -111,7 +111,7 @@ jobs:
         if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.1')) }}
         run: |
           jupyter labextension list
-          jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
+          jupyter labextension list 2>&1 | grep -ie '@jupyterhub/jupyter-server-proxy.*OK.*'
           python -m jupyterlab.browser_check
 
       - name: Install Acceptance test dependencies

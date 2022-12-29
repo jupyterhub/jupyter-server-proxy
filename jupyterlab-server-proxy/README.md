@@ -1,6 +1,9 @@
 # jupyterlab-server-proxy
 
-Launcher icons for proxied applications
+Adds items to the JupyterLab [Launcher] representing the configured server
+processes.
+
+[launcher]: https://jupyterlab.readthedocs.io/en/stable/extension/extension_points.html#launcher
 
 ## Prerequisites
 
@@ -29,7 +32,7 @@ conda install jupyter-server-proxy
 For JupyterLab 2, ensure `nodejs` is installed and available on `$PATH` and run:
 
 ```bash
-jupyter labextension install @jupyterlab/server-proxy
+jupyter labextension install @jupyterhub/jupyter-server-proxy
 ```
 
 > This will cause:
