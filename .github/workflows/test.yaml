@@ -27,11 +27,12 @@ on:
 
 jobs:
   test:
-    # FIXME: We need ubutnu-20.04 until firefox and geckowebdriver is available
-    #        in ubuntu-22.04. To check if we can upgrade to ubuntu-22.04, see
-    #        https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#browsers-and-drivers
+    # NOTE: The worker environment running this job needs firefox and
+    #       geckowebdriver available. Before upgrading to ubuntu-24.04 in the
+    #       future, check and see its available in a location like this:
+    #       https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#browsers-and-drivers
     #
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       fail-fast: false
