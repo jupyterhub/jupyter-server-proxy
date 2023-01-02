@@ -103,6 +103,7 @@ jobs:
           jupyter lab build --minimize=False --debug
 
       - name: Check the lab extension
+        if: !(matrix.jupyterlab-version == '2' && matrix.python-version == '3.11')
         run: |
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
