@@ -573,6 +573,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
         self.mappath = {}
+        self.command = list()
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
@@ -588,11 +589,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         Allocate either the requested port or a random empty port for use by
         application
         """
-        if 'port' not in self.state:
+        if 'port' not in self.state and self.command:
             sock = socket.socket()
             sock.bind(('', self.requested_port))
             self.state['port'] = sock.getsockname()[1]
             sock.close()
+        elif 'port' not in self.state:
+            self.state['port'] = self.requested_port
+        
         return self.state['port']
 
     def get_cwd(self):
@@ -639,7 +643,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
             if 'proc' not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
+
+                # When command option isn't truthy, it means its a process not
+                # to be managed/started by jupyter-server-proxy. This means we
+                # won't await its readiness or similar either.
                 cmd = self.get_cmd()
+                if not cmd:
+                    self.state['proc'] = "process not managed by jupyter-server-proxy"
+                    return
 
                 # Set up extra environment variables for process
                 server_env = os.environ.copy()
