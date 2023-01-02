@@ -89,18 +89,18 @@ jobs:
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
 
+      - name: Check the Jupyter Server extension is installed
+        run: |
+          pip install jupyter-server
+          jupyter server extension list
+          jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
+
       - name: Install JupyterLab Extension
         if: matrix.jupyterlab-version == '2'
         run: |
           cd jupyterlab-server-proxy
           jupyter labextension install . --no-build --debug
           jupyter lab build --minimize=False --debug
-
-      - name: Check the lab extension
-        run: |
-          jupyter labextension list
-          jupyter labextension list 2>&1 | grep -ie '@jupyterhub/jupyter-server-proxy.*OK.*'
-          python -m jupyterlab.browser_check
 
       - name: Install Acceptance test dependencies
         run: |
@@ -111,11 +111,11 @@ jobs:
         run: |
           pytest -k acceptance -s
 
-      - name: Check the Jupyter Server extension is installed
+      - name: Check the lab extension
         run: |
-          pip install jupyter-server
-          jupyter server extension list
-          jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
+          jupyter labextension list
+          jupyter labextension list 2>&1 | grep -ie '@jupyterhub/jupyter-server-proxy.*OK.*'
+          python -m jupyterlab.browser_check
 
       - name: Upload acceptance test reports
         if: always()
