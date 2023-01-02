@@ -18,7 +18,7 @@ This repo has more than one package.
 #. The JupyterLab plugin, ``jupyterlab-server-proxy``. This provides the
    launcher icons in JupyterLab. This is packaged into the Python package but
    also published to `NPM
-   <https://www.npmjs.com/package/@jupyterlab/server-proxy>`_ for JupyterLab 2
+   <https://www.npmjs.com/package/@jupyterhub/jupyter-server-proxy>`_ for JupyterLab 2
    compatibility.
 
 #. Various python packages in ``contrib/``. These are convenience packages that
@@ -41,7 +41,7 @@ Release checklist
 #. Update the package version number in
    ``jupyterlab-server-proxy/package.json``, it will be read by ``setup.py``.
 
-#. Commit these changes and make a pull request with it. 
+#. Commit these changes and make a pull request with it.
 
 #. Once pull request is merged, make a tag of form ``v<version-number>``:
 
@@ -52,5 +52,5 @@ Release checklist
    And push it to the official repository
 
    .. code::
-     
+
       git push git@github.com:jupyterhub/jupyter-server-proxy --tags

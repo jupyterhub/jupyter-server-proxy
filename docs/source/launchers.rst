@@ -26,7 +26,7 @@ to provide launcher icons for registered server processes.
 
 .. code:: bash
 
-   jupyter labextension install @jupyterlab/server-proxy
+   jupyter labextension install @jupyterhub/jupyter-server-proxy
 
 This should provide icons for each registered process in the main
 JupyterLab launcher

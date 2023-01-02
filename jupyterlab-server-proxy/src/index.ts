@@ -101,10 +101,10 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
 }
 
 /**
- * Initialization data for the jupyterlab-server-proxy extension.
+ * Initialization data for the @jupyterhub/jupyter-server-proxy extension.
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'jupyterlab-server-proxy',
+  id: '@jupyterhub/jupyter-server-proxy',
   autoStart: true,
   requires: [ILauncher, ILayoutRestorer],
   activate: activate

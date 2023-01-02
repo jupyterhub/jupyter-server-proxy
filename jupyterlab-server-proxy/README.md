@@ -1,4 +1,4 @@
-# jupyterlab-server-proxy
+# @jupyterhub/jupyter-server-proxy
 
 Launcher icons for proxied applications
 
@@ -21,7 +21,7 @@ conda install jupyter-server-proxy
 ```
 
 > As a _prebuilt_ extension, it will "just work," only a simple page reload should be required
-> to see launcher items. However, a full restart of `jupyter_server` or `notebook` is required 
+> to see launcher items. However, a full restart of `jupyter_server` or `notebook` is required
 > to reload the `jupyter_server_proxy` serverextension which provides most of the functionality.
 
 ### JupyterLab 2
@@ -29,7 +29,7 @@ conda install jupyter-server-proxy
 For JupyterLab 2, ensure `nodejs` is installed and available on `$PATH` and run:
 
 ```bash
-jupyter labextension install @jupyterlab/server-proxy
+jupyter labextension install @jupyterhub/jupyter-server-proxy
 ```
 
 > This will cause:
