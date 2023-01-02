@@ -89,12 +89,6 @@ jobs:
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
 
-      - name: Check the Jupyter Server extension is installed
-        run: |
-          pip install jupyter-server
-          jupyter server extension list
-          jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
-
       - name: Install JupyterLab Extension
         if: matrix.jupyterlab-version == '2'
         run: |
@@ -116,6 +110,12 @@ jobs:
       - name: Run acceptance tests
         run: |
           pytest -k acceptance -s
+
+      - name: Check the Jupyter Server extension is installed
+        run: |
+          pip install jupyter-server
+          jupyter server extension list
+          jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
 
       - name: Upload acceptance test reports
         if: always()
