@@ -97,7 +97,7 @@ setup_args = dict(
             "pytest-html"
         ],
         "acceptance": [
-            "robotframework-jupyterlibrary"
+            "robotframework-jupyterlibrary>=0.4.2"
         ]
     },
     zip_safe=False,

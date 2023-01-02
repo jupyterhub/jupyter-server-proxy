@@ -111,7 +111,7 @@ jobs:
       - name: Install Acceptance test dependencies
         run: |
           # the acceptance test requires notebook to run
-          pip install "notebook<7" robotframework-jupyterlibrary
+          pip install "notebook<7" "robotframework-jupyterlibrary>=0.4.2"
 
       - name: Run acceptance tests
         run: |
