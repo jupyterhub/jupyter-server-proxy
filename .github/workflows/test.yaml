@@ -79,7 +79,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: unit-tests-${{matrix.python }}-${{ matrix.jupyter-app }}-${{matrix.jupyterlab-version}}-${{ github.run_number }}
+          name: unit-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage
@@ -127,6 +127,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: acceptance-tests-${{ matrix.python }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+          name: acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/robot
