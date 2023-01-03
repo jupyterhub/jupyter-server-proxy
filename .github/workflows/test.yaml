@@ -79,7 +79,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: unit-tests-${{matrix.python }}-${{ matrix.jupyter-app }}-${{matrix.jupyterlab-version}}-${{ github.run_number }}
+          name: unit-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage
@@ -103,6 +103,12 @@ jobs:
           jupyter lab build --minimize=False --debug
 
       - name: Check the lab extension
+        # We test the labextension thoroughly in the acceptance tests below, so
+        # we have conditionally disabled this basic check is to avoid issues in
+        # jupyterlab.browser_check with jupyterlab 2 and a modern version of
+        # python (3.11+).
+        #
+        if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.1')) }}
         run: |
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'
@@ -111,7 +117,7 @@ jobs:
       - name: Install Acceptance test dependencies
         run: |
           # the acceptance test requires notebook to run
-          pip install "notebook<7" robotframework-jupyterlibrary
+          pip install "notebook<7" "robotframework-jupyterlibrary>=0.4.2"
 
       - name: Run acceptance tests
         run: |
@@ -121,6 +127,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: acceptance-tests-${{ matrix.python }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+          name: acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/robot
