@@ -15,7 +15,7 @@ build-backend = "setuptools.build_meta"
 github_url = "https://github.com/jupyterhub/jupyter-server-proxy"
 
 [tool.tbump.version]
-current = "3.2.2"
+current = "4.0.0-alpha.1"
 regex = '''
     (?P<major>\d+)
     \.
