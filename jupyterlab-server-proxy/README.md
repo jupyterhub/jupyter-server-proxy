@@ -1,7 +1,8 @@
-# jupyterlab-server-proxy
+# @jupyterhub/jupyter-server-proxy labextension
 
-Adds items to the JupyterLab [Launcher] representing the configured server
-processes.
+This JupyterLab extension that is bundled and requires with the PyPI package
+jupyter-server-proxy adds items to the JupyterLab [Launcher] representing the
+configured server processes.
 
 [launcher]: https://jupyterlab.readthedocs.io/en/stable/extension/extension_points.html#launcher
 
