@@ -10,7 +10,7 @@ These are instructions on how to make a release.
 
 ## Steps to make a release
 
-1. Create a PR updating `jupyterlab-server-proxy/yarl.lock` and continue only
+1. Create a PR updating `labextension/yarl.lock` and continue only
    when its merged.
 
    This helps us avoid leaving known vulnerabilities are unfixed. To do this,
@@ -18,7 +18,7 @@ These are instructions on how to make a release.
    `.github/workflows/publish.yaml` workflow's `build` job as summarized below.
 
    ```shell
-   rm jupyterlab-server-proxy/yarn.lock
+   rm labextension/yarn.lock
 
    pip install jupyter_packaging wheel jupyterlab~=3.0
    python setup.py sdist bdist_wheel

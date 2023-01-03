@@ -57,7 +57,7 @@ cmdclass = create_cmdclass(
 )
 
 js_command = combine_commands(
-    install_npm(HERE / "jupyterlab-server-proxy", build_cmd="build:prod", npm=["jlpm"]),
+    install_npm(HERE / "labextension", build_cmd="build:prod", npm=["jlpm"]),
     ensure_targets(jstargets),
 )
 
@@ -70,7 +70,7 @@ else:
 long_description = (HERE / "README.md").read_text()
 
 # Get the package info from package.json
-pkg_json = json.loads((HERE / "jupyterlab-server-proxy" / "package.json").read_bytes())
+pkg_json = json.loads((HERE / "labextension" / "package.json").read_bytes())
 
 setup_args = dict(
     name=name.replace("_", "-"),
