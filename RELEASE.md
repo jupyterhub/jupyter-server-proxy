@@ -10,7 +10,7 @@ These are instructions on how to make a release.
 
 ## Steps to make a release
 
-1. Create a PR updating `labextension/yarl.lock` and continue only
+1. Create a PR updating `labextension/yarn.lock` and continue only
    when its merged.
 
    This helps us avoid leaving known vulnerabilities are unfixed. To do this,
