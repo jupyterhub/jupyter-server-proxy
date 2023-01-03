@@ -103,7 +103,12 @@ jobs:
           jupyter lab build --minimize=False --debug
 
       - name: Check the lab extension
-        if: ${{ !(matrix.jupyterlab-version == '2' && matrix.python-version == '3.11') }}
+        # We test the labextension thoroughly in the acceptance tests below, so
+        # we have conditionally disabled this basic check is to avoid issues in
+        # jupyterlab.browser_check with jupyterlab 2 and a modern version of
+        # python (3.11+).
+        #
+        if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.1')) }}
         run: |
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -ie '@jupyterlab/server-proxy.*OK.*'

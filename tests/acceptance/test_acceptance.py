@@ -7,12 +7,11 @@ import pytest
 
 HERE = Path(__file__).parent
 OUTPUT = HERE.parent.parent / "build/robot"
-SERVER_INFO = None
-LAB_INFO = None
+JUPYTER_SERVER_INFO = None
 
 try:
     import jupyter_server
-    SERVER_INFO = jupyter_server.version_info
+    JUPYTER_SERVER_INFO = jupyter_server.version_info
 except ImportError:
     pass
 
@@ -23,7 +22,9 @@ def test_robot():
 
     env = dict(**os.environ)
 
-    if SERVER_INFO is None:
+    # JUPYTER_LIBRARY_* env vars documentation:
+    # https://robotframework-jupyterlibrary.readthedocs.io/en/stable/LIMITS.html#notebookapp-vs-serverapp
+    if JUPYTER_SERVER_INFO is None:
         env.update(
             JUPYTER_LIBRARY_APP_COMMAND="jupyter-notebook",
             JUPYTER_LIBRARY_APP="NotebookApp",
