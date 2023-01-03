@@ -24,15 +24,15 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
  * ref: https://jupyterlab.readthedocs.io/en/stable/extension/extension_dev.html
  */
 async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
+  // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
   if (!response.ok) {
     console.log('Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.');
     console.log(response);
     return;
   }
-  const { commands, shell } = app;
-
   const data = await response.json();
+
   const namespace = 'server-proxy';
   const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
     namespace
@@ -52,6 +52,7 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     });
   }
 
+  const { commands, shell } = app;
   commands.addCommand(command, {
     label: args => args['title'] as string,
     execute: args => {
