@@ -70,7 +70,6 @@ Contributions of all kinds - documentation, issues, blog posts, code, are most w
 .. toctree::
    :maxdepth: 2
 
-   contributing/release
    convenience/new
 
 Changelog
