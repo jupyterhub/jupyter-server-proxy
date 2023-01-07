@@ -1,8 +1,7 @@
-# @jupyterhub/jupyter-server-proxy labextension
+# `@jupyterhub/jupyter-server-proxy`
 
-This JupyterLab extension that is bundled and requires with the PyPI package
-jupyter-server-proxy adds items to the JupyterLab [Launcher] representing the
-configured server processes.
+A JupyterLab extension that adds items to the JupyterLab [Launcher] representing the
+configured server processes managed by the python package `jupyter-server-proxy` (required).
 
 [launcher]: https://jupyterlab.readthedocs.io/en/stable/extension/extension_points.html#launcher
 
@@ -25,7 +24,7 @@ conda install jupyter-server-proxy
 ```
 
 > As a _prebuilt_ extension, it will "just work," only a simple page reload should be required
-> to see launcher items. However, a full restart of `jupyter_server` or `notebook` is required 
+> to see launcher items. However, a full restart of `jupyter_server` or `notebook` is required
 > to reload the `jupyter_server_proxy` serverextension which provides most of the functionality.
 
 ### JupyterLab 2

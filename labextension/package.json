@@ -38,7 +38,7 @@
     "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
     "install:extension": "jupyter labextension develop --overwrite .",
     "watch": "run-p watch:src watch:labextension",
-    "watch:src": "jlpm build:lib -w",
+    "watch:src": "jlpm build:lib -w --preserveWatchOutput",
     "watch:labextension": "jupyter labextension watch .",
     "deduplicate": "yarn-deduplicate -s fewer --fail"
   },

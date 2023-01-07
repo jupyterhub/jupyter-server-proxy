@@ -39,7 +39,7 @@ To install these in addition to the [Python package](#python-package) test
 dependencies, run:
 
 ```bash
-pip install -e .[test,acceptance]
+pip install -e .[acceptance]
 ```
 
 In addition, compatible versions of:
@@ -47,7 +47,7 @@ In addition, compatible versions of:
 - `geckodriver`
 - `firefox`
 
-Needs to be on your `$PATH` and compatible with each other.
+Need to be on your `$PATH` and compatible with each other.
 
 To run _only_ the acceptance tests, use the `-k` switch:
 
@@ -74,11 +74,10 @@ jlpm build:prod            # Build:
 jlpm install:extension     # Symlink into `{sys.prefix}/share/jupyter/labextensions`
 ```
 
-You can watch the source directory and automatically rebuild the `lib` folder:
+You can watch the source directory and automatically rebuild the `labextension/lib`
+and `jupyter_server_proxy/labextension` folders:
 
 ```bash
-jlpm watch   # ... watch the source directory in another terminal tab
+cd labextension
+jlpm watch
 ```
-
-However, the built-in `jupyter labextension watch` does _not_ work with this repo,
-as the `package.json` and `setup.py` would need to be at the same level.

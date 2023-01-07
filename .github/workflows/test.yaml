@@ -43,61 +43,79 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.python-version }}"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: yarn
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org
+          cache-dependency-path: labextension/yarn.lock
+
+      - name: Update root build packages
+        run: |
+          pip install --upgrade build pip
 
       - name: Build Python package
         run: |
-          pip install jupyter_packaging wheel jupyterlab
-          python setup.py sdist bdist_wheel
+          pyproject-build
 
-      - name: Install Python dependencies
+      - name: Install Python package
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
         #
         #       Pytest options are set in tests/pytest.ini.
         run: |
-          pip install --upgrade pip
-          pip install jupyter_packaging jupyterlab~=${{ matrix.jupyterlab-version }}.0
-          pip install ./dist/jupyter_server_proxy-*.whl
-          pip install pytest pytest-cov pytest-html
-          # Ensure we don't accidentally depend on notebook
-          if [ "${{ matrix.jupyter-app }}" == "notebook" ]; then
-            pip install "notebook<7"
-          fi
+          set -eux
+          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0'
+
+      - name: List Python packages
+        run: |
+          set -eux
           pip freeze
+          pip check
 
       - name: Run tests
         run: |
+          set -eux
           JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter-app }} --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           cd tests
-          pytest
+          pytest -k "not acceptance"
 
       - name: Upload pytest and coverage reports
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: unit-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+          name: |-
+            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage
 
       - name: Check the Notebook Server extension is installed
         run: |
+          set -eux
           jupyter serverextension list
-          jupyter serverextension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
+          jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
       - name: Check the Jupyter Server extension is installed
         run: |
+          set -eux
           pip install jupyter-server
           jupyter server extension list
-          jupyter server extension list 2>&1 | grep -ie "jupyter_server_proxy.*enabled" -
+          jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
       - name: Install JupyterLab Extension
         if: matrix.jupyterlab-version == '2'
         run: |
+          set -eux
+          export NODE_OPTIONS=--openssl-legacy-provider
           cd labextension
           jupyter labextension install . --no-build --debug
           jupyter lab build --minimize=False --debug
@@ -108,25 +126,23 @@ jobs:
         # jupyterlab.browser_check with jupyterlab 2 and a modern version of
         # python (3.11+).
         #
-        if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.1')) }}
+        if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.11')) }}
         run: |
+          set -eux
           jupyter labextension list
-          jupyter labextension list 2>&1 | grep -ie '@jupyterhub/jupyter-server-proxy.*OK.*'
+          jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
           python -m jupyterlab.browser_check
-
-      - name: Install Acceptance test dependencies
-        run: |
-          # the acceptance test requires notebook to run
-          pip install "notebook<7" "robotframework-jupyterlibrary>=0.4.2"
 
       - name: Run acceptance tests
         run: |
-          pytest -k acceptance -s
+          set -eux
+          pytest -s -k "acceptance"
 
       - name: Upload acceptance test reports
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+          name: |-
+            acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/robot

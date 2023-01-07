@@ -35,7 +35,7 @@ contains information on installation & usage.
 ## Security warning
 
 Jupyter Server Proxy is often used to start a user defined process listening to
-some network port (e.g. http://localhost:4567) for a user starting a Jupyter Server
+some network port (e.g. `http://localhost:4567`) for a user starting a Jupyter Server
 that only that user has permission to access. The user can then access the
 started process proxied through the Jupyter Server.
 
@@ -47,7 +47,7 @@ A common strategy to enforce access proxied via Jupyter Server is to start
 Jupyter Server within a container and only allow network access to the Jupyter
 Server via the container.
 
-For more insights, see [Ryan Lovetts comment about
+> For more insights, see [Ryan Lovett's comment about
 it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-1350118197).
 
 ## Install
@@ -58,17 +58,21 @@ it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-135
 
 ### Python package
 
-#### pip
+#### `pip`
 
-```
+```bash
 pip install jupyter-server-proxy
 ```
 
-#### conda
+#### `conda`
 
-```
+```bash
 conda install jupyter-server-proxy -c conda-forge
 ```
+
+#### Local development
+
+> See the [contributing guide](https://github.com/jupyterhub/jupyter-server-proxy/blob/main/CONTRIBUTING.md).
 
 ### JupyterLab extension
 
@@ -79,7 +83,7 @@ requires the python package to be installed.
 As of version 3.0.0 the Python package ships with a JupyterLab 3 compatible
 extension, making this step only needed for JupyterLab 2.
 
-```
+```bash
 jupyter labextension install @jupyterhub/jupyter-server-proxy
 ```
 
@@ -87,22 +91,19 @@ jupyter labextension install @jupyterhub/jupyter-server-proxy
 
 ### Server extension
 
-``` 
-jupyter serverextension disable jupyter_server_proxy
+```bash
+jupyter serverextension disable --sys-prefix jupyter_server_proxy
+jupyter server extension disable --sys-prefix jupyter_server_proxy
 ```
 
 ### Notebook classic extension
 
-```
-jupyter nbextension disable --py jupyter_server_proxy
+```bash
+jupyter nbextension disable --sys-prefix --py jupyter_server_proxy
 ```
 
 ### JupyterLab extension
 
-```
+```bash
 jupyter labextension disable @jupyterhub/jupyter-server-proxy
 ```
-
-## Local development
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
