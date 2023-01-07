@@ -4,14 +4,14 @@
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jupyterhub/jupyter-server-proxy/Test?logo=github)](https://github.com/jupyterhub/jupyter-server-proxy/actions)
 [![PyPI badge](https://img.shields.io/pypi/v/jupyter-server-proxy.svg?logo=pypi)](https://pypi.python.org/pypi/jupyter-server-proxy)
 [![Conda badge](https://img.shields.io/conda/vn/conda-forge/jupyter-server-proxy?logo=conda-forge)](https://anaconda.org/conda-forge/jupyter-server-proxy)
-[![NPM badge](https://img.shields.io/npm/v/@jupyterlab/server-proxy.svg?logo=npm)](https://www.npmjs.com/package/@jupyterlab/server-proxy)
+[![NPM badge](https://img.shields.io/npm/v/@jupyterhub/jupyter-server-proxy.svg?logo=npm)](https://www.npmjs.com/package/@jupyterhub/jupyter-server-proxy)
 
 Jupyter Server Proxy lets you run arbitrary external processes (such as
 RStudio, Shiny Server, Syncthing, PostgreSQL, Code Server, etc)
 alongside your notebook server and provide authenticated web access to
 them using a path like `/rstudio` next to others like `/lab`. Alongside
 the python package that provides the main functionality, the JupyterLab
-extension (`@jupyterlab/server-proxy`) provides buttons in the
+extension (`@jupyterhub/jupyter-server-proxy`) provides buttons in the
 JupyterLab launcher window to get to RStudio for example.
 
 **Note:** This project used to be called **nbserverproxy**. As
@@ -80,7 +80,7 @@ As of version 3.0.0 the Python package ships with a JupyterLab 3 compatible
 extension, making this step only needed for JupyterLab 2.
 
 ```
-jupyter labextension install @jupyterlab/server-proxy
+jupyter labextension install @jupyterhub/jupyter-server-proxy
 ```
 
 ## Disable
@@ -99,13 +99,8 @@ jupyter nbextension disable --py jupyter_server_proxy
 
 ### JupyterLab extension
 
-Note that the extension name provided to the command (`jupyterlab-server-proxy`) does not correspond
-to the extension package name (`@jupyterlab/server-proxy`). The `jupyter labextension list` will
-incorrectly report the extension as still being enabled after executing the disable command.
-This will be fixed in the next major release of jupyter-server-proxy.
-
 ```
-jupyter labextension disable jupyterlab-server-proxy
+jupyter labextension disable @jupyterhub/jupyter-server-proxy
 ```
 
 ## Local development

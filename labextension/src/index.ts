@@ -17,16 +17,22 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
   return widget;
 }
 
+/**
+ * The activate function is registered to be called on activation of the
+ * jupyterlab extension.
+ *
+ * ref: https://jupyterlab.readthedocs.io/en/stable/extension/extension_dev.html
+ */
 async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
+  // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
   if (!response.ok) {
     console.log('Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.');
     console.log(response);
     return;
   }
-  const { commands, shell } = app;
-
   const data = await response.json();
+
   const namespace = 'server-proxy';
   const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
     namespace
@@ -46,6 +52,7 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
     });
   }
 
+  const { commands, shell } = app;
   commands.addCommand(command, {
     label: args => args['title'] as string,
     execute: args => {
@@ -101,10 +108,13 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
 }
 
 /**
- * Initialization data for the jupyterlab-server-proxy extension.
+ * Data to register the extension with jupyterlab which also clarifies whats
+ * required by the extension and passed to our provided activate function.
+ *
+ * ref: https://jupyterlab.readthedocs.io/en/stable/extension/extension_dev.html#application-plugins
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: 'jupyterlab-server-proxy',
+  id: '@jupyterhub/jupyter-server-proxy:add-launcher-entries',
   autoStart: true,
   requires: [ILauncher, ILayoutRestorer],
   activate: activate

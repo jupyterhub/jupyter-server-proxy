@@ -53,8 +53,8 @@ jobs:
       - name: Javascript package
         run: |
           mkdir jsdist
-          cd jupyterlab-server-proxy
-          jlpm pack --filename ../jsdist/jupyterlab-server-proxy-jlpmpack.tgz
+          cd labextension
+          jlpm pack --filename ../jsdist/labextension-jlpmpack.tgz
 
       - name: Upload Python artifact
         uses: actions/upload-artifact@v3
@@ -112,9 +112,9 @@ jobs:
           name: jsdist
           path: jsdist
 
-      - run: npm publish --dry-run ./jsdist/jupyterlab-server-proxy-jlpmpack.tgz
+      - run: npm publish --dry-run ./jsdist/labextension-jlpmpack.tgz
 
-      - run: npm publish ./jsdist/jupyterlab-server-proxy-jlpmpack.tgz
+      - run: npm publish ./jsdist/labextension-jlpmpack.tgz
         if: startsWith(github.ref, 'refs/tags')
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -66,10 +66,10 @@ installed with JupyterLab.
 > You may use `yarn` or `npm run` instead of `jlpm` below.
 
 ```bash
-cd jupyterlab-server-proxy # Change to the root of the labextension
+cd labextension            # Change to the root of the labextension
 jlpm                       # Install dependencies (or `npm i`)
 jlpm build:prod            # Build:
-                           # - `jupyterlab-server-proxy/lib`
+                           # - `labextension/lib`
                            # - `jupyter_server_proxy/labextension`
 jlpm install:extension     # Symlink into `{sys.prefix}/share/jupyter/labextensions`
 ```
