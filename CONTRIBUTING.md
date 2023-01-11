@@ -10,7 +10,7 @@ the README.md file.
 ### Python package
 
 ```bash
-pip install -e .[test]
+pip install -e ".[test]"
 
 # explicit install needed with editable mode (-e) jupyter
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
