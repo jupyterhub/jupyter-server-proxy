@@ -55,7 +55,6 @@ jobs:
 
       - name: Build dist
         run: |
-          set -eux
           pyproject-build
           cd dist && sha256sum * | tee SHA256SUMS
 
@@ -67,7 +66,6 @@ jobs:
 
       - name: Javascript package
         run: |
-          set -eux
           mkdir jsdist
           cd labextension
           jlpm pack --filename ../jsdist/labextension-jlpmpack.tgz

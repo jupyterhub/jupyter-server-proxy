@@ -71,18 +71,15 @@ jobs:
         #
         #       Pytest options are set in tests/pytest.ini.
         run: |
-          set -eux
           pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0'
 
       - name: List Python packages
         run: |
-          set -eux
           pip freeze
           pip check
 
       - name: Run tests
         run: |
-          set -eux
           JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter-app }} --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           cd tests
@@ -100,7 +97,6 @@ jobs:
 
       - name: Check the Notebook Server extension is installed
         run: |
-          set -eux
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
@@ -114,7 +110,6 @@ jobs:
       - name: Install JupyterLab Extension
         if: matrix.jupyterlab-version == '2'
         run: |
-          set -eux
           export NODE_OPTIONS=--openssl-legacy-provider
           cd labextension
           jupyter labextension install . --no-build --debug
@@ -128,14 +123,12 @@ jobs:
         #
         if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.11')) }}
         run: |
-          set -eux
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
           python -m jupyterlab.browser_check
 
       - name: Run acceptance tests
         run: |
-          set -eux
           pytest -s -k "acceptance"
 
       - name: Upload acceptance test reports
