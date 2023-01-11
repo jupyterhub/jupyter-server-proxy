@@ -39,7 +39,7 @@ To install these in addition to the [Python package](#python-package) test
 dependencies, run:
 
 ```bash
-pip install -e .[acceptance]
+pip install -e ".[acceptance]"
 ```
 
 In addition, compatible versions of:
