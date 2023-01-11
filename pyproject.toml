@@ -50,6 +50,7 @@ test = [
     "pytest-cov",
     "pytest-html",
 ]
+# acceptance tests additionally require firefox and geckodriver
 acceptance = [
     "jupyter-server-proxy[test]",
     "notebook <7",
