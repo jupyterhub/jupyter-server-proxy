@@ -55,14 +55,6 @@ acceptance = [
     "notebook <7",
     "robotframework-jupyterlibrary >=0.4.2",
 ]
-docs = [
-    "myst-parser",
-    "sphinx-autobuild",
-    "sphinx-book-theme",
-    "sphinx-copybutton",
-    "sphinxext-opengraph",
-    "sphinxext-rediraffe",
-]
 
 [tool.hatch.version]
 source = "nodejs"
