@@ -49,7 +49,7 @@ jobs:
 
       - name: Update root build packages
         run: |
-          pip install --upgrade build pip jupyterlab~=3.0
+          pip install --upgrade build pip
 
       - name: Build dist
         run: |
