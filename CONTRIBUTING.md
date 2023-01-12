@@ -10,7 +10,7 @@ the README.md file.
 ### Python package
 
 ```bash
-pip install -e .[test]
+pip install -e ".[test]"
 
 # explicit install needed with editable mode (-e) jupyter
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
@@ -19,7 +19,7 @@ jupyter server extension enable --sys-prefix jupyter_server_proxy
 
 Before running tests, you need a server that we can test against.
 
-```
+```bash
 JUPYTER_TOKEN=secret jupyter-lab --config=./tests/resources/jupyter_server_config.py --no-browser
 ```
 
@@ -39,7 +39,7 @@ To install these in addition to the [Python package](#python-package) test
 dependencies, run:
 
 ```bash
-pip install -e .[test,acceptance]
+pip install -e ".[acceptance]"
 ```
 
 In addition, compatible versions of:
@@ -47,7 +47,7 @@ In addition, compatible versions of:
 - `geckodriver`
 - `firefox`
 
-Needs to be on your `$PATH` and compatible with each other.
+Need to be on your `$PATH` and compatible with each other.
 
 To run _only_ the acceptance tests, use the `-k` switch:
 
@@ -74,11 +74,47 @@ jlpm build:prod            # Build:
 jlpm install:extension     # Symlink into `{sys.prefix}/share/jupyter/labextensions`
 ```
 
-You can watch the source directory and automatically rebuild the `lib` folder:
+You can watch the source directory and automatically rebuild the `labextension/lib`
+and `jupyter_server_proxy/labextension` folders:
 
 ```bash
-jlpm watch   # ... watch the source directory in another terminal tab
+cd labextension
+jlpm watch
 ```
 
-However, the built-in `jupyter labextension watch` does _not_ work with this repo,
-as the `package.json` and `setup.py` would need to be at the same level.
+### Documentation
+
+The documentation uses a fairly standard [Sphinx](https://www.sphinx-doc.org)
+build chain, and requires `make` on Linux/MacOS, which cannot be installed with
+`pip`.
+
+In addition to any system packages, building the documentation requires
+additional packages. To install the needed packages:
+
+```bash
+pip install -r docs/requirements.txt
+```
+
+Once installed, enter the docs folder with:
+
+```bash
+cd docs
+```
+
+... then build the HTML site:
+
+```bash
+make
+```
+
+... or check that all hyperlinks can be resolved:
+
+```bash
+make linkcheck
+```
+
+... or start an auto-reloading server and open a web browser:
+
+```bash
+make devenv
+```

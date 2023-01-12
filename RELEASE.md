@@ -20,8 +20,8 @@ These are instructions on how to make a release.
    ```shell
    rm labextension/yarn.lock
 
-   pip install jupyter_packaging wheel jupyterlab~=3.0
-   python setup.py sdist bdist_wheel
+   pip install --upgrade pip build
+   pyproject-build
    ```
 
 2. Create a PR updating `docs/source/changelog.md` with [github-activity][] and

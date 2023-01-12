@@ -35,14 +35,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
+      - uses: actions/setup-node@v3
+        with:
+          cache: yarn
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org
+          cache-dependency-path: labextension/yarn.lock
+
+      - name: Update root build packages
+        run: |
+          pip install --upgrade build pip
+
       - name: Build dist
         run: |
-          pip install jupyter_packaging wheel jupyterlab~=3.0
-          python setup.py sdist bdist_wheel
+          pyproject-build
+          cd dist && sha256sum * | tee SHA256SUMS
 
       - name: Check dist sizes
         run: |
@@ -53,8 +65,9 @@ jobs:
       - name: Javascript package
         run: |
           mkdir jsdist
-          cd labextension
-          jlpm pack --filename ../jsdist/labextension-jlpmpack.tgz
+          cd jsdist
+          npm pack ../labextension
+          sha256sum * | tee SHA256SUMS
 
       - name: Upload Python artifact
         uses: actions/upload-artifact@v3
@@ -112,9 +125,11 @@ jobs:
           name: jsdist
           path: jsdist
 
-      - run: npm publish --dry-run ./jsdist/labextension-jlpmpack.tgz
+      - run: |
+          npm publish --dry-run ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
 
-      - run: npm publish ./jsdist/labextension-jlpmpack.tgz
+      - run: |
+          npm publish ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
         if: startsWith(github.ref, 'refs/tags')
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

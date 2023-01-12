@@ -1,10 +1,107 @@
-# build-system
-# - ref 1: https://peps.python.org/pep-0517/
-#
 [build-system]
-requires = ["jupyter_packaging~=0.7.9", "jupyterlab~=3.0", "setuptools>=40.8.0", "wheel"]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+requires = [
+    "hatch-jupyter-builder >=0.5",
+    "hatch-nodejs-version",
+    "hatchling >=1.4.0",
+    "jupyterlab >=3.4.7,<4.0.0",
+]
 
+[project]
+name = "jupyter_server_proxy"
+dynamic = [
+    "authors",
+    "description",
+    "keywords",
+    "urls",
+    "version",
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    "Framework :: Jupyter",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter :: JupyterLab :: 2",
+    "Framework :: Jupyter :: JupyterLab :: 3",
+    "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+    "Framework :: Jupyter :: JupyterLab :: Extensions",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "aiohttp",
+    "jupyter-server >=1.0",
+    "simpervisor >=0.4",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-html",
+]
+# acceptance tests additionally require firefox and geckodriver
+acceptance = [
+    "jupyter-server-proxy[test]",
+    "notebook <7",
+    "robotframework-jupyterlibrary >=0.4.2",
+]
+
+[tool.hatch.version]
+source = "nodejs"
+path = "labextension/package.json"
+
+[tool.hatch.build.targets.sdist]
+artifacts = [
+    "jupyter_server_proxy/labextension",
+]
+exclude = [
+    ".git",
+    ".github",
+    ".readthedocs.yaml",
+    "contrib",
+    "docs",
+]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"jupyter_server_proxy/etc" = "etc/jupyter"
+"jupyter_server_proxy/labextension" = "share/jupyter/labextensions/@jupyterhub/jupyter-server-proxy"
+"jupyter_server_proxy/static" = "share/jupyter/nbextensions/jupyter_server_proxy"
+
+[tool.hatch.metadata.hooks.nodejs]
+path = "labextension/package.json"
+fields = ["description", "authors", "urls"]
+
+[tool.hatch.build.hooks.jupyter-builder]
+build-function = "hatch_jupyter_builder.npm_builder"
+ensured-targets = [
+    "jupyter_server_proxy/labextension/static/style.js",
+    "jupyter_server_proxy/labextension/package.json",
+    "jupyter_server_proxy/labextension/static/third-party-licenses.json",
+]
+skip-if-exists = ["jupyter_server_proxy/labextension/package.json"]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+path = "labextension"
+build_cmd = "build:prod"
+npm = ["jlpm"]
+
+[tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
+path = "labextension"
+build_cmd = "install:extension"
+npm = ["jlpm"]
+source_dir = "labextension/src"
+build_dir = "jupyter_server_proxy/labextension"
 
 # tbump is used to simplify and standardize the release process when updating
 # the version, making a git commit and tag, and pushing changes.
