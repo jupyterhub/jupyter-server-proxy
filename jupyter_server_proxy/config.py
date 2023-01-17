@@ -30,7 +30,7 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
             self.proxy_base = name
             self.absolute_url = absolute_url
             self.requested_port = port
-            self.unix_sock = unix_socket
+            self.unix_socket = unix_socket
             self.mappath = mappath
             self.rewrite_response = rewrite_response
 

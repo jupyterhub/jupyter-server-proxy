@@ -594,7 +594,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
-        self.unix_sock = False
+        self.unix_socket = False
         self.mappath = {}
         self.command = list()
         super().__init__(*args, **kwargs)
@@ -613,7 +613,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         application
         """
         if 'port' not in self.state and self.command:
-            if self.unix_sock:
+            if self.unix_socket:
                 sock_dir = mkdtemp(prefix='jupyter-server-proxy-')
                 self.state['port'] = os.path.join(sock_dir, 'socket')
             else:
