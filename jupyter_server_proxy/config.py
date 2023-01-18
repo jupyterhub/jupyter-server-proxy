@@ -146,8 +146,9 @@ class ServerProxy(Configurable):
         Value should be a dictionary with the following keys:
           command
             An optional list of strings that should be the full command to be executed.
-            The optional template arguments {{port}} and {{base_url}} will be substituted with the
-            port the process should listen on and the base-url of the notebook.
+            The optional template arguments {{port}}, {{unix_socket}} and {{base_url}}
+            will be substituted with the port or Unix socket path the process should
+            listen on and the base-url of the notebook.
 
             Could also be a callable. It should return a list.
 
@@ -157,7 +158,7 @@ class ServerProxy(Configurable):
 
           environment
             A dictionary of environment variable mappings. As with the command
-            traitlet, {{port}} and {{base_url}} will be substituted.
+            traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
 
             Could also be a callable. It should return a dictionary.
 
@@ -170,6 +171,13 @@ class ServerProxy(Configurable):
 
           port
             Set the port that the service will listen on. The default is to automatically select an unused port.
+
+          unix_socket
+            If set, the service will listen on a Unix socket instead of a TCP port.
+            Set to True to use a socket in a new temporary folder, or a string
+            path to a socket. This overrides port.
+
+            Proxying websockets over a Unix socket requires Tornado >= 6.3.
 
           mappath
             Map request paths to proxied paths.
@@ -202,7 +210,7 @@ class ServerProxy(Configurable):
 
           request_headers_override
             A dictionary of additional HTTP headers for the proxy request. As with
-            the command traitlet, {{port}} and {{base_url}} will be substituted.
+            the command traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
 
           rewrite_response
             An optional function to rewrite the response for the given service.

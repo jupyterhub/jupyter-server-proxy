@@ -60,8 +60,8 @@ pairs.
 
    * A dictionary of strings that are passed in as the environment to
      the started process, in addition to the environment of the notebook
-     process itself. The strings ``{port}`` and ``{base_url}`` will be
-     replaced as for **command**.
+     process itself. The strings ``{port}``, ``{unix_socket}`` and
+     ``{base_url}`` will be replaced as for **command**.
 
    * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a dictionary of strings that are used & treated same as above.
@@ -111,11 +111,14 @@ pairs.
     Jupyter Server Proxy to create a temporary directory to hold the socket,
     ensuring that only the user running Jupyter can connect to it.
 
-    If this is used, the ``{port}`` argument in the command template
-    (see :ref:`server-process-cmd`) will be a filesystem path for this socket
-    instead of a port number. The server should create a Unix socket bound to
-    this path and listen for HTTP requests on it. The ``port`` configuration key
-    will be ignored.
+    If this is used, the ``{unix_socket}`` argument in the command template
+    (see :ref:`server-process-cmd`) will be a filesystem path. The server should
+    create a Unix socket bound to this path and listen for HTTP requests on it.
+    The ``port`` configuration key will be ignored.
+
+    .. note::
+
+       Proxying websockets over a Unix socket requires Tornado >= 6.3.
 
 
 ``mappath``
