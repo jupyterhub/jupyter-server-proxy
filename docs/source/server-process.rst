@@ -114,8 +114,6 @@ pairs.
     this path and listen for HTTP requests on it. The ``port`` configuration key
     will be ignored.
 
-    Defaults to *False*.
-
 
 ``mappath``
 ^^^^^^^^^^^

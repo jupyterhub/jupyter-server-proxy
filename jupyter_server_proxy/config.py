@@ -118,7 +118,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
-        unix_socket=server_process_config.get('unix_socket', False),
+        unix_socket=server_process_config.get('unix_socket', None),
         mappath=server_process_config.get('mappath', {}),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
