@@ -103,15 +103,16 @@ pairs.
 ``unix_socket``
 ^^^^^^^^^^^^^^^
 
-    If *True*, the server will listen on a Unix socket at a filesystem path, instead
-    of a TCP port. The ``{port}`` argument (see :ref:`server-process-cmd`) will be a
-    filesystem path for this socket instead of a port number. The server should
-    create a Unix socket bound to this path and listen for HTTP requests on it.
+    This option uses a Unix socket on a filesystem path, instead of a TCP
+    port. It can be passed as a string specifying the socket path, or *True* for
+    Jupyter Server Proxy to create a temporary directory to hold the socket,
+    ensuring that only the user running Jupyter can connect to it.
 
-    The Unix socket will only be available to the user the server belongs to,
-    whereas TCP sockets are available to any users on the same host.
-
-    If this is used, the ``port`` configuration key is ignored.
+    If this is used, the ``{port}`` argument in the command template
+    (see :ref:`server-process-cmd`) will be a filesystem path for this socket
+    instead of a port number. The server should create a Unix socket bound to
+    this path and listen for HTTP requests on it. The ``port`` configuration key
+    will be ignored.
 
     Defaults to *False*.
 
