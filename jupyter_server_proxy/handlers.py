@@ -587,10 +587,13 @@ class RemoteProxyHandler(ProxyHandler):
 
 
 class NamedLocalProxyHandler(LocalProxyHandler):
-    """Maps a configured name to a local port or Unix socket path
+    """
+    A tornado request handler that proxies HTTP and websockets from a port on
+    the local system. The port is specified in config, and associated with a
+    name which forms part of the URL.
 
     Config will create a subclass of this for each named proxy. A further
-    subclass below is used for named proxies where we also start
+    subclass below is used for named proxies where we also start the server.
     """
     port = 0
     mappath = {}
@@ -664,7 +667,13 @@ class NamedLocalProxyHandler(LocalProxyHandler):
 
 # FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
 class SuperviseAndProxyHandler(NamedLocalProxyHandler):
-    '''Manage a given process and requests to it '''
+    """
+    A tornado request handler that proxies HTTP and websockets from a local
+    process which is launched on demand to handle requests. The command and
+    other process options are specified in config.
+
+    A subclass of this will be made for each configured server process.
+    """
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
