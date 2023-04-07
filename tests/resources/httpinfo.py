@@ -38,7 +38,9 @@ if __name__ == '__main__':
     args = ap.parse_args()
 
     if args.unix_socket:
-        Path(args.unix_socket).unlink(missing_ok=True)
+        unix_socket = Path(args.unix_socket)
+        if unix_socket.exists():
+            unix_socket.unlink()
         httpd = HTTPUnixServer(args.unix_socket, EchoRequestInfo)
     else:
         httpd = HTTPServer(('127.0.0.1', args.port), EchoRequestInfo)
