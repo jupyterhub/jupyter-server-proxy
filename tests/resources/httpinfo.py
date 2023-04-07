@@ -1,5 +1,11 @@
+"""
+Simple webserver to respond with an echo of the sent request. It can listen to
+either a tcp port or a unix socket.
+"""
+import argparse
+import socket
+from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import sys
 
 class EchoRequestInfo(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -9,9 +15,33 @@ class EchoRequestInfo(BaseHTTPRequestHandler):
         self.wfile.write('{}\n'.format(self.requestline).encode())
         self.wfile.write('{}\n'.format(self.headers).encode())
 
+    def address_string(self):
+        """
+        Overridden to fix logging when serving on Unix socket.
+
+        FIXME: There are still broken pipe messages showing up in the jupyter
+               server logs when running tests with the unix sockets.
+        """
+        if isinstance(self.client_address, str):
+            return self.client_address  # Unix sock
+        return super().address_string()
+
+
+class HTTPUnixServer(HTTPServer):
+    address_family = socket.AF_UNIX
+
 
 if __name__ == '__main__':
-    port = int(sys.argv[1])
-    server_address = ('', port)
-    httpd = HTTPServer(server_address, EchoRequestInfo)
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--port', type=int)
+    ap.add_argument('--unix-socket')
+    args = ap.parse_args()
+
+    if args.unix_socket:
+        unix_socket = Path(args.unix_socket)
+        if unix_socket.exists():
+            unix_socket.unlink()
+        httpd = HTTPUnixServer(args.unix_socket, EchoRequestInfo)
+    else:
+        httpd = HTTPServer(('127.0.0.1', args.port), EchoRequestInfo)
     httpd.serve_forever()

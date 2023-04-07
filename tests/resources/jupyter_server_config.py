@@ -30,24 +30,24 @@ def cats_only(response, path):
 
 c.ServerProxy.servers = {
     'python-http': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
     },
     'python-http-abs': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'absolute_url': True
     },
     'python-http-port54321': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'port': 54321,
     },
     'python-http-mappath': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'mappath': {
             '/': '/index.html',
         }
     },
     'python-http-mappathf': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'mappath': mappathf,
     },
     'python-websocket' : {
@@ -56,8 +56,21 @@ c.ServerProxy.servers = {
             'X-Custom-Header': 'pytest-23456',
         }
     },
+    'python-unix-socket-true' : {
+        'command': ['python3', './tests/resources/httpinfo.py', '--unix-socket={unix_socket}'],
+        'unix_socket': True,
+    },
+    'python-unix-socket-file' : {
+        'command': ['python3', './tests/resources/httpinfo.py', '--unix-socket={unix_socket}'],
+        'unix_socket': "/tmp/jupyter-server-proxy-test-socket",
+    },
+    'python-unix-socket-file-no-command' : {
+        # this server process can be started earlier by first interacting with
+        # python-unix-socket-file
+        'unix_socket': "/tmp/jupyter-server-proxy-test-socket",
+    },
     'python-request-headers': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'request_headers_override': {
             'X-Custom-Header': 'pytest-23456',
         }
@@ -66,20 +79,20 @@ c.ServerProxy.servers = {
         'command': ['python3', './tests/resources/gzipserver.py', '{port}'],
     },
     'python-http-rewrite-response': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'rewrite_response': translate_ciao,
         'port': 54323,
     },
     'python-chained-rewrite-response': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'rewrite_response': [translate_ciao, hello_to_foo],
     },
     'python-cats-only-rewrite-response': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'rewrite_response': [dog_to_cat, cats_only],
     },
     'python-dogs-only-rewrite-response': {
-        'command': ['python3', './tests/resources/httpinfo.py', '{port}'],
+        'command': ['python3', './tests/resources/httpinfo.py', '--port={port}'],
         'rewrite_response': [cats_only, dog_to_cat],
     },
     'python-proxyto54321-no-command': {

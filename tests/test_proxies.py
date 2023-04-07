@@ -22,18 +22,36 @@ def request_get(port, path, token, host='localhost'):
     return h.getresponse()
 
 
-def test_server_proxy_minimal_proxy_path_encoding():
+@pytest.mark.parametrize(
+    'server_process_path',
+    [
+        "/python-http/",
+        "/python-unix-socket-true/",
+        "/python-unix-socket-file/",
+        "/python-unix-socket-file-no-command/",
+    ],
+)
+def test_server_proxy_minimal_proxy_path_encoding(server_process_path):
     """Test that we don't encode anything more than we must to have a valid web
     request."""
     special_path = quote("Hello world 123 åäö 🎉你好世界±¥ :/[]@!$&'()*+,;=-._~?key1=value1", safe=":/?#[]@!$&'()*+,;=-._~")
-    test_url = '/python-http/' + special_path
+    test_url = server_process_path + special_path
     r = request_get(PORT, test_url, TOKEN)
     assert r.code == 200
     s = r.read().decode('ascii')
     assert 'GET /{}&token='.format(special_path) in s
 
 
-def test_server_proxy_hash_sign_encoding():
+@pytest.mark.parametrize(
+    'server_process_path',
+    [
+        "/python-http/",
+        "/python-unix-socket-true/",
+        "/python-unix-socket-file/",
+        "/python-unix-socket-file-no-command/",
+    ],
+)
+def test_server_proxy_hash_sign_encoding(server_process_path):
     """
     FIXME: This is a test to establish the current behavior, but if it should be
            like this is a separate question not yet addressed.
@@ -44,7 +62,7 @@ def test_server_proxy_hash_sign_encoding():
 
     # Case 0: a reference case
     path = "?token={}".format(TOKEN)
-    h.request('GET', '/python-http/' + path)
+    h.request('GET', server_process_path + path)
     r = h.getresponse()
     assert r.code == 200
     s = r.read().decode('ascii')
@@ -52,7 +70,7 @@ def test_server_proxy_hash_sign_encoding():
 
     # Case 1: #bla?token=secret -> everything following # ignored -> redirect because no token
     path = "#bla?token={}".format(TOKEN)
-    h.request('GET', '/python-http/' + path)
+    h.request('GET', server_process_path + path)
     r = h.getresponse()
     assert r.code == 200
     s = r.read().decode('ascii')
@@ -60,7 +78,7 @@ def test_server_proxy_hash_sign_encoding():
 
     # Case 2: %23bla?token=secret -> %23 is # -> everything following # ignored -> redirect because no token
     path = "%23?token={}".format(TOKEN)
-    h.request('GET', '/python-http/' + path)
+    h.request('GET', server_process_path + path)
     r = h.getresponse()
     assert r.code == 200
     s = r.read().decode('ascii')
@@ -79,7 +97,7 @@ def test_server_proxy_hash_sign_encoding():
     #       return await self.proxy(self.port, path)
     #   TypeError: object NoneType can't be used in 'await' expression
     path = "?token={}#test".format(TOKEN)
-    h.request('GET', '/python-http/' + path)
+    h.request('GET', server_process_path + path)
     r = h.getresponse()
     assert r.code == 302
     s = r.read().decode('ascii')

@@ -11,14 +11,17 @@ from urllib.parse import urlunparse, urlparse, quote
 import aiohttp
 from asyncio import Lock
 from copy import copy
+from tempfile import mkdtemp
 
 from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
+from tornado.simple_httpclient import SimpleAsyncHTTPClient
 
 from jupyter_server.utils import ensure_async, url_path_join
 from jupyter_server.base.handlers import JupyterHandler, utcnow
 from traitlets.traitlets import HasTraits
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 
+from .unixsock import UnixResolver
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
@@ -101,6 +104,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     Subclasses should implement open, http_get, post, put, delete, head, patch,
     and options.
     """
+    unix_socket = None  # Used in subclasses
+
     def __init__(self, *args, **kwargs):
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
@@ -313,9 +318,16 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             else:
                 body = None
 
-        client = httpclient.AsyncHTTPClient()
+        if self.unix_socket is not None:
+            # Port points to a Unix domain socket
+            self.log.debug("Making client for Unix socket %r", self.unix_socket)
+            assert host == 'localhost', "Unix sockets only possible on localhost"
+            client = SimpleAsyncHTTPClient(resolver=UnixResolver(self.unix_socket))
+        else:
+            client = httpclient.AsyncHTTPClient()
 
         req = self._build_proxy_request(host, port, proxied_path, body)
+
         self.log.debug(f"Proxying request to {req.url}")
 
         try:
@@ -417,6 +429,13 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         if not proxied_path.startswith('/'):
             proxied_path = '/' + proxied_path
 
+        if self.unix_socket is not None:
+            assert host == 'localhost', "Unix sockets only possible on localhost"
+            self.log.debug("Opening websocket on Unix socket %r", port)
+            resolver = UnixResolver(self.unix_socket)  # Requires tornado >= 6.3
+        else:
+            resolver = None
+
         client_uri = self.get_client_uri('ws', host, port, proxied_path)
         headers = self.proxy_request_headers()
 
@@ -449,7 +468,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
             self.ws = await pingable_ws_connect(request=request,
                 on_message_callback=message_cb, on_ping_callback=ping_cb,
-                subprotocols=self.subprotocols)
+                subprotocols=self.subprotocols, resolver=resolver)
             self._record_activity()
             self.log.info('Websocket connection established to {}'.format(client_uri))
 
@@ -566,12 +585,99 @@ class RemoteProxyHandler(ProxyHandler):
     def proxy(self, host, port, proxied_path):
         return super().proxy(host, port, proxied_path)
 
+
+class NamedLocalProxyHandler(LocalProxyHandler):
+    """
+    A tornado request handler that proxies HTTP and websockets from a port on
+    the local system. The port is specified in config, and associated with a
+    name which forms part of the URL.
+
+    Config will create a subclass of this for each named proxy. A further
+    subclass below is used for named proxies where we also start the server.
+    """
+    port = 0
+    mappath = {}
+
+    @property
+    def process_args(self):
+        return {
+            'port': self.port,
+            'unix_socket': (self.unix_socket or ''),
+            'base_url': self.base_url,
+        }
+
+    def _render_template(self, value):
+        args = self.process_args
+        if type(value) is str:
+            return value.format(**args)
+        elif type(value) is list:
+            return [self._render_template(v) for v in value]
+        elif type(value) is dict:
+            return {
+                self._render_template(k): self._render_template(v)
+                for k, v in value.items()
+            }
+        else:
+            raise ValueError('Value of unrecognized type {}'.format(type(value)))
+
+    def _realize_rendered_template(self, attribute):
+        """Call any callables, then render any templated values."""
+        if callable(attribute):
+            attribute = self._render_template(
+                call_with_asked_args(attribute, self.process_args)
+            )
+        return self._render_template(attribute)
+
+    @web.authenticated
+    async def proxy(self, port, path):
+        if not path.startswith('/'):
+            path = '/' + path
+        if self.mappath:
+            if callable(self.mappath):
+                path = call_with_asked_args(self.mappath, {'path': path})
+            else:
+                path = self.mappath.get(path, path)
+
+        return await ensure_async(super().proxy(port, path))
+
+    async def http_get(self, path):
+        return await ensure_async(self.proxy(self.port, path))
+
+    async def open(self, path):
+        return await super().open(self.port, path)
+
+    def post(self, path):
+        return self.proxy(self.port, path)
+
+    def put(self, path):
+        return self.proxy(self.port, path)
+
+    def delete(self, path):
+        return self.proxy(self.port, path)
+
+    def head(self, path):
+        return self.proxy(self.port, path)
+
+    def patch(self, path):
+        return self.proxy(self.port, path)
+
+    def options(self, path):
+        return self.proxy(self.port, path)
+
+
 # FIXME: Move this to its own file. Too many packages now import this from nbrserverproxy.handlers
-class SuperviseAndProxyHandler(LocalProxyHandler):
-    '''Manage a given process and requests to it '''
+class SuperviseAndProxyHandler(NamedLocalProxyHandler):
+    """
+    A tornado request handler that proxies HTTP and websockets from a local
+    process which is launched on demand to handle requests. The command and
+    other process options are specified in config.
+
+    A subclass of this will be made for each configured server process.
+    """
 
     def __init__(self, *args, **kwargs):
         self.requested_port = 0
+        self.requested_unix_socket = False
         self.mappath = {}
         self.command = list()
         super().__init__(*args, **kwargs)
@@ -589,15 +695,35 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         Allocate either the requested port or a random empty port for use by
         application
         """
-        if 'port' not in self.state and self.command:
-            sock = socket.socket()
-            sock.bind(('', self.requested_port))
-            self.state['port'] = sock.getsockname()[1]
-            sock.close()
-        elif 'port' not in self.state:
-            self.state['port'] = self.requested_port
-        
+        if self.requested_unix_socket:  # unix_socket has priority over port
+            return 0
+
+        if 'port' not in self.state:
+            if self.requested_port:
+                self.state['port'] = self.requested_port
+            else:
+                sock = socket.socket()
+                sock.bind(('', self.requested_port))
+                self.state['port'] = sock.getsockname()[1]
+                sock.close()
+
         return self.state['port']
+
+    @property
+    def unix_socket(self):
+        if 'unix_socket' not in self.state:
+            if self.requested_unix_socket is True:
+                sock_dir = mkdtemp(prefix='jupyter-server-proxy-')
+                sock_path = os.path.join(sock_dir, 'socket')
+            elif self.requested_unix_socket:
+                sock_path = self.requested_unix_socket
+            else:
+                sock_path = None
+            self.state['unix_socket'] = sock_path
+        return self.state['unix_socket']
+
+    def get_cmd(self):
+        return self._realize_rendered_template(self.command)
 
     def get_cwd(self):
         """Get the current working directory for our process
@@ -619,8 +745,13 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return 5
 
     async def _http_ready_func(self, p):
-        url = 'http://localhost:{}'.format(self.port)
-        async with aiohttp.ClientSession() as session:
+        if self.unix_socket is not None:
+            url = 'http://localhost'
+            connector = aiohttp.UnixConnector(self.unix_socket)
+        else:
+            url = 'http://localhost:{}'.format(self.port)
+            connector = None  # Default, TCP connector
+        async with aiohttp.ClientSession(connector=connector) as session:
             try:
                 async with session.get(url, allow_redirects=False) as resp:
                     # We only care if we get back *any* response, not just 200
@@ -674,46 +805,14 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                     del self.state['proc']
                     raise
 
-
     @web.authenticated
     async def proxy(self, port, path):
-        if not path.startswith('/'):
-            path = '/' + path
-        if self.mappath:
-            if callable(self.mappath):
-                path = call_with_asked_args(self.mappath, {'path': path})
-            else:
-                path = self.mappath.get(path, path)
-
         await self.ensure_process()
-
-        return await ensure_async(super().proxy(self.port, path))
-
-
-    async def http_get(self, path):
-        return await ensure_async(self.proxy(self.port, path))
+        return await ensure_async(super().proxy(port, path))
 
     async def open(self, path):
         await self.ensure_process()
-        return await super().open(self.port, path)
-
-    def post(self, path):
-        return self.proxy(self.port, path)
-
-    def put(self, path):
-        return self.proxy(self.port, path)
-
-    def delete(self, path):
-        return self.proxy(self.port, path)
-
-    def head(self, path):
-        return self.proxy(self.port, path)
-
-    def patch(self, path):
-        return self.proxy(self.port, path)
-
-    def options(self, path):
-        return self.proxy(self.port, path)
+        return await super().open(path)
 
 
 def setup_handlers(web_app, serverproxy_config):

@@ -31,7 +31,7 @@ class PingableWSClientConnection(websocket.WebSocketClientConnection):
 
 
 def pingable_ws_connect(request=None,on_message_callback=None,
-                        on_ping_callback=None, subprotocols=None):
+                        on_ping_callback=None, subprotocols=None, resolver=None):
     """
     A variation on websocket_connect that returns a PingableWSClientConnection
     with on_ping_callback.
@@ -50,12 +50,18 @@ def pingable_ws_connect(request=None,on_message_callback=None,
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback)
     else:
+        # resolver= parameter requires tornado >= 6.3. Only pass it if needed
+        # (for Unix socket support), so older versions of tornado can still
+        # work otherwise.
+        kwargs = {'resolver': resolver} if resolver else {}
         conn = PingableWSClientConnection(request=request,
             compression_options={},
             on_message_callback=on_message_callback,
             on_ping_callback=on_ping_callback,
             max_message_size=getattr(websocket, '_default_max_message_size', 10 * 1024 * 1024),
-            subprotocols=subprotocols)
+            subprotocols=subprotocols,
+            **kwargs
+        )
 
     return conn.connect_future
 

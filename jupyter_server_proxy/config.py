@@ -6,7 +6,9 @@ from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
 from tornado import httpclient
 from warnings import warn
-from .handlers import SuperviseAndProxyHandler, AddSlashHandler, RewritableResponse
+from .handlers import (
+    NamedLocalProxyHandler, SuperviseAndProxyHandler, AddSlashHandler,
+)
 import pkg_resources
 from collections import namedtuple
 from .utils import call_with_asked_args
@@ -17,7 +19,32 @@ try:
 except ImportError:
     from .utils import Callable
 
-def _make_serverproxy_handler(name, command, environment, timeout, absolute_url, port, mappath, request_headers_override, rewrite_response):
+
+LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
+ServerProcess = namedtuple('ServerProcess', [
+    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'unix_socket',
+    'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'rewrite_response',
+])
+
+
+def _make_namedproxy_handler(sp: ServerProcess):
+    class _Proxy(NamedLocalProxyHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.name = sp.name
+            self.proxy_base = sp.name
+            self.absolute_url = sp.absolute_url
+            self.port = sp.port
+            self.unix_socket = sp.unix_socket
+            self.mappath = sp.mappath
+            self.rewrite_response = sp.rewrite_response
+
+        def get_request_headers_override(self):
+            return self._realize_rendered_template(sp.request_headers_override)
+
+    return _Proxy
+
+def _make_supervisedproxy_handler(sp: ServerProcess):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
@@ -25,54 +52,23 @@ def _make_serverproxy_handler(name, command, environment, timeout, absolute_url,
     class _Proxy(SuperviseAndProxyHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.name = name
-            self.command = command
-            self.proxy_base = name
-            self.absolute_url = absolute_url
-            self.requested_port = port
-            self.mappath = mappath
-            self.rewrite_response = rewrite_response
-
-        @property
-        def process_args(self):
-            return {
-                'port': self.port,
-                'base_url': self.base_url,
-            }
-
-        def _render_template(self, value):
-            args = self.process_args
-            if type(value) is str:
-                return value.format(**args)
-            elif type(value) is list:
-                return [self._render_template(v) for v in value]
-            elif type(value) is dict:
-                return {
-                    self._render_template(k): self._render_template(v)
-                    for k, v in value.items()
-                }
-            else:
-                raise ValueError('Value of unrecognized type {}'.format(type(value)))
-
-        def _realize_rendered_template(self, attribute):
-            '''Call any callables, then render any templated values.'''
-            if callable(attribute):
-                attribute = self._render_template(
-                    call_with_asked_args(attribute, self.process_args)
-                )
-            return self._render_template(attribute)
-
-        def get_cmd(self):
-            return self._realize_rendered_template(self.command)
+            self.name = sp.name
+            self.command = sp.command
+            self.proxy_base = sp.name
+            self.absolute_url = sp.absolute_url
+            self.requested_port = sp.port
+            self.requested_unix_socket = sp.unix_socket
+            self.mappath = sp.mappath
+            self.rewrite_response = sp.rewrite_response
 
         def get_env(self):
-            return self._realize_rendered_template(environment)
+            return self._realize_rendered_template(sp.environment)
 
         def get_request_headers_override(self):
-            return self._realize_rendered_template(request_headers_override)
+            return self._realize_rendered_template(sp.request_headers_override)
 
         def get_timeout(self):
-            return timeout
+            return sp.timeout
 
     return _Proxy
 
@@ -93,30 +89,25 @@ def make_handlers(base_url, server_processes):
     """
     handlers = []
     for sp in server_processes:
-        handler = _make_serverproxy_handler(
-            sp.name,
-            sp.command,
-            sp.environment,
-            sp.timeout,
-            sp.absolute_url,
-            sp.port,
-            sp.mappath,
-            sp.request_headers_override,
-            sp.rewrite_response,
-        )
+        if sp.command:
+            handler = _make_supervisedproxy_handler(sp)
+            kwargs = dict(state={})
+        else:
+            if not (sp.port or isinstance(sp.unix_socket, str)):
+                warn(f"Server proxy {sp.name} does not have a command, port "
+                     f"number or unix_socket path. At least one of these is "
+                     f"required.")
+                continue
+            handler = _make_namedproxy_handler(sp)
+            kwargs = {}
         handlers.append((
-            ujoin(base_url, sp.name, r'(.*)'), handler, dict(state={}),
+            ujoin(base_url, sp.name, r'(.*)'), handler, kwargs,
         ))
         handlers.append((
             ujoin(base_url, sp.name), AddSlashHandler
         ))
     return handlers
 
-LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
-ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port',
-    'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'rewrite_response',
-])
 
 def make_server_process(name, server_process_config, serverproxy_config):
     le = server_process_config.get('launcher_entry', {})
@@ -127,6 +118,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         timeout=server_process_config.get('timeout', 5),
         absolute_url=server_process_config.get('absolute_url', False),
         port=server_process_config.get('port', 0),
+        unix_socket=server_process_config.get('unix_socket', None),
         mappath=server_process_config.get('mappath', {}),
         launcher_entry=LauncherEntry(
             enabled=le.get('enabled', True),
@@ -154,8 +146,9 @@ class ServerProxy(Configurable):
         Value should be a dictionary with the following keys:
           command
             An optional list of strings that should be the full command to be executed.
-            The optional template arguments {{port}} and {{base_url}} will be substituted with the
-            port the process should listen on and the base-url of the notebook.
+            The optional template arguments {{port}}, {{unix_socket}} and {{base_url}}
+            will be substituted with the port or Unix socket path the process should
+            listen on and the base-url of the notebook.
 
             Could also be a callable. It should return a list.
 
@@ -165,7 +158,7 @@ class ServerProxy(Configurable):
 
           environment
             A dictionary of environment variable mappings. As with the command
-            traitlet, {{port}} and {{base_url}} will be substituted.
+            traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
 
             Could also be a callable. It should return a dictionary.
 
@@ -178,6 +171,13 @@ class ServerProxy(Configurable):
 
           port
             Set the port that the service will listen on. The default is to automatically select an unused port.
+
+          unix_socket
+            If set, the service will listen on a Unix socket instead of a TCP port.
+            Set to True to use a socket in a new temporary folder, or a string
+            path to a socket. This overrides port.
+
+            Proxying websockets over a Unix socket requires Tornado >= 6.3.
 
           mappath
             Map request paths to proxied paths.
@@ -210,7 +210,7 @@ class ServerProxy(Configurable):
 
           request_headers_override
             A dictionary of additional HTTP headers for the proxy request. As with
-            the command traitlet, {{port}} and {{base_url}} will be substituted.
+            the command traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
 
           rewrite_response
             An optional function to rewrite the response for the given service.

@@ -18,6 +18,8 @@ Server Process options
 Server Processes are configured with a dictionary of key value
 pairs.
 
+.. _server-process-cmd:
+
 ``command``
 ^^^^^^^^^^^
 
@@ -26,7 +28,11 @@ pairs.
    * A list of strings that is the command used to start the
      process. The following template strings will be replaced:
 
-     * ``{port}`` the port the process should listen on.
+     * ``{port}`` the port that the process should listen on. This will be 0 if
+       it should use a Unix socket instead.
+
+     * ``{unix_socket}`` the path at which the process should listen on a Unix
+       socket. This will be an empty string if it should use a TCP port.
 
      * ``{base_url}`` the base URL of the notebook
 
@@ -54,8 +60,8 @@ pairs.
 
    * A dictionary of strings that are passed in as the environment to
      the started process, in addition to the environment of the notebook
-     process itself. The strings ``{port}`` and ``{base_url}`` will be
-     replaced as for **command**.
+     process itself. The strings ``{port}``, ``{unix_socket}`` and
+     ``{base_url}`` will be replaced as for **command**.
 
    * A callable that takes any :ref:`callable arguments <server-process/callable-arguments>`,
      and returns a dictionary of strings that are used & treated same as above.
@@ -94,6 +100,25 @@ pairs.
 
      Set the port that the service will listen on. The default is to
      automatically select an unused port.
+
+.. _server-process-unix-socket:
+
+``unix_socket``
+^^^^^^^^^^^^^^^
+
+    This option uses a Unix socket on a filesystem path, instead of a TCP
+    port. It can be passed as a string specifying the socket path, or *True* for
+    Jupyter Server Proxy to create a temporary directory to hold the socket,
+    ensuring that only the user running Jupyter can connect to it.
+
+    If this is used, the ``{unix_socket}`` argument in the command template
+    (see :ref:`server-process-cmd`) will be a filesystem path. The server should
+    create a Unix socket bound to this path and listen for HTTP requests on it.
+    The ``port`` configuration key will be ignored.
+
+    .. note::
+
+       Proxying websockets over a Unix socket requires Tornado >= 6.3.
 
 
 ``mappath``
