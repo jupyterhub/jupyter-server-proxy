@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         jupyterlab-version: ["2", "3"]
-        python-version: ["3.7", "3.11"]
+        python-version: ["3.8", "3.11"]
         jupyter-app: [notebook, lab]
 
     steps:
@@ -115,10 +115,9 @@ jobs:
       - name: Check the lab extension
         # We test the labextension thoroughly in the acceptance tests below, so
         # we have conditionally disabled this basic check is to avoid issues in
-        # jupyterlab.browser_check with jupyterlab 2 and a modern version of
-        # python (3.11+).
+        # jupyterlab.browser_check with jupyterlab 2 and jupyter_server 2+.
         #
-        if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.11')) }}
+        if: matrix.jupyterlab-version != '2'
         run: |
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
