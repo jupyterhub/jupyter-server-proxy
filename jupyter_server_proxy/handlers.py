@@ -869,6 +869,3 @@ def setup_handlers(web_app, serverproxy_config):
             ),
         ],
     )
-
-
-# vim: set et ts=4 sw=4:

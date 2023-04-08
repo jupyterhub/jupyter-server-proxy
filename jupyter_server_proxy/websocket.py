@@ -97,11 +97,3 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
             return await self.http_get(*args, **kwargs)
         else:
             await ensure_async(super().get(*args, **kwargs))
-
-
-def setup_handlers(web_app):
-    web_app.add_handlers('.*', [
-        (url_path_join(web_app.settings['base_url'], r'/proxy/(\d+)(.*)'), LocalProxyHandler)
-    ])
-
-# vim: set et ts=4 sw=4:
