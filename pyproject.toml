@@ -98,7 +98,7 @@ npm = ["jlpm"]
 
 [tool.hatch.build.hooks.jupyter-builder.editable-build-kwargs]
 path = "labextension"
-build_cmd = "install:extension"
+build_cmd = "build"
 npm = ["jlpm"]
 source_dir = "labextension/src"
 build_dir = "jupyter_server_proxy/labextension"
