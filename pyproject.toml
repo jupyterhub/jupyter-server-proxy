@@ -61,6 +61,11 @@ acceptance = [
 source = "nodejs"
 path = "labextension/package.json"
 
+[tool.hatch.build]
+artifacts = [
+    "jupyter_server_proxy/labextension",
+]
+
 [tool.hatch.build.targets.sdist]
 artifacts = [
     "jupyter_server_proxy/labextension",
