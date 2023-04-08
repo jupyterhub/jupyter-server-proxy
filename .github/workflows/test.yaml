@@ -37,8 +37,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jupyterlab-version: ["2", "3"]
         python-version: ["3.8", "3.11"]
+        jupyter_server-version: ["1", "2"]
+        jupyterlab-version: ["2", "3"]
         jupyter-app: [notebook, lab]
 
     steps:
@@ -69,7 +70,7 @@ jobs:
         #
         #       Pytest options are set in tests/pytest.ini.
         run: |
-          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0'
+          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0'
 
       - name: List Python packages
         run: |
@@ -117,7 +118,7 @@ jobs:
         # we have conditionally disabled this basic check is to avoid issues in
         # jupyterlab.browser_check with jupyterlab 2 and jupyter_server 2+.
         #
-        if: matrix.jupyterlab-version != '2'
+        if: ${{ !(matrix.jupyterlab-version == '2' && matrix.jupyter_server-version != '1') }}
         run: |
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
