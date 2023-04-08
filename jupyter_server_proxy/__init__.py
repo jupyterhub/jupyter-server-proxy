@@ -1,7 +1,15 @@
+import json
+from pathlib import Path
+
 from .handlers import setup_handlers
 from .config import ServerProxy as ServerProxyConfig, make_handlers, get_entrypoint_server_processes, make_server_process
 from jupyter_server.utils import url_path_join as ujoin
 from .api import ServersInfoHandler, IconHandler
+
+HERE = Path(__file__).parent.resolve()
+
+with (HERE / "labextension" / "package.json").open() as fid:
+    data = json.load(fid)
 
 # Jupyter Extension points
 def _jupyter_server_extension_points():
@@ -15,6 +23,12 @@ def _jupyter_nbextension_paths():
         "dest": "jupyter_server_proxy",
         'src': 'static',
         "require": "jupyter_server_proxy/tree"
+    }]
+
+def _jupyter_labextension_paths():
+    return [{
+        "src": "labextension",
+        "dest": data["name"]
     }]
 
 
