@@ -1,3 +1,7 @@
+# load the config object for traitlets based configuration
+c = get_config()  # noqa
+
+
 def mappathf(path):
     p = path + 'mapped'
     return p

@@ -1,3 +1,7 @@
+# load the config object for traitlets based configuration
+c = get_config()  # noqa
+
+
 c.ServerProxy.servers = {
   'code-server': {
     'command': [
