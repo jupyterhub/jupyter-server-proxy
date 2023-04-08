@@ -37,6 +37,7 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
+        exclude: "contrib\/template\/.*"
 
   # Autoformat: markdown, yaml
   - repo: https://github.com/pre-commit/mirrors-prettier
