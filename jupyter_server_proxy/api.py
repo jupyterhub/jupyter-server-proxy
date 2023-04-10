@@ -1,8 +1,9 @@
-from tornado import web
 import mimetypes
+
 from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.utils import url_path_join as ujoin
-from collections import namedtuple
+from tornado import web
+
 
 class ServersInfoHandler(JupyterHandler):
     def initialize(self, server_processes):
@@ -16,21 +17,21 @@ class ServersInfoHandler(JupyterHandler):
         for sp in self.server_processes:
             # Manually recurse to convert namedtuples into JSONable structures
             item = {
-                'name': sp.name,
-                'launcher_entry': {
-                    'enabled': sp.launcher_entry.enabled,
-                    'title': sp.launcher_entry.title,
-                    'path_info': sp.launcher_entry.path_info
+                "name": sp.name,
+                "launcher_entry": {
+                    "enabled": sp.launcher_entry.enabled,
+                    "title": sp.launcher_entry.title,
+                    "path_info": sp.launcher_entry.path_info,
                 },
-                'new_browser_tab' : sp.new_browser_tab
+                "new_browser_tab": sp.new_browser_tab,
             }
             if sp.launcher_entry.icon_path:
-                icon_url = ujoin(self.base_url, 'server-proxy', 'icon', sp.name)
-                item['launcher_entry']['icon_url'] = icon_url
+                icon_url = ujoin(self.base_url, "server-proxy", "icon", sp.name)
+                item["launcher_entry"]["icon_url"] = icon_url
 
             data.append(item)
 
-        self.write({'server_processes': data})
+        self.write({"server_processes": data})
 
 
 # FIXME: Should be a StaticFileHandler subclass
@@ -38,6 +39,7 @@ class IconHandler(JupyterHandler):
     """
     Serve launcher icons
     """
+
     def initialize(self, icons):
         """
         icons is a dict of titles to paths
@@ -67,4 +69,4 @@ class IconHandler(JupyterHandler):
 
         with open(self.icons[name]) as f:
             self.write(f.read())
-        self.set_header('Content-Type', content_type)
+        self.set_header("Content-Type", content_type)

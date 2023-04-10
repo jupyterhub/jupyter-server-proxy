@@ -1,12 +1,14 @@
-from jupyter_server_proxy.handlers import ProxyHandler
 from jupyter_server.utils import url_path_join
+
+from jupyter_server_proxy.handlers import ProxyHandler
+
 
 class NewHandler(ProxyHandler):
     async def http_get(self):
         return await self.proxy()
 
     async def open(self):
-        host = '127.0.0.1'
+        host = "127.0.0.1"
         port = 54321
         return await super().proxy_open(host, port)
 
@@ -29,9 +31,9 @@ class NewHandler(ProxyHandler):
         return self.proxy()
 
     def proxy(self):
-        host = '127.0.0.1'
+        host = "127.0.0.1"
         port = 54321
-        proxied_path = ''
+        proxied_path = ""
         return super().proxy(host, port, proxied_path)
 
 

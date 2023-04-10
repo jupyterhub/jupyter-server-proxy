@@ -48,13 +48,13 @@ Jupyter Server within a container and only allow network access to the Jupyter
 Server via the container.
 
 > For more insights, see [Ryan Lovett's comment about
-it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-1350118197).
+> it](https://github.com/jupyterhub/jupyter-server-proxy/pull/359#issuecomment-1350118197).
 
 ## Install
 
 ### Requirements
 
-* `jupyterlab>=2` or `notebook`
+- `jupyterlab>=2` or `notebook`
 
 ### Python package
 

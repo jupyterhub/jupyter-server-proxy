@@ -1,17 +1,15 @@
 """
 Traitlets based configuration for jupyter_server_proxy
 """
+from collections import namedtuple
+from warnings import warn
+
+import pkg_resources
 from jupyter_server.utils import url_path_join as ujoin
 from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
-from tornado import httpclient
-from warnings import warn
-from .handlers import (
-    NamedLocalProxyHandler, SuperviseAndProxyHandler, AddSlashHandler,
-)
-import pkg_resources
-from collections import namedtuple
-from .utils import call_with_asked_args
+
+from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
 
 try:
     # Traitlets >= 4.3.3
@@ -20,11 +18,26 @@ except ImportError:
     from .utils import Callable
 
 
-LauncherEntry = namedtuple('LauncherEntry', ['enabled', 'icon_path', 'title', 'path_info'])
-ServerProcess = namedtuple('ServerProcess', [
-    'name', 'command', 'environment', 'timeout', 'absolute_url', 'port', 'unix_socket',
-    'mappath', 'launcher_entry', 'new_browser_tab', 'request_headers_override', 'rewrite_response',
-])
+LauncherEntry = namedtuple(
+    "LauncherEntry", ["enabled", "icon_path", "title", "path_info"]
+)
+ServerProcess = namedtuple(
+    "ServerProcess",
+    [
+        "name",
+        "command",
+        "environment",
+        "timeout",
+        "absolute_url",
+        "port",
+        "unix_socket",
+        "mappath",
+        "launcher_entry",
+        "new_browser_tab",
+        "request_headers_override",
+        "rewrite_response",
+    ],
+)
 
 
 def _make_namedproxy_handler(sp: ServerProcess):
@@ -44,10 +57,12 @@ def _make_namedproxy_handler(sp: ServerProcess):
 
     return _Proxy
 
+
 def _make_supervisedproxy_handler(sp: ServerProcess):
     """
     Create a SuperviseAndProxyHandler subclass with given parameters
     """
+
     # FIXME: Set 'name' properly
     class _Proxy(SuperviseAndProxyHandler):
         def __init__(self, *args, **kwargs):
@@ -75,13 +90,12 @@ def _make_supervisedproxy_handler(sp: ServerProcess):
 
 def get_entrypoint_server_processes(serverproxy_config):
     sps = []
-    for entry_point in pkg_resources.iter_entry_points('jupyter_serverproxy_servers'):
+    for entry_point in pkg_resources.iter_entry_points("jupyter_serverproxy_servers"):
         name = entry_point.name
         server_process_config = entry_point.load()()
-        sps.append(
-            make_server_process(name, server_process_config, serverproxy_config)
-        )
+        sps.append(make_server_process(name, server_process_config, serverproxy_config))
     return sps
+
 
 def make_handlers(base_url, server_processes):
     """
@@ -94,45 +108,52 @@ def make_handlers(base_url, server_processes):
             kwargs = dict(state={})
         else:
             if not (sp.port or isinstance(sp.unix_socket, str)):
-                warn(f"Server proxy {sp.name} does not have a command, port "
-                     f"number or unix_socket path. At least one of these is "
-                     f"required.")
+                warn(
+                    f"Server proxy {sp.name} does not have a command, port "
+                    f"number or unix_socket path. At least one of these is "
+                    f"required."
+                )
                 continue
             handler = _make_namedproxy_handler(sp)
             kwargs = {}
-        handlers.append((
-            ujoin(base_url, sp.name, r'(.*)'), handler, kwargs,
-        ))
-        handlers.append((
-            ujoin(base_url, sp.name), AddSlashHandler
-        ))
+        handlers.append(
+            (
+                ujoin(base_url, sp.name, r"(.*)"),
+                handler,
+                kwargs,
+            )
+        )
+        handlers.append((ujoin(base_url, sp.name), AddSlashHandler))
     return handlers
 
 
 def make_server_process(name, server_process_config, serverproxy_config):
-    le = server_process_config.get('launcher_entry', {})
+    le = server_process_config.get("launcher_entry", {})
     return ServerProcess(
         name=name,
-        command=server_process_config.get('command', list()),
-        environment=server_process_config.get('environment', {}),
-        timeout=server_process_config.get('timeout', 5),
-        absolute_url=server_process_config.get('absolute_url', False),
-        port=server_process_config.get('port', 0),
-        unix_socket=server_process_config.get('unix_socket', None),
-        mappath=server_process_config.get('mappath', {}),
+        command=server_process_config.get("command", list()),
+        environment=server_process_config.get("environment", {}),
+        timeout=server_process_config.get("timeout", 5),
+        absolute_url=server_process_config.get("absolute_url", False),
+        port=server_process_config.get("port", 0),
+        unix_socket=server_process_config.get("unix_socket", None),
+        mappath=server_process_config.get("mappath", {}),
         launcher_entry=LauncherEntry(
-            enabled=le.get('enabled', True),
-            icon_path=le.get('icon_path'),
-            title=le.get('title', name),
-            path_info=le.get('path_info', name + "/")
+            enabled=le.get("enabled", True),
+            icon_path=le.get("icon_path"),
+            title=le.get("title", name),
+            path_info=le.get("path_info", name + "/"),
         ),
-        new_browser_tab=server_process_config.get('new_browser_tab', True),
-        request_headers_override=server_process_config.get('request_headers_override', {}),
+        new_browser_tab=server_process_config.get("new_browser_tab", True),
+        request_headers_override=server_process_config.get(
+            "request_headers_override", {}
+        ),
         rewrite_response=server_process_config.get(
-            'rewrite_response',
+            "rewrite_response",
             tuple(),
         ),
     )
+
 
 class ServerProxy(Configurable):
     servers = Dict(
@@ -248,7 +269,7 @@ class ServerProxy(Configurable):
 
             Defaults to the empty tuple ``tuple()``.
         """,
-        config=True
+        config=True,
     )
 
     non_service_rewrite_response = Union(
@@ -261,7 +282,7 @@ class ServerProxy(Configurable):
         See the description for ``rewrite_response`` for more information.
         Defaults to the empty tuple ``tuple()``.
         """,
-        config=True
+        config=True,
     )
 
     host_allowlist = Union(
@@ -284,7 +305,7 @@ class ServerProxy(Configurable):
 
         Defaults to a list of ["localhost", "127.0.0.1"].
         """,
-        config=True
+        config=True,
     )
 
     @default("host_allowlist")
@@ -294,7 +315,8 @@ class ServerProxy(Configurable):
     host_whitelist = Union(
         trait_types=[List(), Callable()],
         help="Deprecated, use host_allowlist",
-        config=True)
+        config=True,
+    )
 
     @observe("host_whitelist")
     def _host_whitelist_deprecated(self, change):

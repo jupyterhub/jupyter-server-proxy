@@ -4,33 +4,32 @@ Authenticated HTTP proxy for Jupyter Notebooks
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
 
-import inspect
-import socket
 import os
-from urllib.parse import urlunparse, urlparse, quote
-import aiohttp
+import socket
 from asyncio import Lock
 from copy import copy
 from tempfile import mkdtemp
+from urllib.parse import quote, urlparse, urlunparse
 
-from tornado import gen, web, httpclient, httputil, process, websocket, ioloop, version_info
-from tornado.simple_httpclient import SimpleAsyncHTTPClient
-
-from jupyter_server.utils import ensure_async, url_path_join
+import aiohttp
 from jupyter_server.base.handlers import JupyterHandler, utcnow
-from traitlets.traitlets import HasTraits
+from jupyter_server.utils import ensure_async, url_path_join
+from simpervisor import SupervisedProcess
+from tornado import httpclient, httputil, web
+from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
+from traitlets.traitlets import HasTraits
 
 from .unixsock import UnixResolver
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
-from simpervisor import SupervisedProcess
 
 
 class RewritableResponse(HasTraits):
     """
     A class to hold the response to be rewritten by rewrite_response
     """
+
     # The following should not be modified (or even accessed) by rewrite_response.
     # It is used to initialize the default values of the traits.
     orig_response = Instance(klass=httpclient.HTTPResponse)
@@ -41,23 +40,23 @@ class RewritableResponse(HasTraits):
     code = Integer()
     reason = Unicode(allow_none=True)
 
-    @default('headers')
+    @default("headers")
     def _default_headers(self):
         return copy(self.orig_response.headers)
 
-    @default('body')
+    @default("body")
     def _default_body(self):
         return self.orig_response.body
 
-    @default('code')
+    @default("code")
     def _default_code(self):
         return self.orig_response.code
 
-    @default('reason')
+    @default("reason")
     def _default_reason(self):
         return self.orig_response.reason
 
-    @observe('code')
+    @observe("code")
     def _observe_code(self, change):
         # HTTP status codes are mapped to short descriptions in the
         # httputil.responses dictionary, 200 maps to "OK", 403 maps to
@@ -67,8 +66,8 @@ class RewritableResponse(HasTraits):
         # description, we update reason to match the new code's short
         # description.
         #
-        if self.reason == httputil.responses.get(change['old'], 'Unknown'):
-            self.reason = httputil.responses.get(change['new'], 'Unknown')
+        if self.reason == httputil.responses.get(change["old"], "Unknown"):
+            self.reason = httputil.responses.get(change["new"], "Unknown")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -87,11 +86,13 @@ class RewritableResponse(HasTraits):
 
 class AddSlashHandler(JupyterHandler):
     """Add trailing slash to URLs that need them."""
+
     @web.authenticated
     def get(self, *args):
         src = urlparse(self.request.uri)
-        dest = src._replace(path=src.path + '/')
+        dest = src._replace(path=src.path + "/")
         self.redirect(urlunparse(dest))
+
 
 class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     """
@@ -104,14 +105,15 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     Subclasses should implement open, http_get, post, put, delete, head, patch,
     and options.
     """
+
     unix_socket = None  # Used in subclasses
 
     def __init__(self, *args, **kwargs):
-        self.proxy_base = ''
-        self.absolute_url = kwargs.pop('absolute_url', False)
-        self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
+        self.proxy_base = ""
+        self.absolute_url = kwargs.pop("absolute_url", False)
+        self.host_allowlist = kwargs.pop("host_allowlist", ["localhost", "127.0.0.1"])
         self.rewrite_response = kwargs.pop(
-            'rewrite_response',
+            "rewrite_response",
             tuple(),
         )
         self.subprotocols = None
@@ -127,29 +129,35 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
     async def open(self, port, proxied_path):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement open')
+        raise NotImplementedError("Subclasses of ProxyHandler should implement open")
 
-    async def http_get(self, host, port, proxy_path=''):
-        '''Our non-websocket GET.'''
-        raise NotImplementedError('Subclasses of ProxyHandler should implement http_get')
+    async def http_get(self, host, port, proxy_path=""):
+        """Our non-websocket GET."""
+        raise NotImplementedError(
+            "Subclasses of ProxyHandler should implement http_get"
+        )
 
-    def post(self, host, port, proxy_path=''):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement this post')
+    def post(self, host, port, proxy_path=""):
+        raise NotImplementedError(
+            "Subclasses of ProxyHandler should implement this post"
+        )
 
-    def put(self, port, proxy_path=''):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement this put')
+    def put(self, port, proxy_path=""):
+        raise NotImplementedError(
+            "Subclasses of ProxyHandler should implement this put"
+        )
 
-    def delete(self, host, port, proxy_path=''):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement delete')
+    def delete(self, host, port, proxy_path=""):
+        raise NotImplementedError("Subclasses of ProxyHandler should implement delete")
 
-    def head(self, host, port, proxy_path=''):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement head')
+    def head(self, host, port, proxy_path=""):
+        raise NotImplementedError("Subclasses of ProxyHandler should implement head")
 
-    def patch(self, host, port, proxy_path=''):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement patch')
+    def patch(self, host, port, proxy_path=""):
+        raise NotImplementedError("Subclasses of ProxyHandler should implement patch")
 
-    def options(self, host, port, proxy_path=''):
-        raise NotImplementedError('Subclasses of ProxyHandler should implement options')
+    def options(self, host, port, proxy_path=""):
+        raise NotImplementedError("Subclasses of ProxyHandler should implement options")
 
     def on_message(self, message):
         """
@@ -158,7 +166,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         We proxy it to the backend.
         """
         self._record_activity()
-        if hasattr(self, 'ws'):
+        if hasattr(self, "ws"):
             self.ws.write_message(message, binary=isinstance(message, bytes))
 
     def on_ping(self, data):
@@ -167,16 +175,16 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         We proxy it to the backend.
         """
-        self.log.debug('jupyter_server_proxy: on_ping: {}'.format(data))
+        self.log.debug(f"jupyter_server_proxy: on_ping: {data}")
         self._record_activity()
-        if hasattr(self, 'ws'):
+        if hasattr(self, "ws"):
             self.ws.protocol.write_ping(data)
 
     def on_pong(self, data):
         """
         Called when we receive a ping back.
         """
-        self.log.debug('jupyter_server_proxy: on_pong: {}'.format(data))
+        self.log.debug(f"jupyter_server_proxy: on_pong: {data}")
 
     def on_close(self):
         """
@@ -184,7 +192,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         We close our connection to the backend too.
         """
-        if hasattr(self, 'ws'):
+        if hasattr(self, "ws"):
             self.ws.close()
 
     def _record_activity(self):
@@ -193,7 +201,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         avoids proxied traffic being ignored by the notebook's
         internal idle-shutdown mechanism
         """
-        self.settings['api_last_activity'] = utcnow()
+        self.settings["api_last_activity"] = utcnow()
 
     def _get_context_path(self, host, port):
         """
@@ -205,13 +213,13 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         - {base_url}/proxy/absolute/{host}:{port}
         - {base_url}/{proxy_base}
         """
-        host_and_port = str(port) if host == 'localhost' else host + ":" + str(port)
+        host_and_port = str(port) if host == "localhost" else host + ":" + str(port)
         if self.proxy_base:
             return url_path_join(self.base_url, self.proxy_base)
         if self.absolute_url:
-            return url_path_join(self.base_url, 'proxy', 'absolute', host_and_port)
+            return url_path_join(self.base_url, "proxy", "absolute", host_and_port)
         else:
-            return url_path_join(self.base_url, 'proxy', host_and_port)
+            return url_path_join(self.base_url, "proxy", host_and_port)
 
     def get_client_uri(self, protocol, host, port, proxied_path):
         if self.absolute_url:
@@ -233,35 +241,38 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         # ref: https://tools.ietf.org/html/rfc3986#section-2.2
         client_path = quote(client_path, safe=":/?#[]@!$&'()*+,;=-._~")
 
-        client_uri = '{protocol}://{host}:{port}{path}'.format(
+        client_uri = "{protocol}://{host}:{port}{path}".format(
             protocol=protocol,
             host=host,
             port=port,
             path=client_path,
         )
         if self.request.query:
-            client_uri += '?' + self.request.query
+            client_uri += "?" + self.request.query
 
         return client_uri
 
     def _build_proxy_request(self, host, port, proxied_path, body):
-
         headers = self.proxy_request_headers()
 
-        client_uri = self.get_client_uri('http', host, port, proxied_path)
+        client_uri = self.get_client_uri("http", host, port, proxied_path)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
             context_path = self._get_context_path(host, port)
-            headers['X-Forwarded-Context'] = context_path
-            headers['X-ProxyContextPath'] = context_path
+            headers["X-Forwarded-Context"] = context_path
+            headers["X-ProxyContextPath"] = context_path
             # to be compatible with flask/werkzeug wsgi applications
-            headers['X-Forwarded-Prefix'] = context_path
+            headers["X-Forwarded-Prefix"] = context_path
 
         req = httpclient.HTTPRequest(
-            client_uri, method=self.request.method, body=body,
+            client_uri,
+            method=self.request.method,
+            body=body,
             decompress_response=False,
-            headers=headers, **self.proxy_request_options())
+            headers=headers,
+            **self.proxy_request_options(),
+        )
         return req
 
     def _check_host_allowlist(self, host):
@@ -272,32 +283,36 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
-        '''
+        """
         This serverextension handles:
             {base_url}/proxy/{port([0-9]+)}/{proxied_path}
             {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
             {base_url}/{proxy_base}/{proxied_path}
-        '''
+        """
 
         if not self._check_host_allowlist(host):
             self.set_status(403)
-            self.write("Host '{host}' is not allowed. "
-                       "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
+            self.write(
+                "Host '{host}' is not allowed. "
+                "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(
+                    host=host
+                )
+            )
             return
 
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
         # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
         # for more information
         hop_by_hop_headers = [
-            'Proxy-Connection',
-            'Keep-Alive',
-            'Transfer-Encoding',
-            'TE',
-            'Connection',
-            'Trailer',
-            'Upgrade',
-            'Proxy-Authorization',
-            'Proxy-Authenticate'
+            "Proxy-Connection",
+            "Keep-Alive",
+            "Transfer-Encoding",
+            "TE",
+            "Connection",
+            "Trailer",
+            "Upgrade",
+            "Proxy-Authorization",
+            "Proxy-Authenticate",
         ]
         for header_to_remove in hop_by_hop_headers:
             if header_to_remove in self.request.headers:
@@ -305,23 +320,25 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         self._record_activity()
 
-        if self.request.headers.get("Upgrade", "").lower() == 'websocket':
+        if self.request.headers.get("Upgrade", "").lower() == "websocket":
             # We wanna websocket!
             # jupyterhub/jupyter-server-proxy@36b3214
-            self.log.info("we wanna websocket, but we don't define WebSocketProxyHandler")
+            self.log.info(
+                "we wanna websocket, but we don't define WebSocketProxyHandler"
+            )
             self.set_status(500)
 
         body = self.request.body
         if not body:
-            if self.request.method in  {'POST', 'PUT'}:
-                body = b''
+            if self.request.method in {"POST", "PUT"}:
+                body = b""
             else:
                 body = None
 
         if self.unix_socket is not None:
             # Port points to a Unix domain socket
             self.log.debug("Making client for Unix socket %r", self.unix_socket)
-            assert host == 'localhost', "Unix sockets only possible on localhost"
+            assert host == "localhost", "Unix sockets only possible on localhost"
             client = SimpleAsyncHTTPClient(resolver=UnixResolver(self.unix_socket))
         else:
             client = httpclient.AsyncHTTPClient()
@@ -369,11 +386,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
             # To be passed on-demand as args to the rewrite_response functions.
             optional_args_to_rewrite_function = {
-                'request': self.request,
-                'orig_response': original_response,
-                'host': host,
-                'port': port,
-                'path': proxied_path
+                "request": self.request,
+                "orig_response": original_response,
+                "host": host,
+                "port": port,
+                "path": proxied_path,
             }
 
             # Initial value for rewriting
@@ -389,10 +406,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                     return call_with_asked_args(
                         rewrite,
                         {
-                            'response': rewritable_response,
-                            **optional_args_to_rewrite_function
-                        }
+                            "response": rewritable_response,
+                            **optional_args_to_rewrite_function,
+                        },
                     )
+
                 # Now we can cleanly apply the partially evaulated function to a copy of
                 # the rewritten response.
                 rewritten_response = rewritten_response._apply_to_copy(rewrite_pe)
@@ -403,15 +421,14 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             # clear tornado default header
             self._headers = httputil.HTTPHeaders()
             for header, v in rewritten_response.headers.get_all():
-                if header not in ('Content-Length', 'Transfer-Encoding',
-                                  'Connection'):
+                if header not in ("Content-Length", "Transfer-Encoding", "Connection"):
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
             if rewritten_response.body:
                 self.write(rewritten_response.body)
 
-    async def proxy_open(self, host, port, proxied_path=''):
+    async def proxy_open(self, host, port, proxied_path=""):
         """
         Called when a client opens a websocket connection.
 
@@ -421,22 +438,26 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         if not self._check_host_allowlist(host):
             self.set_status(403)
-            self.log.info("Host '{host}' is not allowed. "
-                          "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(host=host))
+            self.log.info(
+                "Host '{host}' is not allowed. "
+                "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(
+                    host=host
+                )
+            )
             self.close()
             return
 
-        if not proxied_path.startswith('/'):
-            proxied_path = '/' + proxied_path
+        if not proxied_path.startswith("/"):
+            proxied_path = "/" + proxied_path
 
         if self.unix_socket is not None:
-            assert host == 'localhost', "Unix sockets only possible on localhost"
+            assert host == "localhost", "Unix sockets only possible on localhost"
             self.log.debug("Opening websocket on Unix socket %r", port)
             resolver = UnixResolver(self.unix_socket)  # Requires tornado >= 6.3
         else:
             resolver = None
 
-        client_uri = self.get_client_uri('ws', host, port, proxied_path)
+        client_uri = self.get_client_uri("ws", host, port, proxied_path)
         headers = self.proxy_request_headers()
 
         def message_cb(message):
@@ -463,14 +484,18 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.ping(data)
 
         async def start_websocket_connection():
-            self.log.info('Trying to establish websocket connection to {}'.format(client_uri))
+            self.log.info(f"Trying to establish websocket connection to {client_uri}")
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
-            self.ws = await pingable_ws_connect(request=request,
-                on_message_callback=message_cb, on_ping_callback=ping_cb,
-                subprotocols=self.subprotocols, resolver=resolver)
+            self.ws = await pingable_ws_connect(
+                request=request,
+                on_message_callback=message_cb,
+                on_ping_callback=ping_cb,
+                subprotocols=self.subprotocols,
+                resolver=resolver,
+            )
             self._record_activity()
-            self.log.info('Websocket connection established to {}'.format(client_uri))
+            self.log.info(f"Websocket connection established to {client_uri}")
 
         # Wait for the WebSocket to be connected before resolving.
         # Otherwise, messages sent by the client before the
@@ -478,35 +503,36 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         await start_websocket_connection()
 
     def proxy_request_headers(self):
-        '''A dictionary of headers to be used when constructing
-        a tornado.httpclient.HTTPRequest instance for the proxy request.'''
+        """A dictionary of headers to be used when constructing
+        a tornado.httpclient.HTTPRequest instance for the proxy request."""
         headers = self.request.headers.copy()
         # Merge any manually configured request headers
         headers.update(self.get_request_headers_override())
         return headers
 
     def get_request_headers_override(self):
-        '''Add additional request headers. Typically overridden in subclasses.'''
+        """Add additional request headers. Typically overridden in subclasses."""
         return {}
 
     def proxy_request_options(self):
-        '''A dictionary of options to be used when constructing
-        a tornado.httpclient.HTTPRequest instance for the proxy request.'''
-        return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0)
+        """A dictionary of options to be used when constructing
+        a tornado.httpclient.HTTPRequest instance for the proxy request."""
+        return dict(
+            follow_redirects=False, connect_timeout=250.0, request_timeout=300.0
+        )
 
     def check_xsrf_cookie(self):
-        '''
+        """
         http://www.tornadoweb.org/en/stable/guide/security.html
 
         Defer to proxied apps.
-        '''
-        pass
+        """
 
     def select_subprotocol(self, subprotocols):
-        '''Select a single Sec-WebSocket-Protocol during handshake.'''
+        """Select a single Sec-WebSocket-Protocol during handshake."""
         self.subprotocols = subprotocols
         if isinstance(subprotocols, list) and subprotocols:
-            self.log.debug('Client sent subprotocols: {}'.format(subprotocols))
+            self.log.debug(f"Client sent subprotocols: {subprotocols}")
             return subprotocols[0]
         return super().select_subprotocol(subprotocols)
 
@@ -521,11 +547,12 @@ class LocalProxyHandler(ProxyHandler):
     the URL as capture groups in the regex specified in the add_handlers
     method.
     """
+
     async def http_get(self, port, proxied_path):
         return await self.proxy(port, proxied_path)
 
     async def open(self, port, proxied_path):
-        return await self.proxy_open('localhost', port, proxied_path)
+        return await self.proxy_open("localhost", port, proxied_path)
 
     def post(self, port, proxied_path):
         return self.proxy(port, proxied_path)
@@ -546,7 +573,8 @@ class LocalProxyHandler(ProxyHandler):
         return self.proxy(port, proxied_path)
 
     def proxy(self, port, proxied_path):
-        return super().proxy('localhost', port, proxied_path)
+        return super().proxy("localhost", port, proxied_path)
+
 
 class RemoteProxyHandler(ProxyHandler):
     """
@@ -595,15 +623,16 @@ class NamedLocalProxyHandler(LocalProxyHandler):
     Config will create a subclass of this for each named proxy. A further
     subclass below is used for named proxies where we also start the server.
     """
+
     port = 0
     mappath = {}
 
     @property
     def process_args(self):
         return {
-            'port': self.port,
-            'unix_socket': (self.unix_socket or ''),
-            'base_url': self.base_url,
+            "port": self.port,
+            "unix_socket": (self.unix_socket or ""),
+            "base_url": self.base_url,
         }
 
     def _render_template(self, value):
@@ -618,7 +647,7 @@ class NamedLocalProxyHandler(LocalProxyHandler):
                 for k, v in value.items()
             }
         else:
-            raise ValueError('Value of unrecognized type {}'.format(type(value)))
+            raise ValueError(f"Value of unrecognized type {type(value)}")
 
     def _realize_rendered_template(self, attribute):
         """Call any callables, then render any templated values."""
@@ -630,11 +659,11 @@ class NamedLocalProxyHandler(LocalProxyHandler):
 
     @web.authenticated
     async def proxy(self, port, path):
-        if not path.startswith('/'):
-            path = '/' + path
+        if not path.startswith("/"):
+            path = "/" + path
         if self.mappath:
             if callable(self.mappath):
-                path = call_with_asked_args(self.mappath, {'path': path})
+                path = call_with_asked_args(self.mappath, {"path": path})
             else:
                 path = self.mappath.get(path, path)
 
@@ -684,10 +713,10 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
 
     def initialize(self, state):
         self.state = state
-        if 'proc_lock' not in state:
-            state['proc_lock'] = Lock()
+        if "proc_lock" not in state:
+            state["proc_lock"] = Lock()
 
-    name = 'process'
+    name = "process"
 
     @property
     def port(self):
@@ -698,29 +727,29 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         if self.requested_unix_socket:  # unix_socket has priority over port
             return 0
 
-        if 'port' not in self.state:
+        if "port" not in self.state:
             if self.requested_port:
-                self.state['port'] = self.requested_port
+                self.state["port"] = self.requested_port
             else:
                 sock = socket.socket()
-                sock.bind(('', self.requested_port))
-                self.state['port'] = sock.getsockname()[1]
+                sock.bind(("", self.requested_port))
+                self.state["port"] = sock.getsockname()[1]
                 sock.close()
 
-        return self.state['port']
+        return self.state["port"]
 
     @property
     def unix_socket(self):
-        if 'unix_socket' not in self.state:
+        if "unix_socket" not in self.state:
             if self.requested_unix_socket is True:
-                sock_dir = mkdtemp(prefix='jupyter-server-proxy-')
-                sock_path = os.path.join(sock_dir, 'socket')
+                sock_dir = mkdtemp(prefix="jupyter-server-proxy-")
+                sock_path = os.path.join(sock_dir, "socket")
             elif self.requested_unix_socket:
                 sock_path = self.requested_unix_socket
             else:
                 sock_path = None
-            self.state['unix_socket'] = sock_path
-        return self.state['unix_socket']
+            self.state["unix_socket"] = sock_path
+        return self.state["unix_socket"]
 
     def get_cmd(self):
         return self._realize_rendered_template(self.command)
@@ -734,8 +763,8 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         return os.getcwd()
 
     def get_env(self):
-        '''Set up extra environment variables for process. Typically
-           overridden in subclasses.'''
+        """Set up extra environment variables for process. Typically
+        overridden in subclasses."""
         return {}
 
     def get_timeout(self):
@@ -746,20 +775,20 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
 
     async def _http_ready_func(self, p):
         if self.unix_socket is not None:
-            url = 'http://localhost'
+            url = "http://localhost"
             connector = aiohttp.UnixConnector(self.unix_socket)
         else:
-            url = 'http://localhost:{}'.format(self.port)
+            url = f"http://localhost:{self.port}"
             connector = None  # Default, TCP connector
         async with aiohttp.ClientSession(connector=connector) as session:
             try:
                 async with session.get(url, allow_redirects=False) as resp:
                     # We only care if we get back *any* response, not just 200
                     # If there's an error response, that can be shown directly to the user
-                    self.log.debug('Got code {} back from {}'.format(resp.status, url))
+                    self.log.debug(f"Got code {resp.status} back from {url}")
                     return True
             except aiohttp.ClientConnectionError:
-                self.log.debug('Connection to {} refused'.format(url))
+                self.log.debug(f"Connection to {url} refused")
                 return False
 
     async def ensure_process(self):
@@ -770,8 +799,8 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         # FIXME: Make sure this times out properly?
         # Invariant here should be: when lock isn't being held, either 'proc' is in state &
         # running, or not.
-        async with self.state['proc_lock']:
-            if 'proc' not in self.state:
+        async with self.state["proc_lock"]:
+            if "proc" not in self.state:
                 # FIXME: Prevent races here
                 # FIXME: Handle graceful exits of spawned processes here
 
@@ -780,7 +809,7 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
                 # won't await its readiness or similar either.
                 cmd = self.get_cmd()
                 if not cmd:
-                    self.state['proc'] = "process not managed by jupyter-server-proxy"
+                    self.state["proc"] = "process not managed by jupyter-server-proxy"
                     return
 
                 # Set up extra environment variables for process
@@ -789,8 +818,15 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
 
                 timeout = self.get_timeout()
 
-                proc = SupervisedProcess(self.name, *cmd, env=server_env, ready_func=self._http_ready_func, ready_timeout=timeout, log=self.log)
-                self.state['proc'] = proc
+                proc = SupervisedProcess(
+                    self.name,
+                    *cmd,
+                    env=server_env,
+                    ready_func=self._http_ready_func,
+                    ready_timeout=timeout,
+                    log=self.log,
+                )
+                self.state["proc"] = proc
 
                 try:
                     await proc.start()
@@ -799,10 +835,10 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
 
                     if not is_ready:
                         await proc.kill()
-                        raise web.HTTPError(500, 'could not start {} in time'.format(self.name))
+                        raise web.HTTPError(500, f"could not start {self.name} in time")
                 except:
                     # Make sure we remove proc from state in any error condition
-                    del self.state['proc']
+                    del self.state["proc"]
                     raise
 
     @web.authenticated

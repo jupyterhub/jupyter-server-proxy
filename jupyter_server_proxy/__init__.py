@@ -1,32 +1,43 @@
-from .handlers import setup_handlers
-from .config import ServerProxy as ServerProxyConfig, make_handlers, get_entrypoint_server_processes, make_server_process
 from jupyter_server.utils import url_path_join as ujoin
-from .api import ServersInfoHandler, IconHandler
+
+from .api import IconHandler, ServersInfoHandler
+from .config import ServerProxy as ServerProxyConfig
+from .config import get_entrypoint_server_processes, make_handlers, make_server_process
+from .handlers import setup_handlers
+
 
 # Jupyter Extension points
 def _jupyter_server_extension_points():
-    return [{
-        'module': 'jupyter_server_proxy',
-    }]
+    return [
+        {
+            "module": "jupyter_server_proxy",
+        }
+    ]
+
 
 def _jupyter_nbextension_paths():
-    return [{
-        "section": "tree",
-        "dest": "jupyter_server_proxy",
-        'src': 'static',
-        "require": "jupyter_server_proxy/tree"
-    }]
+    return [
+        {
+            "section": "tree",
+            "dest": "jupyter_server_proxy",
+            "src": "static",
+            "require": "jupyter_server_proxy/tree",
+        }
+    ]
+
 
 def _jupyter_labextension_paths():
-    return [{
-        "src": "labextension",
-        "dest": "@jupyterhub/jupyter-server-proxy",
-    }]
+    return [
+        {
+            "src": "labextension",
+            "dest": "@jupyterhub/jupyter-server-proxy",
+        }
+    ]
 
 
 def _load_jupyter_server_extension(nbapp):
     # Set up handlers picked up via config
-    base_url = nbapp.web_app.settings['base_url']
+    base_url = nbapp.web_app.settings["base_url"]
     serverproxy_config = ServerProxyConfig(parent=nbapp)
 
     server_processes = [
@@ -35,7 +46,7 @@ def _load_jupyter_server_extension(nbapp):
     ]
     server_processes += get_entrypoint_server_processes(serverproxy_config)
     server_handlers = make_handlers(base_url, server_processes)
-    nbapp.web_app.add_handlers('.*', server_handlers)
+    nbapp.web_app.add_handlers(".*", server_handlers)
 
     # Set up default non-server handler
     setup_handlers(
@@ -48,10 +59,17 @@ def _load_jupyter_server_extension(nbapp):
         if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
             icons[sp.name] = sp.launcher_entry.icon_path
 
-    nbapp.web_app.add_handlers('.*', [
-        (ujoin(base_url, 'server-proxy/servers-info'), ServersInfoHandler, {'server_processes': server_processes}),
-        (ujoin(base_url, 'server-proxy/icon/(.*)'), IconHandler, {'icons': icons}),
-    ])
+    nbapp.web_app.add_handlers(
+        ".*",
+        [
+            (
+                ujoin(base_url, "server-proxy/servers-info"),
+                ServersInfoHandler,
+                {"server_processes": server_processes},
+            ),
+            (ujoin(base_url, "server-proxy/icon/(.*)"), IconHandler, {"icons": icons}),
+        ],
+    )
 
 
 # For backward compatibility
