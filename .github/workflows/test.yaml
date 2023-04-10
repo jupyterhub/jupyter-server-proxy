@@ -25,19 +25,28 @@ on:
 
 jobs:
   test:
-    # NOTE: The worker environment running this job needs firefox and
-    #       geckowebdriver available. Before upgrading to ubuntu-24.04 in the
-    #       future, check and see its available in a location like this:
-    #       https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#browsers-and-drivers
-    #
-    runs-on: ubuntu-22.04
-
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.11"]
         jupyter_server-version: ["1", "2"]
         jupyterlab-version: ["3"]
+        os: [ubuntu-22.04]
+        include:
+          - python-version: "3.11"
+            jupyter_server-version: "2"
+            jupyterlab-version: "3"
+            os: windows-2022
+
+    # NOTE: The worker environment running this job needs firefox and
+    #       geckowebdriver available. Before upgrading to ubuntu-24.04 in the
+    #       future, check and see its available in a location like this:
+    #       https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#browsers-and-drivers
+    #
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v3
