@@ -17,6 +17,12 @@ def _jupyter_nbextension_paths():
         "require": "jupyter_server_proxy/tree"
     }]
 
+def _jupyter_labextension_paths():
+    return [{
+        "src": "labextension",
+        "dest": "@jupyterhub/jupyter-server-proxy",
+    }]
+
 
 def _load_jupyter_server_extension(nbapp):
     # Set up handlers picked up via config

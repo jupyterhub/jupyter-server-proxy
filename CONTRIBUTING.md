@@ -10,11 +10,16 @@ the README.md file.
 ### Python package
 
 ```bash
+# Clone the repo to your local environment
+git clone https://github.com/jupyterhub/jupyter-server-proxy.git
+# Change directory to the jupyter-server-proxy directory
+cd jupyter-server-proxy
+# Install package in development mode
 pip install -e ".[test]"
-
-# explicit install needed with editable mode (-e) jupyter
-jupyter serverextension enable --sys-prefix jupyter_server_proxy
-jupyter server extension enable --sys-prefix jupyter_server_proxy
+# Link your development version of the extension with JupyterLab (only for JupyterLab 3)
+jupyter labextension develop --overwrite .
+# Server extension must be manually installed in develop mode
+jupyter server extension enable jupyter_server_proxy
 ```
 
 Before running tests, you need a server that we can test against.
@@ -79,7 +84,22 @@ and `jupyter_server_proxy/labextension` folders:
 
 ```bash
 cd labextension
-jlpm watch
+# Watch the source directory in one terminal, automatically rebuilding when needed
+jlpm run watch
+# Run JupyterLab in another terminal
+jupyter lab
+```
+
+With the watch command running, every saved change will immediately be built locally 
+and available in your running JupyterLab. Refresh JupyterLab to load the change in 
+your browser (you may need to wait several seconds for the extension to be rebuilt).
+
+By default, the `jlpm run build` command generates the source maps for this 
+extension to make it easier to debug using the browser dev tools. To also generate 
+source maps for the JupyterLab core extensions, you can run the following command:
+
+```bash
+jupyter lab build --minimize=False
 ```
 
 ### Documentation

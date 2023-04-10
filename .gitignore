@@ -6,7 +6,7 @@ node_modules/
 package-lock.json
 .yarn-packages/
 *.tsbuildinfo
-
+.DS_Store
 
 # Copy pasted entries from:
 # https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
