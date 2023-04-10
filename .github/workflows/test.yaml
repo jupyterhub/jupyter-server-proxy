@@ -37,9 +37,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python-version: ["3.8", "3.11"]
+        jupyter_server-version: ["1", "2"]
         jupyterlab-version: ["2", "3"]
-        python-version: ["3.7", "3.11"]
-        jupyter-app: [notebook, lab]
 
     steps:
       - uses: actions/checkout@v3
@@ -69,16 +69,23 @@ jobs:
         #
         #       Pytest options are set in tests/pytest.ini.
         run: |
-          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0'
+          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0'
 
       - name: List Python packages
         run: |
           pip freeze
           pip check
 
-      - name: Run tests
+      - name: Run tests against jupyter-notebook
         run: |
-          JUPYTER_TOKEN=secret jupyter-${{ matrix.jupyter-app }} --config=./tests/resources/jupyter_server_config.py &
+          JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
+          sleep 5
+          cd tests
+          pytest -k "not acceptance"
+
+      - name: Run tests against jupyter-lab
+        run: |
+          JUPYTER_TOKEN=secret jupyter-lab --config=./tests/resources/jupyter_server_config.py &
           sleep 5
           cd tests
           pytest -k "not acceptance"
@@ -88,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: |-
-            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage
@@ -115,10 +122,9 @@ jobs:
       - name: Check the lab extension
         # We test the labextension thoroughly in the acceptance tests below, so
         # we have conditionally disabled this basic check is to avoid issues in
-        # jupyterlab.browser_check with jupyterlab 2 and a modern version of
-        # python (3.11+).
+        # jupyterlab.browser_check with jupyterlab 2 and jupyter_server 2+.
         #
-        if: ${{ !(matrix.jupyterlab-version == '2' && startsWith(matrix.python-version, '3.11')) }}
+        if: ${{ !(matrix.jupyterlab-version == '2' && matrix.jupyter_server-version != '1') }}
         run: |
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
@@ -133,6 +139,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: |-
-            acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyter-app }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+            acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/robot
