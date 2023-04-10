@@ -4,6 +4,7 @@ either a tcp port or a unix socket.
 """
 import argparse
 import socket
+import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
@@ -28,8 +29,10 @@ class EchoRequestInfo(BaseHTTPRequestHandler):
         return super().address_string()
 
 
-class HTTPUnixServer(HTTPServer):
-    address_family = socket.AF_UNIX
+if sys.platform != "win32":
+
+    class HTTPUnixServer(HTTPServer):
+        address_family = socket.AF_UNIX
 
 
 if __name__ == "__main__":

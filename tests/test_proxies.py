@@ -1,6 +1,7 @@
 import asyncio
 import gzip
 import json
+import sys
 from http.client import HTTPConnection
 from io import BytesIO
 from typing import Tuple
@@ -23,15 +24,30 @@ def request_get(port, path, token, host=LOCALHOST):
     return h.getresponse()
 
 
-@pytest.mark.parametrize(
-    "server_process_path",
-    [
-        "/python-http/",
+PARAMETERIZED_SERVER_PROCESS_PATHS = [
+    "/python-http/",
+    pytest.param(
         "/python-unix-socket-true/",
+        marks=pytest.mark.skipif(
+            sys.platform == "win32", reason="Unix socket not supported on Windows"
+        ),
+    ),
+    pytest.param(
         "/python-unix-socket-file/",
+        marks=pytest.mark.skipif(
+            sys.platform == "win32", reason="Unix socket not supported on Windows"
+        ),
+    ),
+    pytest.param(
         "/python-unix-socket-file-no-command/",
-    ],
-)
+        marks=pytest.mark.skipif(
+            sys.platform == "win32", reason="Unix socket not supported on Windows"
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize("server_process_path", PARAMETERIZED_SERVER_PROCESS_PATHS)
 def test_server_proxy_minimal_proxy_path_encoding(
     server_process_path: str, a_server_port_and_token: Tuple[int, str]
 ) -> None:
@@ -50,15 +66,7 @@ def test_server_proxy_minimal_proxy_path_encoding(
     assert f"GET /{special_path}&token=" in s
 
 
-@pytest.mark.parametrize(
-    "server_process_path",
-    [
-        "/python-http/",
-        "/python-unix-socket-true/",
-        "/python-unix-socket-file/",
-        "/python-unix-socket-file-no-command/",
-    ],
-)
+@pytest.mark.parametrize("server_process_path", PARAMETERIZED_SERVER_PROCESS_PATHS)
 def test_server_proxy_hash_sign_encoding(
     server_process_path: str, a_server_port_and_token: Tuple[int, str]
 ) -> None:
