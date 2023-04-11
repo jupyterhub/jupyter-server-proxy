@@ -22,13 +22,13 @@ For security reasons the host must match an entry in the `host_allowlist` in you
 
 Let's say you are using a JupyterHub set up on a remote machine,
 and you have a process running on that machine listening on port
-8080\. If your hub URL is `myhub.org`, each user can
+8080. If your hub URL is `myhub.org`, each user can
 access the service running on port 8080 with the URL
 `myhub.org/hub/user-redirect/proxy/8080`. The `user-redirect`
 will make sure that:
 
 1. It provides a redirect to the correct URL for the particular
-   user who is logged in
+   user who is logged in.
 2. If a user is not logged in, it'll present them with a login
    screen. They'll be redirected there after completing authentication.
 

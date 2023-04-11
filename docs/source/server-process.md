@@ -19,138 +19,137 @@ pairs.
 
 ### `command`
 
-> One of:
->
-> - A list of strings that is the command used to start the
->   process. The following template strings will be replaced:
->
->   - `{port}` the port that the process should listen on. This will be 0 if
->     it should use a Unix socket instead.
->   - `{unix_socket}` the path at which the process should listen on a Unix
->     socket. This will be an empty string if it should use a TCP port.
->   - `{base_url}` the base URL of the notebook
->
->   For example, if the application needs to know its full path it can
->   be constructed from `{base_url}/proxy/{port}`
->
-> - A callable that takes any {ref}`callable arguments <server-process/callable-arguments>`,
->   and returns a list of strings that are used & treated same as above.
->
-> If the command is not specified or is an empty list, the server process is
-> assumed to be started ahead of time and already available to be proxied to.
+One of:
+
+- A list of strings that is the command used to start the
+  process. The following template strings will be replaced:
+
+  - `{port}` the port that the process should listen on. This will be 0 if it
+    should use a Unix socket instead.
+  - `{unix_socket}` the path at which the process should listen on a Unix
+    socket. This will be an empty string if it should use a TCP port.
+  - `{base_url}` the base URL of the notebook. For example, if the application
+    needs to know its full path it can be constructed from
+    `{base_url}/proxy/{port}`
+
+- A callable that takes any {ref}`callable arguments <server-process/callable-arguments>`,
+  and returns a list of strings that are used & treated same as above.
+
+If the command is not specified or is an empty list, the server process is
+assumed to be started ahead of time and already available to be proxied to.
 
 ### `timeout`
 
-> Timeout in seconds for the process to become ready, default `5`.
->
-> A process is considered 'ready' when it can return a valid HTTP response on the
-> port it is supposed to start at.
+Timeout in seconds for the process to become ready, default `5`.
+
+A process is considered 'ready' when it can return a valid HTTP response on the
+port it is supposed to start at.
 
 ### `environment`
 
-> One of:
->
-> - A dictionary of strings that are passed in as the environment to
->   the started process, in addition to the environment of the notebook
->   process itself. The strings `{port}`, `{unix_socket}` and
->   `{base_url}` will be replaced as for **command**.
-> - A callable that takes any {ref}`callable arguments <server-process/callable-arguments>`,
->   and returns a dictionary of strings that are used & treated same as above.
+One of:
+
+- A dictionary of strings that are passed in as the environment to
+  the started process, in addition to the environment of the notebook
+  process itself. The strings `{port}`, `{unix_socket}` and
+  `{base_url}` will be replaced as for **command**.
+- A callable that takes any {ref}`callable arguments <server-process/callable-arguments>`,
+  and returns a dictionary of strings that are used & treated same as above.
 
 ### `absolute_url`
 
-> *True* if the URL as seen by the proxied application should be the full URL
-> sent by the user. *False* if the URL as seen by the proxied application should
-> see the URL after the parts specific to jupyter-server-proxy have been stripped.
->
-> For example, with the following config:
->
-> ```python
-> c.ServerProxy.servers = {
->   'test-server': {
->     'command': ['python3', '-m', 'http.server', '{port}'],
->     'absolute_url': False
->   }
-> }
-> ```
->
-> When a user requests `/test-server/some-url`, the proxied server will see it
-> as a request for `/some-url` - the `/test-server` part is stripped out.
->
-> If `absolute_url` is set to `True` instead, the proxied server will see it
-> as a request for `/test-server/some-url` instead - without any stripping.
->
-> This is very useful with applications that require a `base_url` to be set.
->
-> Defaults to *False*.
+*True* if the URL as seen by the proxied application should be the full URL
+sent by the user. *False* if the URL as seen by the proxied application should
+see the URL after the parts specific to jupyter-server-proxy have been stripped.
+
+For example, with the following config:
+
+```python
+c.ServerProxy.servers = {
+  'test-server': {
+    'command': ['python3', '-m', 'http.server', '{port}'],
+    'absolute_url': False
+  }
+}
+```
+
+When a user requests `/test-server/some-url`, the proxied server will see it
+as a request for `/some-url` - the `/test-server` part is stripped out.
+
+If `absolute_url` is set to `True` instead, the proxied server will see it
+as a request for `/test-server/some-url` instead - without any stripping.
+
+This is very useful with applications that require a `base_url` to be set.
+
+Defaults to *False*.
 
 ### `port`
 
-> Set the port that the service will listen on. The default is to
-> automatically select an unused port.
+Set the port that the service will listen on. The default is to
+automatically select an unused port.
 
 (server-process-unix-socket)=
 
 ### `unix_socket`
 
-> This option uses a Unix socket on a filesystem path, instead of a TCP
-> port. It can be passed as a string specifying the socket path, or *True* for
-> Jupyter Server Proxy to create a temporary directory to hold the socket,
-> ensuring that only the user running Jupyter can connect to it.
->
-> If this is used, the `{unix_socket}` argument in the command template
-> (see {ref}`server-process-cmd`) will be a filesystem path. The server should
-> create a Unix socket bound to this path and listen for HTTP requests on it.
-> The `port` configuration key will be ignored.
->
-> :::{note}
-> Proxying websockets over a Unix socket requires Tornado >= 6.3.
-> :::
+This option uses a Unix socket on a filesystem path, instead of a TCP
+port. It can be passed as a string specifying the socket path, or *True* for
+Jupyter Server Proxy to create a temporary directory to hold the socket,
+ensuring that only the user running Jupyter can connect to it.
+
+If this is used, the `{unix_socket}` argument in the command template
+(see {ref}`server-process-cmd`) will be a filesystem path. The server should
+create a Unix socket bound to this path and listen for HTTP requests on it.
+The `port` configuration key will be ignored.
+
+```{note}
+Proxying websockets over a Unix socket requires Tornado >= 6.3.
+```
 
 ### `mappath`
 
-> Map request paths to proxied paths.
-> Either a dictionary of request paths to proxied paths,
-> or a callable that takes parameter `path` and returns the proxied path.
+Map request paths to proxied paths.
+Either a dictionary of request paths to proxied paths,
+or a callable that takes parameter `path` and returns the proxied path.
 
 ### `launcher_entry`
 
-> A dictionary with options on if / how an entry in the classic Jupyter Notebook
-> 'New' dropdown or the JupyterLab launcher should be added. It can contain
-> the following keys:
->
-> 1. **enabled**
->    Set to True (default) to make an entry in the launchers. Set to False to have no
->    explicit entry.
-> 2. **icon_path**
->    Full path to an svg icon that could be used with a launcher. Currently only used by the
->    JupyterLab launcher
-> 3. **title**
->    Title to be used for the launcher entry. Defaults to the name of the server if missing.
+A dictionary with options on if / how an entry in the classic Jupyter Notebook
+'New' dropdown or the JupyterLab launcher should be added. It can contain
+the following keys:
+
+1. **enabled**
+   Set to True (default) to make an entry in the launchers. Set to False to have no
+   explicit entry.
+2. **icon_path**
+   Full path to an svg icon that could be used with a launcher. Currently only used by the
+   JupyterLab launcher
+3. **title**
+   Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
 ### `new_browser_tab`
 
-> *JupyterLab only* - *True* if the proxied server URL should be opened in a new browser tab.
-> *False* (default) if the proxied server URL should be opened in a new JupyterLab tab.
->
-> If *False*, the proxied server needs to allow its pages to be rendered in an iframe. This
-> is generally done by configuring the web server `X-Frame-Options` to `SAMEORIGIN`.
-> For more information, refer to
-> [MDN Web docs on X-Frame-Options](https://developer.mozilla.org/docs/Web/HTTP/Headers/X-Frame-Options).
->
-> Note that applications might use a different terminology to refer to frame options.
-> For example, RStudio uses the term *frame origin* and require the flag
-> `--www-frame-origin=same` to allow rendering of its pages in an iframe.
+*JupyterLab only* - *True* if the proxied server URL should be opened in a new browser tab.
+*False* (default) if the proxied server URL should be opened in a new JupyterLab tab.
+
+If *False*, the proxied server needs to allow its pages to be rendered in an iframe. This
+is generally done by configuring the web server `X-Frame-Options` to `SAMEORIGIN`.
+For more information, refer to
+[MDN Web docs on X-Frame-Options](https://developer.mozilla.org/docs/Web/HTTP/Headers/X-Frame-Options).
+
+Note that applications might use a different terminology to refer to frame options.
+For example, RStudio uses the term *frame origin* and require the flag
+`--www-frame-origin=same` to allow rendering of its pages in an iframe.
 
 ### `request_headers_override`
 
-> One of:
->
-> - A dictionary of strings that are passed in as HTTP headers to the proxy
->   request. The strings `{port}` and `{base_url}` will be replaced as
->   for **command**.
-> - A callable that takes any {ref}`callable arguments <server-process/callable-arguments>`,
->   and returns a dictionary of strings that are used & treated same as above.
+One of:
+
+- A dictionary of strings that are passed in as HTTP headers to the proxy
+  request. The strings `{port}` and `{base_url}` will be replaced as
+  for **command**.
+- A callable that takes any {ref}`callable arguments <server-process/callable-arguments>`,
+  and returns a dictionary of strings that are used & treated same as above.
 
 (server-process-callable-arguments)=
 
