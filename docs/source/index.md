@@ -1,81 +1,75 @@
-================================================
-Welcome to Jupyter Server Proxy's documentation!
-================================================
+# Welcome to Jupyter Server Proxy's documentation!
 
 Jupyter Server Proxy lets you run arbitrary external processes (such
 as RStudio, Shiny Server, syncthing, PostgreSQL, etc) alongside your
 notebook, and provide authenticated web access to them.
 
-.. note::
-
-    This project used to be called **nbserverproxy**. if you have an older
-    version of nbserverproxy installed, remember to uninstall it before installing
-    jupyter-server-proxy - otherwise they may conflict
+:::{note}
+This project used to be called **nbserverproxy**. if you have an older
+version of nbserverproxy installed, remember to uninstall it before installing
+jupyter-server-proxy - otherwise they may conflict
+:::
 
 The primary use cases are:
 
-#. Use with JupyterHub / Binder to allow launching users into web
+1. Use with JupyterHub / Binder to allow launching users into web
    interfaces that have nothing to do with Jupyter - such as RStudio,
    Shiny, or OpenRefine.
-#. Allow access from frontend javascript (in classic notebook or
+2. Allow access from frontend javascript (in classic notebook or
    JupyterLab extensions) to access web APIs of other processes
-   running locally in a safe manner. This is used by the `JupyterLab
-   extension <https://github.com/dask/dask-labextension>`_ for
-   `dask <https://www.dask.org/>`_.
+   running locally in a safe manner. This is used by the [JupyterLab
+   extension](https://github.com/dask/dask-labextension) for
+   [dask](https://www.dask.org/).
 
+## Contents
 
-Contents
-========
+```{toctree}
+:maxdepth: 2
 
-.. toctree::
-   :maxdepth: 2
+install
+server-process
+launchers
+arbitrary-ports-hosts
+```
 
-   install
-   server-process
-   launchers
-   arbitrary-ports-hosts
-
-
-Convenience packages for popular applications
-=============================================
+## Convenience packages for popular applications
 
 This repository contains various python packages
-set up with appropriate :ref:`entrypoints <server-process/package>`
+set up with appropriate {ref}`entrypoints <server-process/package>`
 so pip installing them automatically sets up common config
 for popular applications.
 
-.. toctree::
-   :maxdepth: 1
+```{toctree}
+:maxdepth: 1
 
-   convenience/packages/theia
+convenience/packages/theia
+```
 
-
-Making and contributing a :ref:`new convenience package <convenience/new>`
+Making and contributing a {ref}`new convenience package <convenience/new>`
 is very much appreciated.
 
-Examples
-========
+## Examples
 
-.. toctree::
-   :maxdepth: 1
+```{toctree}
+:maxdepth: 1
 
-   examples
+examples
+```
 
-
-Contributing
-============
+## Contributing
 
 Contributions of all kinds - documentation, issues, blog posts, code, are most welcome!
 
-.. toctree::
-   :maxdepth: 2
+```{toctree}
+:maxdepth: 2
 
-   convenience/new
+convenience/new
+```
 
-Changelog
-=========
+## Changelog
 
-.. toctree::
-   :maxdepth: 2
+```{toctree}
+:maxdepth: 2
 
-   changelog
+changelog
+```
