@@ -20,12 +20,11 @@ For security reasons the host must match an entry in the `host_allowlist` in you
 
 ## With JupyterHub
 
-Let's say you are using a JupyterHub set up on a remote machine,
-and you have a process running on that machine listening on port
-8080. If your hub URL is `myhub.org`, each user can
-access the service running on port 8080 with the URL
-`myhub.org/hub/user-redirect/proxy/8080`. The `user-redirect`
-will make sure that:
+Let's say you are using a JupyterHub set up on a remote machine, and you have a
+process running on that machine listening on port 8080. If your hub URL is
+`myhub.org`, each user can access the service running on port 8080 with the URL
+`myhub.org/hub/user-redirect/proxy/8080`. The `user-redirect` will make sure
+that:
 
 1. It provides a redirect to the correct URL for the particular
    user who is logged in.
@@ -55,12 +54,12 @@ interface (nbextension), you can construct the URL for accessing
 your service in this way:
 
 ```js
-define(['base/js/utils'], function(utils) {
+define(["base/js/utils"], function (utils) {
   // Get base URL of current notebook server
-  var base_url = utils.get_body_data('baseUrl');
+  var base_url = utils.get_body_data("baseUrl");
 
   // Construct URL of our proxied service
-  var service_url = base_url + 'proxy/' + port;
+  var service_url = base_url + "proxy/" + port;
 
   // Do stuff with your service_url
 });
@@ -75,13 +74,13 @@ Accessing your service from a JupyterLab extension is similar to
 accessing it from a classic notebook extension.
 
 ```typescript
-import { PageConfig } from '@jupyterlab/coreutils';
+import { PageConfig } from "@jupyterlab/coreutils";
 
 // Get base URL of current notebook server
-let base_url = PageConfig.getBaseUrl()
+let base_url = PageConfig.getBaseUrl();
 
 // Construct URL of our proxied service
-let service_url = base_url + 'proxy/' + port;
+let service_url = base_url + "proxy/" + port;
 
 // Do stuff with your service_url
 ```

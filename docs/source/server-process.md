@@ -58,8 +58,8 @@ One of:
 
 ### `absolute_url`
 
-*True* if the URL as seen by the proxied application should be the full URL
-sent by the user. *False* if the URL as seen by the proxied application should
+_True_ if the URL as seen by the proxied application should be the full URL
+sent by the user. _False_ if the URL as seen by the proxied application should
 see the URL after the parts specific to jupyter-server-proxy have been stripped.
 
 For example, with the following config:
@@ -81,7 +81,7 @@ as a request for `/test-server/some-url` instead - without any stripping.
 
 This is very useful with applications that require a `base_url` to be set.
 
-Defaults to *False*.
+Defaults to _False_.
 
 ### `port`
 
@@ -93,7 +93,7 @@ automatically select an unused port.
 ### `unix_socket`
 
 This option uses a Unix socket on a filesystem path, instead of a TCP
-port. It can be passed as a string specifying the socket path, or *True* for
+port. It can be passed as a string specifying the socket path, or _True_ for
 Jupyter Server Proxy to create a temporary directory to hold the socket,
 ensuring that only the user running Jupyter can connect to it.
 
@@ -129,16 +129,16 @@ the following keys:
 
 ### `new_browser_tab`
 
-*JupyterLab only* - *True* if the proxied server URL should be opened in a new browser tab.
-*False* (default) if the proxied server URL should be opened in a new JupyterLab tab.
+_JupyterLab only_ - _True_ if the proxied server URL should be opened in a new browser tab.
+_False_ (default) if the proxied server URL should be opened in a new JupyterLab tab.
 
-If *False*, the proxied server needs to allow its pages to be rendered in an iframe. This
+If _False_, the proxied server needs to allow its pages to be rendered in an iframe. This
 is generally done by configuring the web server `X-Frame-Options` to `SAMEORIGIN`.
 For more information, refer to
 [MDN Web docs on X-Frame-Options](https://developer.mozilla.org/docs/Web/HTTP/Headers/X-Frame-Options).
 
 Note that applications might use a different terminology to refer to frame options.
-For example, RStudio uses the term *frame origin* and require the flag
+For example, RStudio uses the term _frame origin_ and require the flag
 `--www-frame-origin=same` to allow rendering of its pages in an iframe.
 
 ### `request_headers_override`

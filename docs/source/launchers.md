@@ -14,6 +14,7 @@ is **not** launched every time you click an item - if the process
 is already running, it is reused.
 
 ```{image} _static/images/nbextension-tree.png
+
 ```
 
 ## JupyterLab Launcher Extension
@@ -29,6 +30,7 @@ This should provide icons for each registered process in the main
 JupyterLab launcher
 
 ```{image} _static/images/labextension-launcher.png
+
 ```
 
 Clicking on them will open the application in a new window.
