@@ -9,7 +9,6 @@ on:
       - "docs/**"
       - "contrib/**"
       - "**.md"
-      - "**.rst"
       - ".github/workflows/*"
       - "!.github/workflows/test.yaml"
   push:
@@ -17,7 +16,6 @@ on:
       - "docs/**"
       - "contrib/**"
       - "**.md"
-      - "**.rst"
       - ".github/workflows/*"
       - "!.github/workflows/test.yaml"
     branches-ignore:
