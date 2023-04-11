@@ -66,10 +66,10 @@ For example, with the following config:
 
 ```python
 c.ServerProxy.servers = {
-  'test-server': {
-    'command': ['python3', '-m', 'http.server', '{port}'],
-    'absolute_url': False
-  }
+    "test-server": {
+        "command": ["python3", "-m", "http.server", "{port}"],
+        "absolute_url": False
+    }
 }
 ```
 
@@ -162,10 +162,10 @@ For example, with the following config:
 
 ```python
 def _cmd_callback():
-    return ['some-command']
+    return ["some-command"]
 
 server_config = {
-    'command': _cmd_callback
+    "command": _cmd_callback
 }
 ```
 
@@ -174,10 +174,10 @@ with:
 
 ```python
 def _cmd_callback(port):
-    return ['some-command', '--port=' + str(port)]
+    return ["some-command", "--port=" + str(port)]
 
 server_config = {
-    'command': _cmd_callback
+    "command": _cmd_callback
 }
 ```
 
@@ -200,7 +200,7 @@ of the argument. For example, if your function is:
 
 ```python
 def _openrefine_cmd():
-    return ['openrefine', '-p', '{port}']
+    return ["openrefine", "-p", "{port}"]
 ```
 
 The `{port}` will be replaced with the appropriate port before
@@ -225,9 +225,9 @@ if we want tighter control over what process is spawned.
 
    ```python
    c.ServerProxy.servers = {
-     'openrefine': {
-       'command': ['refine', '-p', '{port}']
-     }
+      "openrefine": {
+          "command": ["refine", "-p", "{port}"]
+      }
    }
    ```
 
@@ -252,9 +252,9 @@ above.
 
    ```python
    def setup_openrefine():
-     return {
-       'command': ['refine', '-p', '{port}']
-     }
+      return {
+          "command": ["refine", "-p", "{port}"]
+      }
    ```
 
    A simple function that returns a Server Process configuration
@@ -267,16 +267,16 @@ above.
    import setuptools
 
    setuptools.setup(
-     name="jupyter-openrefine-server",
-     # py_modules rather than packages, since we only have 1 file
-     py_modules=['openrefine'],
-     entry_points={
-         'jupyter_serverproxy_servers': [
-             # name = packagename:function_name
-             'openrefine = openrefine:setup_openrefine',
-         ]
-     },
-     install_requires=['jupyter-server-proxy'],
+      name="jupyter-openrefine-server",
+      # py_modules rather than packages, since we only have 1 file
+      py_modules=["openrefine"],
+      entry_points={
+          "jupyter_serverproxy_servers": [
+              # name = packagename:function_name
+              "openrefine = openrefine:setup_openrefine",
+          ]
+      },
+      install_requires=["jupyter-server-proxy"],
    )
    ```
 
