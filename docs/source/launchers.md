@@ -17,20 +17,13 @@ is already running, it is reused.
 
 ```
 
-## JupyterLab Launcher Extension
+## JupyterLab Extension
 
-The @jupyterhub/jupyter-server-proxy JupyterLab extension can be installed to
-provide launcher icons for registered server processes.
-
-```bash
-jupyter labextension install @jupyterhub/jupyter-server-proxy
-```
-
-This should provide icons for each registered process in the main
-JupyterLab launcher
+A JupyterLab extension is bundled with the Python package to provide launch
+buttons in JupyterLab's Launcher panel for registered server processes.
 
 ```{image} _static/images/labextension-launcher.png
 
 ```
 
-Clicking on them will open the application in a new window.
+Clicking on them opens the proxied application in a new browser window.

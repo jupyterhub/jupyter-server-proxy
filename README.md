@@ -54,7 +54,7 @@ Server via the container.
 
 ### Requirements
 
-- `jupyterlab>=2` or `notebook`
+Either `jupyterlab>=3` or `notebook<7` is required.
 
 ### Python package
 
@@ -70,22 +70,14 @@ pip install jupyter-server-proxy
 conda install jupyter-server-proxy -c conda-forge
 ```
 
-#### Local development
-
-> See the [contributing guide](https://github.com/jupyterhub/jupyter-server-proxy/blob/main/CONTRIBUTING.md).
-
 ### JupyterLab extension
 
-Note that as the JupyterLab extension only is a graphical interface to
-launch registered applications in the python package, the extension
-requires the python package to be installed.
+A JupyterLab extension is bundled with the Python package to provide launch
+buttons in JupyterLab's Launcher panel for registered server processes.
 
-As of version 3.0.0 the Python package ships with a JupyterLab 3 compatible
-extension, making this step only needed for JupyterLab 2.
+![](docs/source/_static/images/labextension-launcher.png)
 
-```bash
-jupyter labextension install @jupyterhub/jupyter-server-proxy
-```
+Clicking on them opens the proxied application in a new browser window.
 
 ## Disable
 
@@ -107,3 +99,7 @@ jupyter nbextension disable --sys-prefix --py jupyter_server_proxy
 ```bash
 jupyter labextension disable @jupyterhub/jupyter-server-proxy
 ```
+
+#### Local development
+
+To setup a local development environment, see the [contributing guide](https://github.com/jupyterhub/jupyter-server-proxy/blob/main/CONTRIBUTING.md).
