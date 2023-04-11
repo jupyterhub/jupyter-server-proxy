@@ -1,4 +1,4 @@
-(convenience-new)=
+(convenience:new)=
 
 # Making a new convenience package
 

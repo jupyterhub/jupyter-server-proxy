@@ -35,7 +35,7 @@ arbitrary-ports-hosts
 ## Convenience packages for popular applications
 
 This repository contains various python packages
-set up with appropriate {ref}`entrypoints <server-process/package>`
+set up with appropriate {ref}`entrypoints <server-process:package>`
 so pip installing them automatically sets up common config
 for popular applications.
 
@@ -45,7 +45,7 @@ for popular applications.
 convenience/packages/theia
 ```
 
-Making and contributing a {ref}`new convenience package <convenience/new>`
+Making and contributing a {ref}`new convenience package <convenience:new>`
 is very much appreciated.
 
 ## Examples
