@@ -23,7 +23,6 @@
 
 [@bollwyvl](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2021-11-29..2022-01-19&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2021-11-29..2022-01-19&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2021-11-29..2022-01-19&type=Issues)
 
-
 ### 3.2.0 - 2021-11-29
 
 #### New features added
@@ -110,7 +109,7 @@
 
 #### Bugs fixed
 
-* Include jupyterlab-server-proxy in the sdist [#260](https://github.com/jupyterhub/jupyter-server-proxy/pull/260) ([@xhochy](https://github.com/xhochy))
+- Include jupyterlab-server-proxy in the sdist [#260](https://github.com/jupyterhub/jupyter-server-proxy/pull/260) ([@xhochy](https://github.com/xhochy))
 
 #### Contributors to this release
 
@@ -120,7 +119,7 @@
 
 #### Bugs fixed
 
-* Fix PyPI url [#259](https://github.com/jupyterhub/jupyter-server-proxy/pull/259) ([@janjagusch](https://github.com/janjagusch))
+- Fix PyPI url [#259](https://github.com/jupyterhub/jupyter-server-proxy/pull/259) ([@janjagusch](https://github.com/janjagusch))
 
 #### Contributors to this release
 
@@ -138,19 +137,19 @@ version jumps from 2.1.2 to 3.0.0.
 
 #### Enhancements made
 
-* Package jupyter lab extension [#245](https://github.com/jupyterhub/jupyter-server-proxy/pull/245) ([@janjagusch](https://github.com/janjagusch))
+- Package jupyter lab extension [#245](https://github.com/jupyterhub/jupyter-server-proxy/pull/245) ([@janjagusch](https://github.com/janjagusch))
 
 #### Maintenance and upkeep improvements
 
-* Breaking: Replace host_whitelist with host_allowlist [#256](https://github.com/jupyterhub/jupyter-server-proxy/pull/256) ([@manics](https://github.com/manics))
-* Switch from notebook to jupyter-server [#254](https://github.com/jupyterhub/jupyter-server-proxy/pull/254) ([@manics](https://github.com/manics))
+- Breaking: Replace host_whitelist with host_allowlist [#256](https://github.com/jupyterhub/jupyter-server-proxy/pull/256) ([@manics](https://github.com/manics))
+- Switch from notebook to jupyter-server [#254](https://github.com/jupyterhub/jupyter-server-proxy/pull/254) ([@manics](https://github.com/manics))
 
 #### Continuous integration improvements
 
-* Move build.yaml into test.yaml [#255](https://github.com/jupyterhub/jupyter-server-proxy/pull/255) ([@manics](https://github.com/manics))
-* Fix build.yaml workflow [#249](https://github.com/jupyterhub/jupyter-server-proxy/pull/249) ([@manics](https://github.com/manics))
-* Add publish PyPI and NPM workflow [#247](https://github.com/jupyterhub/jupyter-server-proxy/pull/247) ([@manics](https://github.com/manics))
-* tests: remove bad test, add new clarifying current behavior [#240](https://github.com/jupyterhub/jupyter-server-proxy/pull/240) ([@consideRatio](https://github.com/consideRatio))
+- Move build.yaml into test.yaml [#255](https://github.com/jupyterhub/jupyter-server-proxy/pull/255) ([@manics](https://github.com/manics))
+- Fix build.yaml workflow [#249](https://github.com/jupyterhub/jupyter-server-proxy/pull/249) ([@manics](https://github.com/manics))
+- Add publish PyPI and NPM workflow [#247](https://github.com/jupyterhub/jupyter-server-proxy/pull/247) ([@manics](https://github.com/manics))
+- tests: remove bad test, add new clarifying current behavior [#240](https://github.com/jupyterhub/jupyter-server-proxy/pull/240) ([@consideRatio](https://github.com/consideRatio))
 
 #### Contributors to this release
 
@@ -170,14 +169,14 @@ extension isn't yet bundled with the python package.
 
 #### Enhancements made
 
-* Add Jupyter Server extension data file (JupyterLab 3 support) [#235](https://github.com/jupyterhub/jupyter-server-proxy/pull/235) ([@jtpio](https://github.com/jtpio))
-* Update dependencies to include jupyterlab 3.x.x (JupyterLab 3 support) [#229](https://github.com/jupyterhub/jupyter-server-proxy/pull/229) ([@dipanjank](https://github.com/dipanjank))
+- Add Jupyter Server extension data file (JupyterLab 3 support) [#235](https://github.com/jupyterhub/jupyter-server-proxy/pull/235) ([@jtpio](https://github.com/jtpio))
+- Update dependencies to include jupyterlab 3.x.x (JupyterLab 3 support) [#229](https://github.com/jupyterhub/jupyter-server-proxy/pull/229) ([@dipanjank](https://github.com/dipanjank))
 
 #### Documentation improvements
 
-* Bump to 1.6.0 (setup.py) and add CHANGELOG.md [#238](https://github.com/jupyterhub/jupyter-server-proxy/pull/238) ([@consideRatio](https://github.com/consideRatio))
-* Replace server-process list with linkable headings [#236](https://github.com/jupyterhub/jupyter-server-proxy/pull/236) ([@manics](https://github.com/manics))
-* Rename the mamba-navigator example to gator in the documentation [#234](https://github.com/jupyterhub/jupyter-server-proxy/pull/234) ([@jtpio](https://github.com/jtpio))
+- Bump to 1.6.0 (setup.py) and add CHANGELOG.md [#238](https://github.com/jupyterhub/jupyter-server-proxy/pull/238) ([@consideRatio](https://github.com/consideRatio))
+- Replace server-process list with linkable headings [#236](https://github.com/jupyterhub/jupyter-server-proxy/pull/236) ([@manics](https://github.com/manics))
+- Rename the mamba-navigator example to gator in the documentation [#234](https://github.com/jupyterhub/jupyter-server-proxy/pull/234) ([@jtpio](https://github.com/jtpio))
 
 #### Contributors to this release
 

@@ -6,8 +6,4 @@ def test_call_with_asked_args():
         c = a * b
         return c
 
-    assert utils.call_with_asked_args(_test_func, {
-        'a': 5,
-        'b': 4,
-        'c': 8
-    }) == 20
+    assert utils.call_with_asked_args(_test_func, {"a": 5, "b": 4, "c": 8}) == 20

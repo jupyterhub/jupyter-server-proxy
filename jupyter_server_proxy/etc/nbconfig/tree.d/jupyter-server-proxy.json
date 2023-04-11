@@ -1,5 +1,5 @@
 {
   "load_extensions": {
-     "jupyter_server_proxy/tree": true
+    "jupyter_server_proxy/tree": true
   }
 }

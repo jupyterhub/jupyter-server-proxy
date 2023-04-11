@@ -1,7 +1,7 @@
-from pathlib import Path
 import os
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -11,6 +11,7 @@ JUPYTER_SERVER_INFO = None
 
 try:
     import jupyter_server
+
     JUPYTER_SERVER_INFO = jupyter_server.version_info
 except ImportError:
     pass
@@ -18,7 +19,7 @@ except ImportError:
 
 def test_robot():
     """run acceptance tests with robotframework"""
-    with_robot = pytest.importorskip("JupyterLibrary")
+    pytest.importorskip("JupyterLibrary")
 
     env = dict(**os.environ)
 
@@ -35,14 +36,13 @@ def test_robot():
             JUPYTER_LIBRARY_APP="ServerApp",
         )
 
-
     if OUTPUT.exists():
         shutil.rmtree(OUTPUT)
 
     return_code = subprocess.call(
         ["robot", "--consolecolors=on", f"--outputdir={OUTPUT}", str(HERE)],
         cwd=str(HERE),
-        env=env
+        env=env,
     )
 
     assert return_code == 0

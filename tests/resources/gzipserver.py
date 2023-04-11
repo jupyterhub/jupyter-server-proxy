@@ -1,12 +1,13 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from io import BytesIO
-import sys
 import gzip
+import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from io import BytesIO
+
 
 class GzipServer(BaseHTTPRequestHandler):
     def do_GET(self):
         fileobj = BytesIO()
-        f = gzip.GzipFile(fileobj=fileobj, mode='w')
+        f = gzip.GzipFile(fileobj=fileobj, mode="w")
         f.write(b"this is a test")
         f.close()
         content = fileobj.getvalue()
@@ -18,8 +19,9 @@ class GzipServer(BaseHTTPRequestHandler):
         self.wfile.write(content)
         self.wfile.flush()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     port = int(sys.argv[1])
-    server_address = ('', port)
+    server_address = ("", port)
     httpd = HTTPServer(server_address, GzipServer)
     httpd.serve_forever()

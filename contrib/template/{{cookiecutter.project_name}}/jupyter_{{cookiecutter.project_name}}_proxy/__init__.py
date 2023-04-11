@@ -6,6 +6,7 @@ for more information.
 """
 import os
 
+
 def setup_{{cookiecutter.project_name}}():
     return {
         'command': [],

@@ -1,3 +1,6 @@
+# build-system
+# - ref: https://peps.python.org/pep-0517/
+#
 [build-system]
 build-backend = "hatchling.build"
 requires = [
@@ -7,6 +10,11 @@ requires = [
     "jupyterlab >=3.4.7,<4.0.0",
 ]
 
+
+# project
+# - ref 1: https://peps.python.org/pep-0621/
+# - ref 2: https://hatch.pypa.io/latest/config/metadata/#project-metadata
+#
 [project]
 name = "jupyter_server_proxy"
 dynamic = [
@@ -56,6 +64,7 @@ acceptance = [
     "robotframework-jupyterlibrary >=0.4.2",
 ]
 
+
 [tool.hatch.version]
 source = "nodejs"
 path = "labextension/package.json"
@@ -68,6 +77,7 @@ exclude = [
     ".git",
     ".github",
     ".readthedocs.yaml",
+    ".pre-commit-config.yaml",
     "contrib",
     "docs",
 ]
@@ -101,6 +111,42 @@ build_cmd = "build"
 npm = ["jlpm"]
 source_dir = "labextension/src"
 build_dir = "jupyter_server_proxy/labextension"
+
+
+# autoflake is used for autoformatting Python code
+#
+# ref: https://github.com/PyCQA/autoflake#readme
+#
+[tool.autoflake]
+ignore-init-module-imports = true
+remove-all-unused-imports = true
+remove-duplicate-keys = true
+remove-unused-variables = true
+
+
+# black is used for autoformatting Python code
+#
+# ref: https://black.readthedocs.io/en/stable/
+#
+[tool.black]
+# target-version should be all supported versions, see
+# https://github.com/psf/black/issues/751#issuecomment-473066811
+target_version = [
+    "py38",
+    "py39",
+    "py310",
+    "py311",
+]
+extend-exclude = 'contrib\/template\/'
+
+
+# isort is used for autoformatting Python code
+#
+# ref: https://pycqa.github.io/isort/
+#
+[tool.isort]
+profile = "black"
+
 
 # tbump is used to simplify and standardize the release process when updating
 # the version, making a git commit and tag, and pushing changes.

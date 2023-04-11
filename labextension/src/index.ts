@@ -1,19 +1,34 @@
-import { JupyterFrontEnd, JupyterFrontEndPlugin, ILayoutRestorer } from '@jupyterlab/application';
-import { ILauncher } from '@jupyterlab/launcher';
-import { PageConfig } from '@jupyterlab/coreutils';
-import { IFrame, MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
+import {
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin,
+  ILayoutRestorer,
+} from "@jupyterlab/application";
+import { ILauncher } from "@jupyterlab/launcher";
+import { PageConfig } from "@jupyterlab/coreutils";
+import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
 
-function newServerProxyWidget(id: string, url: string, text: string): MainAreaWidget<IFrame> {
+function newServerProxyWidget(
+  id: string,
+  url: string,
+  text: string,
+): MainAreaWidget<IFrame> {
   const content = new IFrame({
-    sandbox: ['allow-same-origin', 'allow-scripts', 'allow-popups', 'allow-forms', 'allow-downloads', 'allow-modals'],
+    sandbox: [
+      "allow-same-origin",
+      "allow-scripts",
+      "allow-popups",
+      "allow-forms",
+      "allow-downloads",
+      "allow-modals",
+    ],
   });
   content.title.label = text;
   content.title.closable = true;
   content.url = url;
-  content.addClass('jp-ServerProxy');
+  content.addClass("jp-ServerProxy");
   content.id = id;
   const widget = new MainAreaWidget({ content });
-  widget.addClass('jp-ServerProxy');
+  widget.addClass("jp-ServerProxy");
   return widget;
 }
 
@@ -23,49 +38,59 @@ function newServerProxyWidget(id: string, url: string, text: string): MainAreaWi
  *
  * ref: https://jupyterlab.readthedocs.io/en/stable/extension/extension_dev.html
  */
-async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILayoutRestorer) : Promise<void> {
+async function activate(
+  app: JupyterFrontEnd,
+  launcher: ILauncher,
+  restorer: ILayoutRestorer,
+): Promise<void> {
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
-  const response = await fetch(PageConfig.getBaseUrl() + 'server-proxy/servers-info');
+  const response = await fetch(
+    PageConfig.getBaseUrl() + "server-proxy/servers-info",
+  );
   if (!response.ok) {
-    console.log('Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.');
+    console.log(
+      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
+    );
     console.log(response);
     return;
   }
   const data = await response.json();
 
-  const namespace = 'server-proxy';
+  const namespace = "server-proxy";
   const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
-    namespace
+    namespace,
   });
-  const command = namespace + ':' + 'open';
+  const command = namespace + ":" + "open";
 
   if (restorer) {
     void restorer.restore(tracker, {
       command: command,
-      args: widget => ({
+      args: (widget) => ({
         url: widget.content.url,
         title: widget.content.title.label,
         newBrowserTab: false,
-        id: widget.content.id
+        id: widget.content.id,
       }),
-      name: widget => widget.content.id
+      name: (widget) => widget.content.id,
     });
   }
 
   const { commands, shell } = app;
   commands.addCommand(command, {
-    label: args => args['title'] as string,
-    execute: args => {
-      const id = args['id'] as string;
-      const title = args['title'] as string;
-      const url = args['url'] as string;
-      const newBrowserTab = args['newBrowserTab'] as boolean;
+    label: (args) => args["title"] as string,
+    execute: (args) => {
+      const id = args["id"] as string;
+      const title = args["title"] as string;
+      const url = args["url"] as string;
+      const newBrowserTab = args["newBrowserTab"] as boolean;
       if (newBrowserTab) {
-        window.open(url, '_blank');
+        window.open(url, "_blank");
         return;
       }
-      let widget = tracker.find((widget) => { return widget.content.id == id; });
-      if(!widget){
+      let widget = tracker.find((widget) => {
+        return widget.content.id == id;
+      });
+      if (!widget) {
         widget = newServerProxyWidget(id, url, title);
       }
       if (!tracker.has(widget)) {
@@ -77,7 +102,7 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
       } else {
         shell.activateById(widget.id);
       }
-    }
+    },
   });
 
   for (let server_process of data.server_processes) {
@@ -85,23 +110,24 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
       continue;
     }
 
-    const url = PageConfig.getBaseUrl() + server_process.launcher_entry.path_info;
+    const url =
+      PageConfig.getBaseUrl() + server_process.launcher_entry.path_info;
     const title = server_process.launcher_entry.title;
     const newBrowserTab = server_process.new_browser_tab;
-    const id = namespace + ':' + server_process.name;
-    const launcher_item : ILauncher.IItemOptions = {
+    const id = namespace + ":" + server_process.name;
+    const launcher_item: ILauncher.IItemOptions = {
       command: command,
       args: {
         url: url,
-        title: title + (newBrowserTab ? ' [↗]': ''),
+        title: title + (newBrowserTab ? " [↗]" : ""),
         newBrowserTab: newBrowserTab,
-        id: id
+        id: id,
       },
-      category: 'Notebook'
+      category: "Notebook",
     };
 
     if (server_process.launcher_entry.icon_url) {
-      launcher_item.kernelIconUrl =  server_process.launcher_entry.icon_url;
+      launcher_item.kernelIconUrl = server_process.launcher_entry.icon_url;
     }
     launcher.add(launcher_item);
   }
@@ -114,10 +140,10 @@ async function activate(app: JupyterFrontEnd, launcher: ILauncher, restorer: ILa
  * ref: https://jupyterlab.readthedocs.io/en/stable/extension/extension_dev.html#application-plugins
  */
 const extension: JupyterFrontEndPlugin<void> = {
-  id: '@jupyterhub/jupyter-server-proxy:add-launcher-entries',
+  id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
   requires: [ILauncher, ILayoutRestorer],
-  activate: activate
+  activate: activate,
 };
 
 export default extension;

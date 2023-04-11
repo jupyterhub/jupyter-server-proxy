@@ -4,16 +4,17 @@ either a tcp port or a unix socket.
 """
 import argparse
 import socket
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
+
 
 class EchoRequestInfo(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write('{}\n'.format(self.requestline).encode())
-        self.wfile.write('{}\n'.format(self.headers).encode())
+        self.wfile.write(f"{self.requestline}\n".encode())
+        self.wfile.write(f"{self.headers}\n".encode())
 
     def address_string(self):
         """
@@ -31,10 +32,10 @@ class HTTPUnixServer(HTTPServer):
     address_family = socket.AF_UNIX
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument('--port', type=int)
-    ap.add_argument('--unix-socket')
+    ap.add_argument("--port", type=int)
+    ap.add_argument("--unix-socket")
     args = ap.parse_args()
 
     if args.unix_socket:
@@ -43,5 +44,5 @@ if __name__ == '__main__':
             unix_socket.unlink()
         httpd = HTTPUnixServer(args.unix_socket, EchoRequestInfo)
     else:
-        httpd = HTTPServer(('127.0.0.1', args.port), EchoRequestInfo)
+        httpd = HTTPServer(("127.0.0.1", args.port), EchoRequestInfo)
     httpd.serve_forever()
