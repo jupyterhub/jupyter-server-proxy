@@ -221,7 +221,8 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
   requires: [ILauncher, ILayoutRestorer],
-  activate: activate,
+  optional: [IRunningSessionManagers],
+  activate: activate
 };
 
 export default extension;
