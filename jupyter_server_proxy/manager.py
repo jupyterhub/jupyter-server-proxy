@@ -1,18 +1,14 @@
 """Manager for jupyter server proxy"""
 
 from collections import namedtuple
-from tornado.ioloop import PeriodicCallback
+
 from jupyter_server.utils import url_path_join as ujoin
+from tornado.ioloop import PeriodicCallback
 
 from .utils import check_pid
 
-
-ServerProxy = namedtuple('ServerProxy', [
-    'name', 'url', 'cmd', 'port', 'managed'
-])
-ServerProxyProc = namedtuple('ServerProxyProc', [
-    'name', 'proc'
-])
+ServerProxy = namedtuple("ServerProxy", ["name", "url", "cmd", "port", "managed"])
+ServerProxyProc = namedtuple("ServerProxyProc", ["name", "proc"])
 
 
 async def monitor_server_proxy_procs():
@@ -53,25 +49,31 @@ class ServerProxyAppManager:
         # Add proxy server metadata
         self.server_proxy_apps.append(
             ServerProxy(
-            name=name,
-            url=ujoin(base_url, name),
-            cmd=' '.join(cmd),
-            port=port,
-            managed=True if proc else False,
-        ))
+                name=name,
+                url=ujoin(base_url, name),
+                cmd=" ".join(cmd),
+                port=port,
+                managed=True if proc else False,
+            )
+        )
 
         # Add proxy server proc object so that we can send SIGTERM
         # when user chooses to shut it down
         self._server_proxy_procs.append(
             ServerProxyProc(
-            name=name,
-            proc=proc,
-        ))
+                name=name,
+                proc=proc,
+            )
+        )
 
     async def del_server_proxy_app(self, name):
         """Remove a launched proxy server from list"""
-        self.server_proxy_apps = [app for app in self.server_proxy_apps if app.name != name]
-        self._server_proxy_procs = [app for app in self._server_proxy_procs if app.name != name]
+        self.server_proxy_apps = [
+            app for app in self.server_proxy_apps if app.name != name
+        ]
+        self._server_proxy_procs = [
+            app for app in self._server_proxy_procs if app.name != name
+        ]
         self.num_active_server_proxy_apps -= 1
 
     def get_server_proxy_app(self, name):
@@ -121,5 +123,5 @@ class ServerProxyAppManager:
 manager = ServerProxyAppManager()
 
 # Create a Periodic call back function to check the status of processes
-pc = PeriodicCallback(monitor_server_proxy_procs,  1e4)
+pc = PeriodicCallback(monitor_server_proxy_procs, 1e4)
 pc.start()

@@ -1,6 +1,6 @@
-import { JSONObject } from '@lumino/coreutils';
-import { ISignal } from '@lumino/signaling';
-import { ServerConnection } from '@jupyterlab/services';
+import { JSONObject } from "@lumino/coreutils";
+import { ISignal } from "@lumino/signaling";
+import { ServerConnection } from "@jupyterlab/services";
 
 /**
  * The server model for a proxy.

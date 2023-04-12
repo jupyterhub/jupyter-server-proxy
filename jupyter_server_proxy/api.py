@@ -41,12 +41,13 @@ class IconHandler(web.StaticFileHandler):
     """A singular handler for serving the icon."""
 
     def get(self):
-        return super().get('')
+        return super().get("")
 
     @classmethod
     def get_absolute_path(cls, root, path):
         """We only serve one file, ignore relative path"""
         import os
+
         return os.path.abspath(root)
 
 

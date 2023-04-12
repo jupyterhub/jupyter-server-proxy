@@ -1,12 +1,13 @@
 from jupyter_server.utils import url_path_join as ujoin
 
 from .api import (
-    IconHandler, ServersInfoHandler, ServersAPIHandler, ListServersAPIHandler
+    IconHandler,
+    ListServersAPIHandler,
+    ServersAPIHandler,
+    ServersInfoHandler,
 )
 from .config import ServerProxy as ServerProxyConfig
-from .config import (
-    get_entrypoint_server_processes, make_handlers, make_server_process
-)
+from .config import get_entrypoint_server_processes, make_handlers, make_server_process
 from .handlers import setup_handlers
 
 
@@ -62,10 +63,10 @@ def _load_jupyter_server_extension(nbapp):
     for sp in server_processes:
         if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
             icon_handlers.append(
-               (
+                (
                     ujoin(base_url, f"server-proxy/icon/{sp.name}"),
                     IconHandler,
-                    {"path": sp.launcher_entry.icon_path}
+                    {"path": sp.launcher_entry.icon_path},
                 )
             )
 
@@ -77,15 +78,10 @@ def _load_jupyter_server_extension(nbapp):
                 ServersInfoHandler,
                 {"server_processes": server_processes},
             ),
-            (
-                ujoin(base_url, r"api/server-proxy"),
-                ListServersAPIHandler
-            ),
-            (
-                ujoin(base_url, r"api/server-proxy/(?P<name>.*)"),
-                ServersAPIHandler
-            ),
-        ] + icon_handlers,
+            (ujoin(base_url, r"api/server-proxy"), ListServersAPIHandler),
+            (ujoin(base_url, r"api/server-proxy/(?P<name>.*)"), ServersAPIHandler),
+        ]
+        + icon_handlers,
     )
 
     nbapp.log.debug(

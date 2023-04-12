@@ -5,20 +5,20 @@ import {
 } from "@jupyterlab/application";
 import { ILauncher } from "@jupyterlab/launcher";
 import { PageConfig } from "@jupyterlab/coreutils";
-import { IRunningSessionManagers, IRunningSessions } from '@jupyterlab/running';
+import { IRunningSessionManagers, IRunningSessions } from "@jupyterlab/running";
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
-import { LabIcon } from '@jupyterlab/ui-components';
-import { ServerProxyManager } from './manager';
-import { IModel as IServerProxyModel } from './serverproxy';
-import serverProxyAppSvgstr from '../style/icons/proxy.svg';
+import { LabIcon } from "@jupyterlab/ui-components";
+import { ServerProxyManager } from "./manager";
+import { IModel as IServerProxyModel } from "./serverproxy";
+import serverProxyAppSvgstr from "../style/icons/proxy.svg";
 
 export const ServerProxyAppIcon = new LabIcon({
-  name: 'server-proxy:proxyAppIcon',
-  svgstr: serverProxyAppSvgstr
+  name: "server-proxy:proxyAppIcon",
+  svgstr: serverProxyAppSvgstr,
 });
 
 namespace CommandIDs {
-  export const open = 'running-server-proxy:open';
+  export const open = "running-server-proxy:open";
 }
 
 function newServerProxyWidget(
@@ -52,21 +52,22 @@ function newServerProxyWidget(
  * User can shut down the applications as well to restart them in future
  *
  */
- function addRunningSessionManager(
+function addRunningSessionManager(
   managers: IRunningSessionManagers,
   app: JupyterFrontEnd,
-  manager: ServerProxyManager
+  manager: ServerProxyManager,
 ): void {
   managers.add({
-    name: 'Server Proxy Apps',
+    name: "Server Proxy Apps",
     running: () =>
       Array.from(manager.running()).map(
-        model => new RunningServerProxyApp(model)
+        (model) => new RunningServerProxyApp(model),
       ),
     shutdownAll: () => manager.shutdownAll(),
     refreshRunning: () => manager.refreshRunning(),
     runningChanged: manager.runningChanged,
-    shutdownAllConfirmationText: 'Are you sure you want to close all server proxy applications?'
+    shutdownAllConfirmationText:
+      "Are you sure you want to close all server proxy applications?",
   });
 
   class RunningServerProxyApp implements IRunningSessions.IRunningItem {
@@ -103,7 +104,7 @@ async function activate(
   app: JupyterFrontEnd,
   launcher: ILauncher,
   restorer: ILayoutRestorer,
-  sessions: IRunningSessionManagers | null
+  sessions: IRunningSessionManagers | null,
 ): Promise<void> {
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(
@@ -175,12 +176,12 @@ async function activate(
   });
 
   commands.addCommand(CommandIDs.open, {
-    execute: args => {
-      const model = args['sp'] as IServerProxyModel;
+    execute: (args) => {
+      const model = args["sp"] as IServerProxyModel;
       const url = PageConfig.getBaseUrl() + model.url;
-      window.open(url, '_blank');
+      window.open(url, "_blank");
       return;
-    }
+    },
   });
 
   for (let server_process of data.server_processes) {
@@ -222,7 +223,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [ILauncher, ILayoutRestorer],
   optional: [IRunningSessionManagers],
-  activate: activate
+  activate: activate,
 };
 
 export default extension;

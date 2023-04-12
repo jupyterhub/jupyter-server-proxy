@@ -20,10 +20,10 @@ from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
 
+from .manager import manager
 from .unixsock import UnixResolver
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
-from .manager import manager
 
 
 class RewritableResponse(HasTraits):
@@ -801,7 +801,6 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         # Invariant here should be: when lock isn't being held, either 'proc' is in state &
         # running, or not.
         async with self.state["proc_lock"]:
-
             # If the server process is terminated via Runningsessions or killed
             # outside of jsp, we should be able to restart the process. If
             # process is not in running stated, remove proc object and restart
@@ -848,7 +847,9 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
 
                     # If process started succesfully, add it to manager
                     # Add the server proxy app to manager
-                    await manager.add_server_proxy_app(self.name, self.base_url, cmd, self.port, proc)
+                    await manager.add_server_proxy_app(
+                        self.name, self.base_url, cmd, self.port, proc
+                    )
                 except:
                     # Make sure we remove proc from state in any error condition
                     del self.state["proc"]

@@ -1,11 +1,11 @@
-import { URLExt } from '@jupyterlab/coreutils';
-import { ServerConnection } from '@jupyterlab/services';
-import { IModel } from './serverproxy'
+import { URLExt } from "@jupyterlab/coreutils";
+import { ServerConnection } from "@jupyterlab/services";
+import { IModel } from "./serverproxy";
 
 /**
  * The url for the server proxy service.
  */
-const SERVER_PROXY_SERVICE_URL = 'api/server-proxy';
+const SERVER_PROXY_SERVICE_URL = "api/server-proxy";
 
 /**
  * List the running server proxy apps.
@@ -15,7 +15,7 @@ const SERVER_PROXY_SERVICE_URL = 'api/server-proxy';
  * @returns A promise that resolves with the list of running session models.
  */
 export async function listRunning(
-  settings: ServerConnection.ISettings = ServerConnection.makeSettings()
+  settings: ServerConnection.ISettings = ServerConnection.makeSettings(),
 ): Promise<IModel[]> {
   const url = URLExt.join(settings.baseUrl, SERVER_PROXY_SERVICE_URL);
   const response = await ServerConnection.makeRequest(url, {}, settings);
@@ -26,7 +26,7 @@ export async function listRunning(
   const data = await response.json();
 
   if (!Array.isArray(data)) {
-    throw new Error('Invalid server proxy list');
+    throw new Error("Invalid server proxy list");
   }
 
   return data;
@@ -43,16 +43,16 @@ export async function listRunning(
  */
 export async function shutdown(
   name: string,
-  settings: ServerConnection.ISettings = ServerConnection.makeSettings()
+  settings: ServerConnection.ISettings = ServerConnection.makeSettings(),
 ): Promise<void> {
   const url = URLExt.join(settings.baseUrl, SERVER_PROXY_SERVICE_URL, name);
-  const init = { method: 'DELETE' };
+  const init = { method: "DELETE" };
   const response = await ServerConnection.makeRequest(url, init, settings);
   if (response.status === 404) {
     const msg = `Server proxy "${name}" does not exist. Are you sure "${name}" is started by jupyter-server-proxy?`;
     console.warn(msg);
   } else if (response.status !== 204) {
-      const err = await ServerConnection.ResponseError.create(response);
-      throw err;
+    const err = await ServerConnection.ResponseError.create(response);
+    throw err;
   }
 }
