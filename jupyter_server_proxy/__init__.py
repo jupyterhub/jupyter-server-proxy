@@ -1,8 +1,12 @@
 from jupyter_server.utils import url_path_join as ujoin
 
-from .api import IconHandler, ServersInfoHandler
+from .api import (
+    IconHandler, ServersInfoHandler, ServersAPIHandler, ListServersAPIHandler
+)
 from .config import ServerProxy as ServerProxyConfig
-from .config import get_entrypoint_server_processes, make_handlers, make_server_process
+from .config import (
+    get_entrypoint_server_processes, make_handlers, make_server_process
+)
 from .handlers import setup_handlers
 
 
@@ -63,11 +67,23 @@ def _load_jupyter_server_extension(nbapp):
         ".*",
         [
             (
-                ujoin(base_url, "server-proxy/servers-info"),
+                ujoin(base_url, "api/server-proxy/servers-info"),
                 ServersInfoHandler,
                 {"server_processes": server_processes},
             ),
-            (ujoin(base_url, "server-proxy/icon/(.*)"), IconHandler, {"icons": icons}),
+            (
+                ujoin(base_url, r"server-proxy/icon/(?P<name>.*)"),
+                IconHandler,
+                {"icons": icons}
+            ),
+            (
+                ujoin(base_url, r"api/server-proxy"),
+                ListServersAPIHandler
+            ),
+            (
+                ujoin(base_url, r"api/server-proxy/(?P<name>.*)"),
+                ServersAPIHandler
+            ),
         ],
     )
 
