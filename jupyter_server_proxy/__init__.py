@@ -58,10 +58,16 @@ def _load_jupyter_server_extension(nbapp):
         serverproxy_config,
     )
 
-    icons = {}
+    icon_handlers = []
     for sp in server_processes:
         if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
-            icons[sp.name] = sp.launcher_entry.icon_path
+            icon_handlers.append(
+               (
+                    ujoin(base_url, f"server-proxy/icon/{sp.name}"),
+                    IconHandler,
+                    {"path": sp.launcher_entry.icon_path}
+                )
+            )
 
     nbapp.web_app.add_handlers(
         ".*",
@@ -72,11 +78,6 @@ def _load_jupyter_server_extension(nbapp):
                 {"server_processes": server_processes},
             ),
             (
-                ujoin(base_url, r"server-proxy/icon/(?P<name>.*)"),
-                IconHandler,
-                {"icons": icons}
-            ),
-            (
                 ujoin(base_url, r"api/server-proxy"),
                 ListServersAPIHandler
             ),
@@ -84,7 +85,7 @@ def _load_jupyter_server_extension(nbapp):
                 ujoin(base_url, r"api/server-proxy/(?P<name>.*)"),
                 ServersAPIHandler
             ),
-        ],
+        ] + icon_handlers,
     )
 
     nbapp.log.debug(
