@@ -5,7 +5,21 @@ import {
 } from "@jupyterlab/application";
 import { ILauncher } from "@jupyterlab/launcher";
 import { PageConfig } from "@jupyterlab/coreutils";
+import { IRunningSessionManagers, IRunningSessions } from '@jupyterlab/running';
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
+import { LabIcon } from '@jupyterlab/ui-components';
+import { ServerProxyManager } from './manager';
+import { IModel as IServerProxyModel } from './serverproxy';
+import serverProxyAppSvgstr from '../style/icons/proxy.svg';
+
+export const ServerProxyAppIcon = new LabIcon({
+  name: 'server-proxy:proxyAppIcon',
+  svgstr: serverProxyAppSvgstr
+});
+
+namespace CommandIDs {
+  export const open = 'running-server-proxy:open';
+}
 
 function newServerProxyWidget(
   id: string,
@@ -33,6 +47,53 @@ function newServerProxyWidget(
 }
 
 /**
+ * This function adds the active server proxy applications to running sessions
+ * so that user can track currently running applications via server proxy.
+ * User can shut down the applications as well to restart them in future
+ *
+ */
+ function addRunningSessionManager(
+  managers: IRunningSessionManagers,
+  app: JupyterFrontEnd,
+  manager: ServerProxyManager
+): void {
+  managers.add({
+    name: 'Server Proxy Apps',
+    running: () =>
+      Array.from(manager.running()).map(
+        model => new RunningServerProxyApp(model)
+      ),
+    shutdownAll: () => manager.shutdownAll(),
+    refreshRunning: () => manager.refreshRunning(),
+    runningChanged: manager.runningChanged,
+    shutdownAllConfirmationText: 'Are you sure you want to close all server proxy applications?'
+  });
+
+  class RunningServerProxyApp implements IRunningSessions.IRunningItem {
+    constructor(model: IServerProxyModel) {
+      this._model = model;
+    }
+    open(): void {
+      app.commands.execute(CommandIDs.open, { sp: this._model });
+    }
+    icon(): LabIcon {
+      return ServerProxyAppIcon;
+    }
+    label(): string {
+      return `${this._model.name}`;
+    }
+    labelTitle(): string {
+      return `cmd: ${this._model.cmd}\nport: ${this._model.port}\nmanaged: ${this._model.managed}`;
+    }
+    shutdown(): Promise<void> {
+      return manager.shutdown(this._model.name);
+    }
+
+    private _model: IServerProxyModel;
+  }
+}
+
+/**
  * The activate function is registered to be called on activation of the
  * jupyterlab extension.
  *
@@ -42,10 +103,11 @@ async function activate(
   app: JupyterFrontEnd,
   launcher: ILauncher,
   restorer: ILayoutRestorer,
+  sessions: IRunningSessionManagers | null
 ): Promise<void> {
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(
-    PageConfig.getBaseUrl() + "server-proxy/servers-info",
+    PageConfig.getBaseUrl() + "api/server-proxy/servers-info",
   );
   if (!response.ok) {
     console.log(
@@ -76,6 +138,13 @@ async function activate(
   }
 
   const { commands, shell } = app;
+
+  // Add server proxy session manager to running sessions
+  if (sessions) {
+    let manager = new ServerProxyManager();
+    addRunningSessionManager(sessions, app, manager);
+  }
+
   commands.addCommand(command, {
     label: (args) => args["title"] as string,
     execute: (args) => {
@@ -103,6 +172,15 @@ async function activate(
         shell.activateById(widget.id);
       }
     },
+  });
+
+  commands.addCommand(CommandIDs.open, {
+    execute: args => {
+      const model = args['sp'] as IServerProxyModel;
+      const url = PageConfig.getBaseUrl() + model.url;
+      window.open(url, '_blank');
+      return;
+    }
   });
 
   for (let server_process of data.server_processes) {
