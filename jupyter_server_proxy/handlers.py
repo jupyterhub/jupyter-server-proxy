@@ -806,9 +806,9 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
             # outside of jsp, we should be able to restart the process. If
             # process is not in running stated, remove proc object and restart
             # the process
-            if 'proc' in self.state:
-                if not self.state['proc'].running:
-                    del self.state['proc']
+            if "proc" in self.state:
+                if not self.state["proc"].running:
+                    del self.state["proc"]
 
             if "proc" not in self.state:
                 # FIXME: Prevent races here
