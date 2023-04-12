@@ -1,3 +1,4 @@
+import os
 from traitlets import TraitType
 
 
@@ -49,3 +50,13 @@ class Callable(TraitType):
             return value
         else:
             self.error(obj, value)
+
+
+def check_pid(pid):
+    """ Check For the existence of a unix pid"""
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
