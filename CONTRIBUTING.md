@@ -22,16 +22,10 @@ jupyter labextension develop --overwrite .
 jupyter server extension enable jupyter_server_proxy
 ```
 
-Before running tests, you need a server that we can test against.
-
-```bash
-JUPYTER_TOKEN=secret jupyter-lab --config=./tests/resources/jupyter_server_config.py --no-browser
-```
-
 Run the tests:
 
 ```bash
-pytest --verbose
+pytest
 ```
 
 These generate test and coverage reports in `build/pytest` and `build/coverage`.

@@ -1,5 +1,6 @@
 import asyncio
 import gzip
+from typing import Tuple
 import json
 import os
 from http.client import HTTPConnection
@@ -9,11 +10,11 @@ from urllib.parse import quote
 import pytest
 from tornado.websocket import websocket_connect
 
-PORT = os.getenv("TEST_PORT", 8888)
-TOKEN = os.getenv("JUPYTER_TOKEN", "secret")
+# use ipv4 for CI, etc.
+LOCALHOST = "127.0.0.1"
 
 
-def request_get(port, path, token, host="localhost"):
+def request_get(port, path, token, host=LOCALHOST):
     h = HTTPConnection(host, port, 10)
     if "?" in path:
         url = f"{path}&token={token}"
@@ -32,7 +33,10 @@ def request_get(port, path, token, host="localhost"):
         "/python-unix-socket-file-no-command/",
     ],
 )
-def test_server_proxy_minimal_proxy_path_encoding(server_process_path):
+def test_server_proxy_minimal_proxy_path_encoding(
+    server_process_path: str, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     """Test that we don't encode anything more than we must to have a valid web
     request."""
     special_path = quote(
@@ -41,6 +45,7 @@ def test_server_proxy_minimal_proxy_path_encoding(server_process_path):
     )
     test_url = server_process_path + special_path
     r = request_get(PORT, test_url, TOKEN)
+    __import__("pprint").pprint(r.headers.__dict__)
     assert r.code == 200
     s = r.read().decode("ascii")
     assert f"GET /{special_path}&token=" in s
@@ -55,14 +60,17 @@ def test_server_proxy_minimal_proxy_path_encoding(server_process_path):
         "/python-unix-socket-file-no-command/",
     ],
 )
-def test_server_proxy_hash_sign_encoding(server_process_path):
+def test_server_proxy_hash_sign_encoding(
+    server_process_path: str, a_server_port_and_token: Tuple[int, str]
+) -> None:
     """
     FIXME: This is a test to establish the current behavior, but if it should be
            like this is a separate question not yet addressed.
 
            Related: https://github.com/jupyterhub/jupyter-server-proxy/issues/109
     """
-    h = HTTPConnection("localhost", PORT, 10)
+    PORT, TOKEN = a_server_port_and_token
+    h = HTTPConnection(LOCALHOST, PORT, 10)
 
     # Case 0: a reference case
     path = f"?token={TOKEN}"
@@ -108,7 +116,8 @@ def test_server_proxy_hash_sign_encoding(server_process_path):
     assert s == ""
 
 
-def test_server_rewrite_response():
+def test_server_rewrite_response(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-rewrite-response/ciao-a-tutti", TOKEN)
     assert r.code == 418
     assert r.reason == "I'm a teapot"
@@ -119,7 +128,8 @@ def test_server_rewrite_response():
     assert s.startswith("GET /hello-a-tutti?token=")
 
 
-def test_chained_rewrite_response():
+def test_chained_rewrite_response(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-chained-rewrite-response/ciao-a-tutti", TOKEN)
     assert r.code == 418
     assert r.reason == "I'm a teapot"
@@ -127,7 +137,10 @@ def test_chained_rewrite_response():
     assert s.startswith("GET /foo-a-tutti?token=")
 
 
-def test_cats_and_dogs_rewrite_response():
+def test_cats_and_dogs_rewrite_response(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-cats-only-rewrite-response/goats", TOKEN)
     assert r.code == 200
     r = request_get(PORT, "/python-cats-only-rewrite-response/cat-club", TOKEN)
@@ -142,7 +155,8 @@ def test_cats_and_dogs_rewrite_response():
     assert s == "cats not allowed"
 
 
-def test_server_proxy_non_absolute():
+def test_server_proxy_non_absolute(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http/abc", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -151,7 +165,8 @@ def test_server_proxy_non_absolute():
     assert "X-Proxycontextpath: /python-http\n" in s
 
 
-def test_server_proxy_absolute():
+def test_server_proxy_absolute(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-abs/def", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -160,7 +175,8 @@ def test_server_proxy_absolute():
     assert "X-Proxycontextpath" not in s
 
 
-def test_server_proxy_requested_port():
+def test_server_proxy_requested_port(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-port54321/ghi", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -172,7 +188,10 @@ def test_server_proxy_requested_port():
     assert direct.code == 200
 
 
-def test_server_proxy_on_requested_port_no_command():
+def test_server_proxy_on_requested_port_no_command(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-proxyto54321-no-command/ghi", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -184,7 +203,10 @@ def test_server_proxy_on_requested_port_no_command():
     assert direct.code == 200
 
 
-def test_server_proxy_port_non_absolute():
+def test_server_proxy_port_non_absolute(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/proxy/54321/jkl", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -193,7 +215,8 @@ def test_server_proxy_port_non_absolute():
     assert "X-Proxycontextpath: /proxy/54321\n" in s
 
 
-def test_server_proxy_port_absolute():
+def test_server_proxy_port_absolute(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/proxy/absolute/54321/nmo", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -202,7 +225,10 @@ def test_server_proxy_port_absolute():
     assert "X-Proxycontextpath" not in s
 
 
-def test_server_proxy_host_non_absolute():
+def test_server_proxy_host_non_absolute(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     # note: localhost: is stripped but 127.0.0.1: is not
     r = request_get(PORT, "/proxy/127.0.0.1:54321/jkl", TOKEN)
     assert r.code == 200
@@ -212,7 +238,8 @@ def test_server_proxy_host_non_absolute():
     assert "X-Proxycontextpath: /proxy/127.0.0.1:54321\n" in s
 
 
-def test_server_proxy_host_absolute():
+def test_server_proxy_host_absolute(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/proxy/absolute/127.0.0.1:54321/nmo", TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -221,7 +248,11 @@ def test_server_proxy_host_absolute():
     assert "X-Proxycontextpath" not in s
 
 
-def test_server_proxy_port_non_service_rewrite_response():
+def test_server_proxy_port_non_service_rewrite_response(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+
     """Test that 'hello' is replaced by 'foo'."""
     r = request_get(PORT, "/proxy/54321/hello", TOKEN)
     assert r.code == 200
@@ -237,7 +268,10 @@ def test_server_proxy_port_non_service_rewrite_response():
         ("/pqr?q=2", "/pqr?q=2&token="),
     ],
 )
-def test_server_proxy_mappath_dict(requestpath, expected):
+def test_server_proxy_mappath_dict(
+    requestpath, expected, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-mappath" + requestpath, TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -254,7 +288,10 @@ def test_server_proxy_mappath_dict(requestpath, expected):
         ("/stu?q=2", "/stumapped?q=2&token="),
     ],
 )
-def test_server_proxy_mappath_callable(requestpath, expected):
+def test_server_proxy_mappath_callable(
+    requestpath, expected, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-mappathf" + requestpath, TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
@@ -263,19 +300,24 @@ def test_server_proxy_mappath_callable(requestpath, expected):
     assert "X-Proxycontextpath: /python-http-mappathf\n" in s
 
 
-def test_server_proxy_remote():
+def test_server_proxy_remote(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/newproxy", TOKEN, host="127.0.0.1")
     assert r.code == 200
 
 
-def test_server_request_headers():
+def test_server_request_headers(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-request-headers/", TOKEN, host="127.0.0.1")
     assert r.code == 200
     s = r.read().decode("ascii")
     assert "X-Custom-Header: pytest-23456\n" in s
 
 
-def test_server_content_encoding_header():
+def test_server_content_encoding_header(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-gzipserver/", TOKEN, host="127.0.0.1")
     assert r.code == 200
     assert r.headers["Content-Encoding"] == "gzip"
@@ -290,8 +332,9 @@ def event_loop():
     loop.close()
 
 
-async def _websocket_echo():
-    url = f"ws://localhost:{PORT}/python-websocket/echosocket"
+async def _websocket_echo(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT = a_server_port_and_token[0]
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket"
     conn = await websocket_connect(url)
     expected_msg = "Hello, world!"
     await conn.write_message(expected_msg)
@@ -299,12 +342,15 @@ async def _websocket_echo():
     assert msg == expected_msg
 
 
-def test_server_proxy_websocket(event_loop):
-    event_loop.run_until_complete(_websocket_echo())
+def test_server_proxy_websocket(
+    event_loop, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    event_loop.run_until_complete(_websocket_echo(a_server_port_and_token))
 
 
-async def _websocket_headers():
-    url = f"ws://localhost:{PORT}/python-websocket/headerssocket"
+async def _websocket_headers(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT = a_server_port_and_token[0]
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
     conn = await websocket_connect(url)
     await conn.write_message("Hello")
     msg = await conn.read_message()
@@ -313,35 +359,43 @@ async def _websocket_headers():
     assert headers["X-Custom-Header"] == "pytest-23456"
 
 
-def test_server_proxy_websocket_headers(event_loop):
-    event_loop.run_until_complete(_websocket_headers())
+def test_server_proxy_websocket_headers(
+    event_loop, a_server_port_and_token: Tuple[int, str]
+):
+    event_loop.run_until_complete(_websocket_headers(a_server_port_and_token))
 
 
-async def _websocket_subprotocols():
-    url = f"ws://localhost:{PORT}/python-websocket/subprotocolsocket"
+async def _websocket_subprotocols(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket"
     conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
     await conn.write_message("Hello, world!")
     msg = await conn.read_message()
     assert json.loads(msg) == ["protocol_1", "protocol_2"]
 
 
-def test_server_proxy_websocket_subprotocols(event_loop):
-    event_loop.run_until_complete(_websocket_subprotocols())
+def test_server_proxy_websocket_subprotocols(
+    event_loop, a_server_port_and_token: Tuple[int, str]
+):
+    event_loop.run_until_complete(_websocket_subprotocols(a_server_port_and_token))
 
 
 @pytest.mark.parametrize(
     "proxy_path, status",
     [
-        ("127.0.0.1", 404),
-        ("127.0.0.1/path", 404),
-        ("127.0.0.1@192.168.1.1", 404),
-        ("127.0.0.1@192.168.1.1/path", 404),
+        (LOCALHOST, 404),
+        (f"{LOCALHOST}/path", 404),
+        (f"{LOCALHOST}@192.168.1.1", 404),
+        (f"{LOCALHOST}@192.168.1.1/path", 404),
         ("user:pass@host:123/foo", 404),
         ("user:pass@host/foo", 404),
-        ("absolute/127.0.0.1:123@192.168.1.1/path", 404),
+        ("absolute/{LOCALHOST}:123@192.168.1.1/path", 404),
     ],
 )
-def test_bad_server_proxy_url(proxy_path, status):
+def test_bad_server_proxy_url(
+    proxy_path, status, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, f"/proxy/{proxy_path}", TOKEN)
     assert r.code == status
     if status >= 400:

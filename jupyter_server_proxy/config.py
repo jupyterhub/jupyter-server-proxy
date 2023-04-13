@@ -4,7 +4,13 @@ Traitlets based configuration for jupyter_server_proxy
 from collections import namedtuple
 from warnings import warn
 
-import pkg_resources
+import sys
+
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import entry_points
+else:  # pragma: no cover
+    from importlib.metadata import entry_points
+
 from jupyter_server.utils import url_path_join as ujoin
 from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
@@ -90,7 +96,7 @@ def _make_supervisedproxy_handler(sp: ServerProcess):
 
 def get_entrypoint_server_processes(serverproxy_config):
     sps = []
-    for entry_point in pkg_resources.iter_entry_points("jupyter_serverproxy_servers"):
+    for entry_point in entry_points(group="jupyter_serverproxy_servers"):
         name = entry_point.name
         server_process_config = entry_point.load()()
         sps.append(make_server_process(name, server_process_config, serverproxy_config))

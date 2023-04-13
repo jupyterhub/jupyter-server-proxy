@@ -71,6 +71,11 @@ def _load_jupyter_server_extension(nbapp):
         ],
     )
 
+    nbapp.log.debug(
+        "[jupyter-server-proxy] Started with known servers: %s",
+        ", ".join([p.name for p in server_processes]),
+    )
+
 
 # For backward compatibility
 load_jupyter_server_extension = _load_jupyter_server_extension
