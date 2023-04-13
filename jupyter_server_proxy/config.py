@@ -1,10 +1,9 @@
 """
 Traitlets based configuration for jupyter_server_proxy
 """
+import sys
 from collections import namedtuple
 from warnings import warn
-
-import sys
 
 if sys.version_info < (3, 10):  # pragma: no cover
     from importlib_metadata import entry_points

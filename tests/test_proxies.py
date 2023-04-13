@@ -1,10 +1,9 @@
 import asyncio
 import gzip
-from typing import Tuple
 import json
-import os
 from http.client import HTTPConnection
 from io import BytesIO
+from typing import Tuple
 from urllib.parse import quote
 
 import pytest

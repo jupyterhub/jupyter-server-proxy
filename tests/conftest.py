@@ -1,19 +1,21 @@
 """Reusable test fixtures for ``jupyter_server_proxy``."""
+import os
+import shutil
 import socket
 import sys
-import os
-from pytest import fixture
-from subprocess import Popen
-from typing import Generator, Any, Tuple
-from pathlib import Path
-from uuid import uuid4
-from urllib.error import URLError
 import time
+from pathlib import Path
+from subprocess import Popen
+from typing import Any, Generator, Tuple
+from urllib.error import URLError
 from urllib.request import urlopen
-import shutil
+from uuid import uuid4
+
+from pytest import fixture
 
 HERE = Path(__file__).parent
 RESOURCES = HERE / "resources"
+
 
 @fixture
 def a_token() -> str:

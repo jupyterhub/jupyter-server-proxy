@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 HERE = Path(__file__).parent.resolve()
 
