@@ -90,7 +90,13 @@ def _make_supervisedproxy_handler(sp: ServerProcess):
 
 def get_entrypoint_server_processes(serverproxy_config):
     sps = []
-    for entry_point in entry_points().select(group="jupyter_serverproxy_servers"):
+    eps = entry_points()
+    # For versions before importlib_metadata 3.6 and Python 3.10
+    if hasattr(eps, 'select')
+        eps = eps.select(group="jupyter_serverproxy_servers")
+    else:
+        eps = eps["jupyter_serverproxy_servers"]
+    for entry_point in eps:
         name = entry_point.name
         server_process_config = entry_point.load()()
         sps.append(make_server_process(name, server_process_config, serverproxy_config))
