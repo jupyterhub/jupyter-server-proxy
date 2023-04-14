@@ -92,7 +92,7 @@ def get_entrypoint_server_processes(serverproxy_config):
     sps = []
     eps = entry_points()
     # For versions before importlib_metadata 3.6 and Python 3.10
-    if hasattr(eps, 'select')
+    if hasattr(eps, 'select'):
         eps = eps.select(group="jupyter_serverproxy_servers")
     else:
         eps = eps["jupyter_serverproxy_servers"]
