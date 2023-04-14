@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).parent.resolve()
+
+sys.path.append(str(HERE))
+
 # load the config object for traitlets based configuration
 c = get_config()  # noqa
 
@@ -116,9 +123,5 @@ c.ServerProxy.servers = {
 
 c.ServerProxy.non_service_rewrite_response = hello_to_foo
 
-import sys
-
-sys.path.append("./tests/resources")
 c.ServerApp.jpserver_extensions = {"proxyextension": True}
 c.NotebookApp.nbserver_extensions = {"proxyextension": True}
-# c.Application.log_level = 'DEBUG'

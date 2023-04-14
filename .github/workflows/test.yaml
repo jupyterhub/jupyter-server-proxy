@@ -67,7 +67,7 @@ jobs:
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
         #       slightly from this.
         #
-        #       Pytest options are set in tests/pytest.ini.
+        #       Pytest options are set in `pyproject.toml`.
         run: |
           pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0'
 
@@ -76,18 +76,8 @@ jobs:
           pip freeze
           pip check
 
-      - name: Run tests against jupyter-notebook
+      - name: Run tests
         run: |
-          JUPYTER_TOKEN=secret jupyter-notebook --config=./tests/resources/jupyter_server_config.py &
-          sleep 5
-          cd tests
-          pytest -k "not acceptance"
-
-      - name: Run tests against jupyter-lab
-        run: |
-          JUPYTER_TOKEN=secret jupyter-lab --config=./tests/resources/jupyter_server_config.py &
-          sleep 5
-          cd tests
           pytest -k "not acceptance"
 
       - name: Upload pytest and coverage reports

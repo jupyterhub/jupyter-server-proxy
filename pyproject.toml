@@ -47,6 +47,7 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp",
+    "importlib_metadata >=4.8.3 ; python_version<\"3.10\"",
     "jupyter-server >=1.0",
     "simpervisor >=0.4",
 ]
@@ -175,3 +176,26 @@ tag_template = "v{new_version}"
 
 [[tool.tbump.file]]
 src = "labextension/package.json"
+
+[tool.pytest.ini_options]
+cache_dir = "build/.cache/pytest"
+addopts = [
+    "-vv",
+    "--cov=jupyter_server_proxy",
+    "--cov-branch",
+    "--cov-context=test",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:build/coverage",
+    "--html=build/pytest/index.html",
+    "--color=yes",
+]
+
+[tool.coverage.run]
+data_file = "build/.coverage"
+concurrency = [
+    "multiprocessing",
+    "thread"
+]
+
+[tool.coverage.html]
+show_contexts = true
