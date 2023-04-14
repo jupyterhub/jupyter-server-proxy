@@ -25,7 +25,7 @@ extensions = [
     "sphinxext.rediraffe",
 ]
 root_doc = "index"
-source_suffix = [".md", ".rst"]
+source_suffix = [".md"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
