@@ -95,7 +95,7 @@ def get_entrypoint_server_processes(serverproxy_config):
     if hasattr(eps, "select"):
         eps = eps.select(group="jupyter_serverproxy_servers")
     else:
-        eps = eps["jupyter_serverproxy_servers"]
+        eps = eps.get("jupyter_serverproxy_servers", [])
     for entry_point in eps:
         name = entry_point.name
         server_process_config = entry_point.load()()
