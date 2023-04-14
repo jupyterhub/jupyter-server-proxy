@@ -2,9 +2,9 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 from collections import namedtuple
+from importlib.metadata import entry_points
 from warnings import warn
 
-from importlib.metadata import entry_points
 from jupyter_server.utils import url_path_join as ujoin
 from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
