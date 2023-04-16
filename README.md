@@ -54,7 +54,7 @@ Server via the container.
 
 ### Requirements
 
-Either `jupyterlab>=3` or `notebook<7` is required.
+Either `jupyterlab>=3` or `notebook` is required.
 
 ### Python package
 
