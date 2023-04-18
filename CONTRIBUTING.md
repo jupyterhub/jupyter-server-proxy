@@ -16,7 +16,7 @@ git clone https://github.com/jupyterhub/jupyter-server-proxy.git
 cd jupyter-server-proxy
 # Install package in development mode
 pip install -e ".[test]"
-# Link your development version of the extension with JupyterLab (only for JupyterLab 3)
+# Link your development version of the extension with JupyterLab
 jupyter labextension develop --overwrite .
 # Server extension must be manually installed in develop mode
 jupyter server extension enable jupyter_server_proxy
