@@ -6,7 +6,7 @@
 
 #### Breaking changes
 
-- jupyter-server-proxy now require Python 3.8+ ([#350](https://github.com/jupyterhub/jupyter-server-proxy/pull/350), [#387](https://github.com/jupyterhub/jupyter-server-proxy/pull/387))
+- jupyter-server-proxy now requires Python 3.8+ ([#350](https://github.com/jupyterhub/jupyter-server-proxy/pull/350), [#387](https://github.com/jupyterhub/jupyter-server-proxy/pull/387))
 - jupyter-server-proxy's JupyterLab extension dropped support for JupyterLab 2 ([#394](https://github.com/jupyterhub/jupyter-server-proxy/pull/394))
 - jupyter-server-proxy's JupyterLab extension renamed from @jupyterlab/server-proxy to @jupyterhub/jupyter-server-proxy ([#368](https://github.com/jupyterhub/jupyter-server-proxy/pull/368))
 
