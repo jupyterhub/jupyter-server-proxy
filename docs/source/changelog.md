@@ -21,6 +21,7 @@
 
 #### Maintenance and upkeep improvements
 
+- maint: update package description to not claim windows support [#398](https://github.com/jupyterhub/jupyter-server-proxy/pull/398) ([@consideRatio](https://github.com/consideRatio))
 - Use `pytest.fixture`s for starting servers, use `importlib*metadata` [#396](https://github.com/jupyterhub/jupyter-server-proxy/pull/396) ([@bollwyvl](https://github.com/bollwyvl))
 - maint, breaking: drop support for jupyterlab 2 [#394](https://github.com/jupyterhub/jupyter-server-proxy/pull/394) ([@consideRatio](https://github.com/consideRatio))
 - Fix editable install and update CONTRIBUTING.md [#391](https://github.com/jupyterhub/jupyter-server-proxy/pull/391) ([@mahendrapaipuri](https://github.com/mahendrapaipuri))
