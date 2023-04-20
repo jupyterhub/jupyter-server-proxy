@@ -163,9 +163,9 @@ regex = '''
     (?P<minor>\d+)
     \.
     (?P<patch>\d+)
-    (?P<pre>((a|b|rc)\d+)|)
-    \.?
-    (?P<dev>(?<=\.)dev\d*|)
+    -?
+    (?P<pre>((alpha|beta|rc)\.\d+)|)
+    (?P<dev>(dev\.\d+)|)
 '''
 
 [tool.tbump.git]
