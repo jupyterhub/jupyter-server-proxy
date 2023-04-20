@@ -98,6 +98,13 @@ jobs:
           name: dist
           path: dist
 
+      # The PyPI publishing action will try to publish this checksum file as if
+      # it was a Python package if it remains in dist, so we clean it up first.
+      - name: Cleanup SHA256SUMS
+        run: |
+          cat dist/SHA256SUMS
+          rm dist/SHA256SUMS
+
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@v1.8.5
