@@ -29,7 +29,12 @@ export interface IModel extends JSONObject {
   /**
    * Proxy app managed by jupyter-server-proxy or not.
    */
-  managed: boolean;
+  readonly managed: boolean;
+
+  /**
+   * Proxy app managed by jupyter-server-proxy or not.
+   */
+   readonly unix_socket: string;
 }
 
 /**
