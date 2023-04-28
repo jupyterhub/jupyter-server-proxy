@@ -1,8 +1,8 @@
 import { Signal, ISignal } from "@lumino/signaling";
-import { Poll } from '@lumino/polling';
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { Poll } from "@lumino/polling";
+import { ISettingRegistry } from "@jupyterlab/settingregistry";
 import { ServerConnection } from "@jupyterlab/services";
-import { TranslationBundle } from '@jupyterlab/translation';
+import { TranslationBundle } from "@jupyterlab/translation";
 import { listRunning, shutdown } from "./restapi";
 import * as ServerProxyApp from "./serverproxy";
 
@@ -21,7 +21,9 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
     this._settings = settings || null;
     this.serverSettings = ServerConnection.makeSettings();
 
-    const interval = settings?.get('refreshInterval').composite as number || DEFAULT_REFRESH_INTERVAL;
+    const interval =
+      (settings?.get("refreshInterval").composite as number) ||
+      DEFAULT_REFRESH_INTERVAL;
 
     // Start polling with exponential backoff.
     this._proxyPoll = new Poll({
@@ -29,8 +31,8 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
       frequency: {
         interval: interval,
         backoff: true,
-        max: 300 * 1000
-      }
+        max: 300 * 1000,
+      },
     });
 
     // Fire callback when settings are changed
@@ -107,7 +109,9 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
 
     // Shut down all models.
     await Promise.all(
-      this._names.map((name) => shutdown(name, this._trans, this.serverSettings)),
+      this._names.map((name) =>
+        shutdown(name, this._trans, this.serverSettings),
+      ),
     );
 
     // Update the list of models to clear out our state.
@@ -169,7 +173,7 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
   private _onSettingsChange(settings: ISettingRegistry.ISettings) {
     this._proxyPoll.frequency = {
       ...this._proxyPoll.frequency,
-      interval: settings.composite.refreshInterval as number
+      interval: settings.composite.refreshInterval as number,
     };
   }
 

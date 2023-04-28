@@ -11,10 +11,8 @@ else:  # pragma: no cover
     from importlib.metadata import entry_points
 
 from jupyter_server.utils import url_path_join as ujoin
-from traitlets import Dict, List, Tuple, Union, Int, default, observe
+from traitlets import Dict, Int, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
-
-from jupyter_server.utils import url_path_join as ujoin
 
 from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
 
@@ -351,5 +349,5 @@ class ServerProxy(Configurable):
         polling the status of running servers with a frequency set by this
         interval.
         """,
-        config=True
+        config=True,
     )

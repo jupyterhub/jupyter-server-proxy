@@ -61,8 +61,9 @@ class ServersAPIHandler(JupyterHandler):
         """Delete a server proxy by name"""
         if not name:
             raise web.HTTPError(
-                403, "Please set the name of a running server proxy that "
-                     "user wishes to terminate"
+                403,
+                "Please set the name of a running server proxy that "
+                "user wishes to terminate",
             )
 
         try:
@@ -84,10 +85,8 @@ class ServersAPIHandler(JupyterHandler):
         if name:
             apps = self.manager.get_server_proxy_app(name)._asdict()
             # If no server proxy found this will be a dict with empty values
-            if not apps['name']:
-                raise web.HTTPError(
-                    404, f"Server proxy {name} not found"
-                )
+            if not apps["name"]:
+                raise web.HTTPError(404, f"Server proxy {name} not found")
         else:
             apps = [app._asdict() for app in self.manager.list_server_proxy_apps()]
 
@@ -121,8 +120,8 @@ def setup_api_handlers(web_app, manager, server_processes):
             (
                 ujoin(base_url, r"server-proxy/api/servers/(?P<name>.*)"),
                 ServersAPIHandler,
-                {"manager": manager}
+                {"manager": manager},
             ),
-        ] + icon_handlers
+        ]
+        + icon_handlers,
     )
-

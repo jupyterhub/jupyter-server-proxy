@@ -1,7 +1,7 @@
 import { URLExt } from "@jupyterlab/coreutils";
-import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { showDialog, Dialog } from "@jupyterlab/apputils";
 import { ServerConnection } from "@jupyterlab/services";
-import { TranslationBundle } from '@jupyterlab/translation';
+import { TranslationBundle } from "@jupyterlab/translation";
 import { IModel } from "./serverproxy";
 
 /**
@@ -52,12 +52,14 @@ export async function shutdown(
   const init = { method: "DELETE" };
   const response = await ServerConnection.makeRequest(url, init, settings);
   if (response.status === 404) {
-    const msg = trans.__(`Server proxy "${name}" is not running anymore. It will be removed from this list shortly`);
+    const msg = trans.__(
+      `Server proxy "${name}" is not running anymore. It will be removed from this list shortly`,
+    );
     console.warn(msg);
     void showDialog({
-      title: trans.__('Warning'),
+      title: trans.__("Warning"),
       body: msg,
-      buttons: [Dialog.okButton({ label : 'Dismiss'})],
+      buttons: [Dialog.okButton({ label: "Dismiss" })],
     });
   } else if (response.status === 403) {
     // This request cannot be made via JupyterLab UI and hence we just throw

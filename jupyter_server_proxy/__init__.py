@@ -1,10 +1,10 @@
 import traitlets
 
-from .manager import ServerProxyAppManager
+from .api import setup_api_handlers
 from .config import ServerProxy as ServerProxyConfig
 from .config import get_entrypoint_server_processes, make_handlers, make_server_process
 from .handlers import setup_handlers
-from .api import setup_api_handlers
+from .manager import ServerProxyAppManager
 
 
 # Jupyter Extension points
@@ -41,9 +41,7 @@ def _load_jupyter_server_extension(nbapp):
     base_url = nbapp.web_app.settings["base_url"]
 
     # Add server_proxy_manager trait to ServerApp and Instantiate a manager
-    nbapp.add_traits(
-        server_proxy_manager=traitlets.Instance(ServerProxyAppManager)
-    )
+    nbapp.add_traits(server_proxy_manager=traitlets.Instance(ServerProxyAppManager))
     manager = nbapp.server_proxy_manager = ServerProxyAppManager()
     serverproxy_config = ServerProxyConfig(parent=nbapp)
 
@@ -52,7 +50,7 @@ def _load_jupyter_server_extension(nbapp):
         nbapp.io_loop.call_later(
             serverproxy_config.monitor_interval,
             manager.monitor,
-            serverproxy_config.monitor_interval
+            serverproxy_config.monitor_interval,
         )
     except AttributeError:
         nbapp.log.debug(

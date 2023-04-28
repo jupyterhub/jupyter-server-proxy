@@ -1,35 +1,18 @@
 """Manager for jupyter server proxy"""
 
 import asyncio
-
 from collections import namedtuple
 
-from traitlets import List, Int
-from traitlets.config import LoggingConfigurable
-
 from jupyter_server.utils import url_path_join as ujoin
-
+from traitlets import Int, List
+from traitlets.config import LoggingConfigurable
 
 ServerProxy = namedtuple(
     "ServerProxy",
-    [
-        "name",
-        "url",
-        "cmd",
-        "port",
-        "managed",
-        "unix_socket"
-    ],
-    defaults=[""] * 6
+    ["name", "url", "cmd", "port", "managed", "unix_socket"],
+    defaults=[""] * 6,
 )
-ServerProxyProc = namedtuple(
-    "ServerProxyProc",
-    [
-        "name",
-        "proc"
-    ],
-    defaults=[""] * 2
-)
+ServerProxyProc = namedtuple("ServerProxyProc", ["name", "proc"], defaults=[""] * 2)
 
 
 class ServerProxyAppManager(LoggingConfigurable):
@@ -38,17 +21,12 @@ class ServerProxyAppManager(LoggingConfigurable):
     by jupyter server proxy.
     """
 
-    server_proxy_apps = List(
-        help="List of server proxy apps"
-    )
+    server_proxy_apps = List(help="List of server proxy apps")
 
-    _server_proxy_procs = List(
-        help="List of server proxy app proc objects"
-    )
+    _server_proxy_procs = List(help="List of server proxy app proc objects")
 
     num_active_server_proxy_apps = Int(
-        0,
-        help="Total number of currently running proxy apps"
+        0, help="Total number of currently running proxy apps"
     )
 
     def add_server_proxy_app(self, name, base_url, cmd, port, proc, unix_socket):
@@ -63,7 +41,7 @@ class ServerProxyAppManager(LoggingConfigurable):
                 cmd=" ".join(cmd),
                 port=port,
                 managed=True if proc else False,
-                unix_socket=unix_socket if unix_socket is not None else ''
+                unix_socket=unix_socket if unix_socket is not None else "",
             )
         )
 
@@ -89,11 +67,16 @@ class ServerProxyAppManager(LoggingConfigurable):
 
     def get_server_proxy_app(self, name):
         """Get a given server proxy app"""
-        return next((app for app in self.server_proxy_apps if app.name == name), ServerProxy())
+        return next(
+            (app for app in self.server_proxy_apps if app.name == name), ServerProxy()
+        )
 
     def _get_server_proxy_proc(self, name):
         """Get a given server proxy app"""
-        return next((app for app in self._server_proxy_procs if app.name == name), ServerProxyProc())
+        return next(
+            (app for app in self._server_proxy_procs if app.name == name),
+            ServerProxyProc(),
+        )
 
     def list_server_proxy_apps(self):
         """List all active server proxy apps"""

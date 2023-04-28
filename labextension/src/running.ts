@@ -18,14 +18,14 @@ export class RunningServerProxyApp implements IRunningSessions.IRunningItem {
   constructor(
     model: IServerProxyModel,
     manager: ServerProxyManager,
-    app: JupyterFrontEnd
+    app: JupyterFrontEnd,
   ) {
     this._model = model;
     this._manager = manager;
     this._app = app;
   }
   open(): void {
-    this._app.commands.execute(CommandIDs.open, { "sp": this._model });
+    this._app.commands.execute(CommandIDs.open, { sp: this._model });
   }
   icon(): LabIcon {
     return ServerProxyAppIcon;

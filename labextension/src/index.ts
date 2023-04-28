@@ -6,8 +6,8 @@ import {
 import { ILauncher } from "@jupyterlab/launcher";
 import { PageConfig, URLExt } from "@jupyterlab/coreutils";
 import { IRunningSessionManagers } from "@jupyterlab/running";
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
+import { ISettingRegistry } from "@jupyterlab/settingregistry";
+import { ITranslator, TranslationBundle } from "@jupyterlab/translation";
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
 import { ServerProxyManager } from "./manager";
 import { IModel as IServerProxyModel } from "./serverproxy";
@@ -48,7 +48,7 @@ function addRunningSessionManager(
   managers: IRunningSessionManagers,
   app: JupyterFrontEnd,
   manager: ServerProxyManager,
-  trans: TranslationBundle
+  trans: TranslationBundle,
 ): void {
   managers.add({
     name: "Server Proxy Apps",
@@ -59,8 +59,9 @@ function addRunningSessionManager(
     shutdownAll: () => manager.shutdownAll(),
     refreshRunning: () => manager.refreshRunning(),
     runningChanged: manager.runningChanged,
-    shutdownAllConfirmationText:
-      trans.__("Are you sure you want to close all server proxy applications?")
+    shutdownAllConfirmationText: trans.__(
+      "Are you sure you want to close all server proxy applications?",
+    ),
   });
 }
 
@@ -78,7 +79,7 @@ async function activate(
   translator: ITranslator,
   sessions: IRunningSessionManagers | null,
 ): Promise<void> {
-  const trans = translator.load('jupyter-server-proxy');
+  const trans = translator.load("jupyter-server-proxy");
 
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(
@@ -86,7 +87,9 @@ async function activate(
   );
   if (!response.ok) {
     console.log(
-      trans.__("Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed."),
+      trans.__(
+        "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
+      ),
     );
     console.log(response);
     return;
@@ -166,7 +169,10 @@ async function activate(
       continue;
     }
 
-    const url = URLExt.join(PageConfig.getBaseUrl(), server_process.launcher_entry.path_info);
+    const url = URLExt.join(
+      PageConfig.getBaseUrl(),
+      server_process.launcher_entry.path_info,
+    );
     const title = server_process.launcher_entry.title;
     const newBrowserTab = server_process.new_browser_tab;
     const id = namespace + ":" + server_process.name;

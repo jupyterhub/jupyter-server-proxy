@@ -124,4 +124,3 @@ components:
           type: string
         unix_socket:
           type: string
-
