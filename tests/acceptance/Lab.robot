@@ -17,7 +17,13 @@ Launch Browser Tab
     Location Should Contain    foo
     Page Should Contain    Hello World
     Close Window
-    [Teardown]    Switch Window    title:JupyterLab
+    Switch Window    title:JupyterLab
+    Click RunningSessions
+    Click RefreshSessions
+    Capture Page Screenshot    01-running.png
+    Click Shutdown
+    Capture Page Screenshot    02-shutdown.png
+    [Teardown]
 
 Launch Lab Tab
     Click Launcher    bar
@@ -34,3 +40,13 @@ Start Lab Tests
 Click Launcher
     [Arguments]    ${title}
     Click Element    css:.jp-LauncherCard-label[title^\="${title}"]
+
+Click RunningSessions
+    Click Element    css:#tab-key-1-0
+
+Click RefreshSessions
+    Click Element    css:.jp-Button.jp-ToolbarButtonComponent[title^\="Refresh List"]
+
+Click ShutDown
+    Mouse Over       css:.jp-RunningSessions-itemShutdown[title^\="Shut Down"]
+    Click Element    css:.jp-RunningSessions-itemShutdown[title^\="Shut Down"]
