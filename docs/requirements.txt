@@ -2,5 +2,6 @@ myst-parser
 sphinx-autobuild
 sphinx-book-theme
 sphinx-copybutton
+sphinxcontrib-openapi
 sphinxext-opengraph
 sphinxext-rediraffe
