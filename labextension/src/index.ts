@@ -4,22 +4,14 @@ import {
   ILayoutRestorer,
 } from "@jupyterlab/application";
 import { ILauncher } from "@jupyterlab/launcher";
-import { PageConfig } from "@jupyterlab/coreutils";
-import { IRunningSessionManagers, IRunningSessions } from "@jupyterlab/running";
+import { PageConfig, URLExt } from "@jupyterlab/coreutils";
+import { IRunningSessionManagers } from "@jupyterlab/running";
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { ITranslator, TranslationBundle } from '@jupyterlab/translation';
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
-import { LabIcon } from "@jupyterlab/ui-components";
 import { ServerProxyManager } from "./manager";
 import { IModel as IServerProxyModel } from "./serverproxy";
-import serverProxyAppSvgstr from "../style/icons/proxy.svg";
-
-export const ServerProxyAppIcon = new LabIcon({
-  name: "server-proxy:proxyAppIcon",
-  svgstr: serverProxyAppSvgstr,
-});
-
-namespace CommandIDs {
-  export const open = "running-server-proxy:open";
-}
+import { RunningServerProxyApp, CommandIDs } from "./running";
 
 function newServerProxyWidget(
   id: string,
@@ -56,42 +48,20 @@ function addRunningSessionManager(
   managers: IRunningSessionManagers,
   app: JupyterFrontEnd,
   manager: ServerProxyManager,
+  trans: TranslationBundle
 ): void {
   managers.add({
     name: "Server Proxy Apps",
     running: () =>
       Array.from(manager.running()).map(
-        (model) => new RunningServerProxyApp(model),
+        (model) => new RunningServerProxyApp(model, manager, app),
       ),
     shutdownAll: () => manager.shutdownAll(),
     refreshRunning: () => manager.refreshRunning(),
     runningChanged: manager.runningChanged,
     shutdownAllConfirmationText:
-      "Are you sure you want to close all server proxy applications?",
+      trans.__("Are you sure you want to close all server proxy applications?")
   });
-
-  class RunningServerProxyApp implements IRunningSessions.IRunningItem {
-    constructor(model: IServerProxyModel) {
-      this._model = model;
-    }
-    open(): void {
-      app.commands.execute(CommandIDs.open, { sp: this._model });
-    }
-    icon(): LabIcon {
-      return ServerProxyAppIcon;
-    }
-    label(): string {
-      return `${this._model.name}`;
-    }
-    labelTitle(): string {
-      return `cmd: ${this._model.cmd}\nport: ${this._model.port}\nmanaged: ${this._model.managed}`;
-    }
-    shutdown(): Promise<void> {
-      return manager.shutdown(this._model.name);
-    }
-
-    private _model: IServerProxyModel;
-  }
 }
 
 /**
@@ -104,20 +74,27 @@ async function activate(
   app: JupyterFrontEnd,
   launcher: ILauncher,
   restorer: ILayoutRestorer,
+  settingRegistry: ISettingRegistry,
+  translator: ITranslator,
   sessions: IRunningSessionManagers | null,
 ): Promise<void> {
+  const trans = translator.load('jupyter-server-proxy');
+
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(
-    PageConfig.getBaseUrl() + "api/server-proxy/servers-info",
+    URLExt.join(PageConfig.getBaseUrl(), "server-proxy/api/servers-info"),
   );
   if (!response.ok) {
     console.log(
-      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
+      trans.__("Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed."),
     );
     console.log(response);
     return;
   }
   const data = await response.json();
+
+  // Load application settings
+  const settings = await settingRegistry.load(extension.id);
 
   const namespace = "server-proxy";
   const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
@@ -142,8 +119,8 @@ async function activate(
 
   // Add server proxy session manager to running sessions
   if (sessions) {
-    let manager = new ServerProxyManager();
-    addRunningSessionManager(sessions, app, manager);
+    let manager = new ServerProxyManager(trans, settings);
+    addRunningSessionManager(sessions, app, manager, trans);
   }
 
   commands.addCommand(command, {
@@ -178,7 +155,7 @@ async function activate(
   commands.addCommand(CommandIDs.open, {
     execute: (args) => {
       const model = args["sp"] as IServerProxyModel;
-      const url = PageConfig.getBaseUrl() + model.url;
+      const url = URLExt.join(PageConfig.getBaseUrl(), model.url);
       window.open(url, "_blank");
       return;
     },
@@ -189,8 +166,7 @@ async function activate(
       continue;
     }
 
-    const url =
-      PageConfig.getBaseUrl() + server_process.launcher_entry.path_info;
+    const url = URLExt.join(PageConfig.getBaseUrl(), server_process.launcher_entry.path_info);
     const title = server_process.launcher_entry.title;
     const newBrowserTab = server_process.new_browser_tab;
     const id = namespace + ":" + server_process.name;
@@ -221,7 +197,7 @@ async function activate(
 const extension: JupyterFrontEndPlugin<void> = {
   id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
-  requires: [ILauncher, ILayoutRestorer],
+  requires: [ILauncher, ILayoutRestorer, ISettingRegistry, ITranslator],
   optional: [IRunningSessionManagers],
   activate: activate,
 };
