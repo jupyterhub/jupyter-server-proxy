@@ -4,8 +4,6 @@ from jupyter_server.base.handlers import JupyterHandler
 from jupyter_server.utils import url_path_join as ujoin
 from tornado import web
 
-from .manager import manager
-
 
 class ServersInfoHandler(JupyterHandler):
     def initialize(self, server_processes):
@@ -36,8 +34,9 @@ class ServersInfoHandler(JupyterHandler):
         self.write({"server_processes": data})
 
 
-# Took it from JupyterHub LogoHandler
-class IconHandler(web.StaticFileHandler):
+# IconHandler has been copied from JupyterHub's IconHandler:
+# https://github.com/jupyterhub/jupyterhub/blob/4.0.0b2/jupyterhub/handlers/static.py#L22-L31
+class ServersIconHandler(web.StaticFileHandler):
     """A singular handler for serving the icon."""
 
     def get(self):
@@ -52,13 +51,22 @@ class IconHandler(web.StaticFileHandler):
 
 
 class ServersAPIHandler(JupyterHandler):
-    """Handler to get metadata or terminate of a given server"""
+    """Handler to get metadata or terminate of a given server or all servers"""
+
+    def initialize(self, manager):
+        self.manager = manager
 
     @web.authenticated
     async def delete(self, name):
         """Delete a server proxy by name"""
+        if not name:
+            raise web.HTTPError(
+                403, "Please set the name of a running server proxy that "
+                     "user wishes to terminate"
+            )
+
         try:
-            val = await manager.terminate_server_proxy_app(name)
+            val = await self.manager.terminate_server_proxy_app(name)
             if val is None:
                 raise Exception(
                     f"Proxy {name} not found. Are you sure the {name} "
@@ -73,17 +81,48 @@ class ServersAPIHandler(JupyterHandler):
     @web.authenticated
     async def get(self, name):
         """Get meta data of a running server proxy"""
-        app = manager.get_server_proxy_app(name)
+        if name:
+            apps = self.manager.get_server_proxy_app(name)._asdict()
+            # If no server proxy found this will be a dict with empty values
+            if not apps['name']:
+                raise web.HTTPError(
+                    404, f"Server proxy {name} not found"
+                )
+        else:
+            apps = [app._asdict() for app in self.manager.list_server_proxy_apps()]
+
         self.set_status(200)
-        self.finish(json.dumps(app._asdict()))
+        self.finish(json.dumps(apps))
 
 
-class ListServersAPIHandler(JupyterHandler):
-    """Handler to list all running server proxies"""
+def setup_api_handlers(web_app, manager, server_processes):
+    base_url = web_app.settings["base_url"]
 
-    @web.authenticated
-    async def get(self):
-        """list running servers"""
-        apps = manager.list_server_proxy_apps()
-        self.set_status(200)
-        self.finish(json.dumps([app._asdict() for app in apps]))
+    # Make a list of icon handlers
+    icon_handlers = []
+    for sp in server_processes:
+        if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
+            icon_handlers.append(
+                (
+                    ujoin(base_url, f"server-proxy/icon/{sp.name}"),
+                    ServersIconHandler,
+                    {"path": sp.launcher_entry.icon_path},
+                )
+            )
+
+    web_app.add_handlers(
+        ".*",
+        [
+            (
+                ujoin(base_url, "server-proxy/api/servers-info"),
+                ServersInfoHandler,
+                {"server_processes": server_processes},
+            ),
+            (
+                ujoin(base_url, r"server-proxy/api/servers/(?P<name>.*)"),
+                ServersAPIHandler,
+                {"manager": manager}
+            ),
+        ] + icon_handlers
+    )
+
