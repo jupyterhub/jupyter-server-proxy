@@ -48,5 +48,15 @@ signal and in those cases, the users can setup wrapper scripts to trap the
 signal and ensure clean teardown of the application.
 ```
 
+The lab extension manager will poll for running proxy applications at a
+given interval which can be configured using Jupyter Server Proxy settings.
+By default this is set to 10 seconds. Users can change
+this interval by changing `Auto-refresh rate` in `Jupyter Server Proxy`
+section in `Advanced Settings Editor` in JupyterLab UI.
+
+```{image} _static/images/labextension-settings.png
+
+```
+
 Only proxy applications that are started by `jupyter-server-proxy` are shown
 in the running Server Proxy Apps section.
