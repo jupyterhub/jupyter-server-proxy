@@ -20,7 +20,6 @@ from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
 
-from .manager import manager
 from .unixsock import UnixResolver
 from .utils import call_with_asked_args
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
@@ -712,8 +711,9 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         self.command = list()
         super().__init__(*args, **kwargs)
 
-    def initialize(self, state):
+    def initialize(self, state, manager):
         self.state = state
+        self.manager = manager
         if "proc_lock" not in state:
             state["proc_lock"] = Lock()
 
@@ -803,7 +803,7 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         async with self.state["proc_lock"]:
             # If the server process is terminated via Runningsessions or killed
             # outside of jsp, we should be able to restart the process. If
-            # process is not in running stated, remove proc object and restart
+            # process is not in running state, remove proc object and restart
             # the process
             if "proc" in self.state:
                 if not self.state["proc"].running:
@@ -846,9 +846,8 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
                         raise web.HTTPError(500, f"could not start {self.name} in time")
 
                     # If process started succesfully, add it to manager
-                    # Add the server proxy app to manager
-                    await manager.add_server_proxy_app(
-                        self.name, self.base_url, cmd, self.port, proc
+                    self.manager.add_server_proxy_app(
+                        self.name, self.base_url, cmd, self.port, proc, self.unix_socket
                     )
                 except:
                     # Make sure we remove proc from state in any error condition
