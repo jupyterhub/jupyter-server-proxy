@@ -57,6 +57,7 @@
   },
   "jupyterlab": {
     "extension": true,
+    "schemaDir": "schema",
     "outputDir": "../jupyter_server_proxy/labextension"
   }
 }

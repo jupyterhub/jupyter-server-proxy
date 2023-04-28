@@ -1,7 +1,13 @@
 import { Signal, ISignal } from "@lumino/signaling";
+import { Poll } from '@lumino/polling';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ServerConnection } from "@jupyterlab/services";
+import { TranslationBundle } from '@jupyterlab/translation';
 import { listRunning, shutdown } from "./restapi";
 import * as ServerProxyApp from "./serverproxy";
+
+// Default refresh interval (in milliseconds) for polling
+const DEFAULT_REFRESH_INTERVAL = 10000; // ms
 
 /**
  * A server proxy manager.
@@ -10,15 +16,28 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
   /**
    * Construct a new server proxy manager.
    */
-  constructor(options: ServerProxyManager.IOptions = {}) {
-    this.serverSettings =
-      options.serverSettings || ServerConnection.makeSettings();
-    this._refreshTimer = (setInterval as any)(() => {
-      if (typeof document !== "undefined" && document.hidden) {
-        return;
+  constructor(trans: TranslationBundle, settings?: ISettingRegistry.ISettings) {
+    this._trans = trans;
+    this._settings = settings || null;
+    this.serverSettings = ServerConnection.makeSettings();
+
+    const interval = settings?.get('refreshInterval').composite as number || DEFAULT_REFRESH_INTERVAL;
+
+    // Start polling with exponential backoff.
+    this._proxyPoll = new Poll({
+      factory: () => this._refreshRunning(),
+      frequency: {
+        interval: interval,
+        backoff: true,
+        max: 300 * 1000
       }
-      this._refreshRunning();
-    }, 10000);
+    });
+
+    // Fire callback when settings are changed
+    if (settings) {
+      settings.changed.connect(this._onSettingsChange, this);
+      this._onSettingsChange(settings);
+    }
   }
 
   /**
@@ -55,7 +74,8 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
       return;
     }
     this._isDisposed = true;
-    clearInterval(this._refreshTimer);
+    this._proxyPoll.dispose();
+    this._settings?.changed.disconnect(this._onSettingsChange, this);
     Signal.clearData(this);
   }
 
@@ -72,7 +92,7 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
    * Shut down a server proxy app by name.
    */
   async shutdown(name: string): Promise<void> {
-    await shutdown(name, this.serverSettings);
+    await shutdown(name, this._trans, this.serverSettings);
     await this.refreshRunning();
   }
 
@@ -87,7 +107,7 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
 
     // Shut down all models.
     await Promise.all(
-      this._names.map((name) => shutdown(name, this.serverSettings)),
+      this._names.map((name) => shutdown(name, this._trans, this.serverSettings)),
     );
 
     // Update the list of models to clear out our state.
@@ -100,7 +120,8 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
    * @returns A promise that with the list of running proxy apps.
    */
   async refreshRunning(): Promise<void> {
-    return this._refreshRunning();
+    await this._proxyPoll.refresh();
+    await this._proxyPoll.tick;
   }
 
   /**
@@ -139,26 +160,45 @@ export class ServerProxyManager implements ServerProxyApp.IManager {
     this._runningChanged.emit(this._models);
   }
 
+  /**
+   * Callback invoked upon a change to plugin settings.
+   *
+   * @private
+   * @param settings - plugin settings
+   */
+  private _onSettingsChange(settings: ISettingRegistry.ISettings) {
+    this._proxyPoll.frequency = {
+      ...this._proxyPoll.frequency,
+      interval: settings.composite.refreshInterval as number
+    };
+  }
+
   private _names: string[] = [];
   private _models: ServerProxyApp.IModel[] = [];
-
+  private _proxyPoll: Poll;
+  private _trans: TranslationBundle;
+  private _settings: ISettingRegistry.ISettings | null;
   private _isDisposed = false;
-  private _refreshTimer = -1;
   private _runningChanged = new Signal<this, ServerProxyApp.IModel[]>(this);
   private _connectionFailure = new Signal<this, Error>(this);
 }
 
-/**
- * The namespace for `BaseManager` class statics.
- */
-export namespace ServerProxyManager {
-  /**
-   * The options used to initialize a SessionManager.
-   */
-  export interface IOptions {
-    /**
-     * The server settings for the manager.
-     */
-    serverSettings?: ServerConnection.ISettings;
-  }
-}
+// /**
+//  * The namespace for `ServerProxyManager` class statics.
+//  */
+// export namespace ServerProxyManager {
+//   /**
+//    * The options used to initialize a ServerProxyManager.
+//    */
+//   export interface IOptions {
+//     /**
+//      * The server settings for the manager.
+//      */
+//     serverSettings?: ServerConnection.ISettings;
+
+//     /**
+//      * When the manager stops polling the API. Defaults to `when-hidden`.
+//      */
+//      standby?: Poll.Standby;
+//   }
+// }
