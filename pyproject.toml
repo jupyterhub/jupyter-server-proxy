@@ -47,7 +47,8 @@ dependencies = [
     "aiohttp",
     "importlib_metadata >=4.8.3 ; python_version<\"3.10\"",
     "jupyter-server >=1.0",
-    "simpervisor @ git+https://github.com/jupyterhub/simpervisor@7423bec756b74ed29312f967b5177e7e54d07a23",
+    # simpervisor >=1.0 for Windows support
+    "simpervisor",
 ]
 
 [project.optional-dependencies]
@@ -87,8 +88,8 @@ exclude = [
 "jupyter_server_proxy/static" = "share/jupyter/nbextensions/jupyter_server_proxy"
 
 [tool.hatch.metadata]
-# Allow testing git+https://github.com/... dependencies
-allow-direct-references = true
+# Set to true to allow testing of git+https://github.com/user/repo@sha dependencies
+allow-direct-references = false
 
 [tool.hatch.metadata.hooks.nodejs]
 path = "labextension/package.json"
