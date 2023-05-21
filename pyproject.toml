@@ -35,6 +35,7 @@ classifiers = [
     "Framework :: Jupyter :: JupyterLab :: Extensions",
     "License :: OSI Approved :: BSD License",
     "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
