@@ -81,16 +81,19 @@ def a_server(
         try:
             urlopen(canary_url)
             break
-        except URLError as err:
-            if "Connection refused" in str(err):
+        except URLError:
+            if not retries:
                 print(
-                    f"{a_server_cmd} not ready, will try again in 0.5s [{retries} retries]",
+                    f"{a_server_cmd} not ready, aborting",
                     flush=True,
                 )
-                time.sleep(0.5)
-                retries -= 1
-                continue
-            raise err
+                raise
+            print(
+                f"{a_server_cmd} not ready, will try again in 0.5s [{retries} retries]",
+                flush=True,
+            )
+            time.sleep(0.5)
+            retries -= 1
 
     print(f"{a_server_cmd} is ready...", flush=True)
 

@@ -35,6 +35,7 @@ classifiers = [
     "Framework :: Jupyter :: JupyterLab :: Extensions",
     "License :: OSI Approved :: BSD License",
     "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -47,7 +48,7 @@ dependencies = [
     "aiohttp",
     "importlib_metadata >=4.8.3 ; python_version<\"3.10\"",
     "jupyter-server >=1.0",
-    "simpervisor >=0.4",
+    "simpervisor >=1.0",
 ]
 
 [project.optional-dependencies]
@@ -85,6 +86,10 @@ exclude = [
 "jupyter_server_proxy/etc" = "etc/jupyter"
 "jupyter_server_proxy/labextension" = "share/jupyter/labextensions/@jupyterhub/jupyter-server-proxy"
 "jupyter_server_proxy/static" = "share/jupyter/nbextensions/jupyter_server_proxy"
+
+[tool.hatch.metadata]
+# Set to true to allow testing of git+https://github.com/user/repo@sha dependencies
+allow-direct-references = false
 
 [tool.hatch.metadata.hooks.nodejs]
 path = "labextension/package.json"
