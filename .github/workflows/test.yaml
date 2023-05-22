@@ -39,11 +39,6 @@ jobs:
             jupyterlab-version: "3"
             os: windows-2022
 
-    # NOTE: The worker environment running this job needs firefox and
-    #       geckowebdriver available. Before upgrading to ubuntu-24.04 in the
-    #       future, check and see its available in a location like this:
-    #       https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md#browsers-and-drivers
-    #
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -86,7 +81,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -k "not acceptance" -vs
+          pytest -k "not acceptance" -vv
 
       - name: Upload pytest and coverage reports
         if: always()
