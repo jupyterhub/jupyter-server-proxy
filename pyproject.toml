@@ -61,7 +61,7 @@ test = [
 acceptance = [
     "jupyter-server-proxy[test]",
     "notebook <7",
-    "robotframework-jupyterlibrary >=0.4.2",
+    "robotframework-jupyterlibrary >=0.5.0a0",
 ]
 
 
