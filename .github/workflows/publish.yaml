@@ -107,7 +107,7 @@ jobs:
 
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@v1.8.5
+        uses: pypa/gh-action-pypi-publish@v1.8.6
         with:
           password: ${{ secrets.PYPI_PASSWORD }}
 
