@@ -339,7 +339,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             # Port points to a Unix domain socket
             self.log.debug("Making client for Unix socket %r", self.unix_socket)
             assert host == "localhost", "Unix sockets only possible on localhost"
-            client = SimpleAsyncHTTPClient(resolver=UnixResolver(self.unix_socket))
+            client = SimpleAsyncHTTPClient(
+                force_instance=True, resolver=UnixResolver(self.unix_socket)
+            )
         else:
             client = httpclient.AsyncHTTPClient()
 
