@@ -62,6 +62,8 @@ acceptance = [
     "jupyter-server-proxy[test]",
     "notebook <7",
     "robotframework-jupyterlibrary >=0.4.2",
+    # Work around https://github.com/robotframework/SeleniumLibrary/issues/1836
+    "selenium <4.10",
 ]
 
 
