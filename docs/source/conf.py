@@ -23,9 +23,10 @@ extensions = [
     "sphinx_copybutton",
     "sphinxext.opengraph",
     "sphinxext.rediraffe",
+    "sphinxcontrib.openapi",
 ]
 root_doc = "index"
-source_suffix = [".md"]
+source_suffix = [".md", ".rst"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 

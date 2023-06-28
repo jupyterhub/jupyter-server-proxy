@@ -30,6 +30,7 @@ install
 server-process
 launchers
 arbitrary-ports-hosts
+api
 ```
 
 ## Convenience packages for popular applications

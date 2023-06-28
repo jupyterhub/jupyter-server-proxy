@@ -12,7 +12,7 @@ define(["jquery", "base/js/namespace", "base/js/utils"], function (
   function load() {
     if (!Jupyter.notebook_list) return;
 
-    var servers_info_url = base_url + "server-proxy/servers-info";
+    var servers_info_url = base_url + "server-proxy/api/servers-info";
     $.get(servers_info_url, function (data) {
       /* locate the right-side dropdown menu of apps and notebooks */
       var $menu = $(".tree-buttons").find(".dropdown-menu");

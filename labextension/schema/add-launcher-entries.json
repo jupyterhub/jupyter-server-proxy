@@ -1,0 +1,14 @@
+{
+  "title": "Jupyter Server Proxy",
+  "description": "Jupyter Server Proxy Manager settings",
+  "properties": {
+    "refreshInterval": {
+      "type": "number",
+      "title": "Auto-refresh rate",
+      "description": "Time to wait (in ms) in between auto refreshes of server proxy applications",
+      "default": 10000
+    }
+  },
+  "additionalProperties": false,
+  "type": "object"
+}

@@ -4,8 +4,14 @@ import {
   ILayoutRestorer,
 } from "@jupyterlab/application";
 import { ILauncher } from "@jupyterlab/launcher";
-import { PageConfig } from "@jupyterlab/coreutils";
+import { PageConfig, URLExt } from "@jupyterlab/coreutils";
+import { IRunningSessionManagers } from "@jupyterlab/running";
+import { ISettingRegistry } from "@jupyterlab/settingregistry";
+import { ITranslator, TranslationBundle } from "@jupyterlab/translation";
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
+import { ServerProxyManager } from "./manager";
+import { IModel as IServerProxyModel } from "./serverproxy";
+import { RunningServerProxyApp, CommandIDs } from "./running";
 
 function newServerProxyWidget(
   id: string,
@@ -33,6 +39,33 @@ function newServerProxyWidget(
 }
 
 /**
+ * This function adds the active server proxy applications to running sessions
+ * so that user can track currently running applications via server proxy.
+ * User can shut down the applications as well to restart them in future
+ *
+ */
+function addRunningSessionManager(
+  managers: IRunningSessionManagers,
+  app: JupyterFrontEnd,
+  manager: ServerProxyManager,
+  trans: TranslationBundle,
+): void {
+  managers.add({
+    name: "Server Proxy Apps",
+    running: () =>
+      Array.from(manager.running()).map(
+        (model) => new RunningServerProxyApp(model, manager, app),
+      ),
+    shutdownAll: () => manager.shutdownAll(),
+    refreshRunning: () => manager.refreshRunning(),
+    runningChanged: manager.runningChanged,
+    shutdownAllConfirmationText: trans.__(
+      "Are you sure you want to close all server proxy applications?",
+    ),
+  });
+}
+
+/**
  * The activate function is registered to be called on activation of the
  * jupyterlab extension.
  *
@@ -42,19 +75,29 @@ async function activate(
   app: JupyterFrontEnd,
   launcher: ILauncher,
   restorer: ILayoutRestorer,
+  settingRegistry: ISettingRegistry,
+  translator: ITranslator,
+  sessions: IRunningSessionManagers | null,
 ): Promise<void> {
+  const trans = translator.load("jupyter-server-proxy");
+
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(
-    PageConfig.getBaseUrl() + "server-proxy/servers-info",
+    URLExt.join(PageConfig.getBaseUrl(), "server-proxy/api/servers-info"),
   );
   if (!response.ok) {
     console.log(
-      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
+      trans.__(
+        "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
+      ),
     );
     console.log(response);
     return;
   }
   const data = await response.json();
+
+  // Load application settings
+  const settings = await settingRegistry.load(extension.id);
 
   const namespace = "server-proxy";
   const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
@@ -76,6 +119,13 @@ async function activate(
   }
 
   const { commands, shell } = app;
+
+  // Add server proxy session manager to running sessions
+  if (sessions) {
+    let manager = new ServerProxyManager(trans, settings);
+    addRunningSessionManager(sessions, app, manager, trans);
+  }
+
   commands.addCommand(command, {
     label: (args) => args["title"] as string,
     execute: (args) => {
@@ -105,13 +155,24 @@ async function activate(
     },
   });
 
+  commands.addCommand(CommandIDs.open, {
+    execute: (args) => {
+      const model = args["sp"] as IServerProxyModel;
+      const url = URLExt.join(PageConfig.getBaseUrl(), model.url);
+      window.open(url, "_blank");
+      return;
+    },
+  });
+
   for (let server_process of data.server_processes) {
     if (!server_process.launcher_entry.enabled) {
       continue;
     }
 
-    const url =
-      PageConfig.getBaseUrl() + server_process.launcher_entry.path_info;
+    const url = URLExt.join(
+      PageConfig.getBaseUrl(),
+      server_process.launcher_entry.path_info,
+    );
     const title = server_process.launcher_entry.title;
     const newBrowserTab = server_process.new_browser_tab;
     const id = namespace + ":" + server_process.name;
@@ -142,7 +203,8 @@ async function activate(
 const extension: JupyterFrontEndPlugin<void> = {
   id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
-  requires: [ILauncher, ILayoutRestorer],
+  requires: [ILauncher, ILayoutRestorer, ISettingRegistry, ITranslator],
+  optional: [IRunningSessionManagers],
   activate: activate,
 };
 

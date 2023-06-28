@@ -1,0 +1,126 @@
+openapi: "3.1.0"
+info:
+  title: Jupyter Server Proxy
+  description: The REST API for Jupyter Server Proxy Package
+  version: 4.0.0
+  license:
+    name: BSD-3-Clause
+
+paths:
+  /server-proxy/api/servers-info:
+    get:
+      summary: Get List of Server Proxy Entrypoints
+      description: |
+        Gets the list of server proxy entrypoints and their launcher meta data
+      responses:
+        "200":
+          description: Server Proxy Entrypoints
+          content:
+            application/json:
+              schema:
+                properties:
+                  server_processes:
+                    type: array
+                    description: list of server proxy entrypoints
+                    items:
+                      $ref: "#/components/schemas/ListEntryPoints"
+
+  /server-proxy/icon/{server_name}:
+    get:
+      summary: Get Icon of Server Proxy Application
+      description: |
+        Gets the icon of server proxy application
+      responses:
+        "200":
+          description: Server Proxy Application's Icon
+          content:
+            image/*:
+              schema:
+                type: string
+                description: encoded string of server proxy application's icon image
+                format: binary
+
+  /server-proxy/api/servers/:
+    get:
+      summary: Get Currently Running Server Proxy Applications
+      description: |
+        Gets the list of all running server proxy applications along with their metadata
+      responses:
+        "200":
+          description: Active Server Proxy Applications
+          content:
+            application/json:
+              schema:
+                type: array
+                description: list of running server proxy applications and their metadata
+                items:
+                  $ref: "#/components/schemas/Server"
+
+  /server-proxy/api/servers/{server_name}:
+    parameters:
+      - name: server_name
+        description: Server Proxy Application Name
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Metadata of a given Server Proxy Application
+      description: |
+        Gets metadata for a given server proxy application
+      responses:
+        "200":
+          description: Metadata of Server Proxy Application
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Server"
+        "404":
+          description: Server proxy application not found
+    delete:
+      summary: Delete a Managed Server Proxy Application
+      description: |
+        Terminates and deletes a given managed server proxy application
+      responses:
+        "204":
+          description: Succesfully terminated server proxy application
+        "403":
+          description: Forbidden. No server proxy application name set
+        "404":
+          description: Server proxy application not found
+
+components:
+  schemas:
+    ListEntryPoints:
+      type: object
+      properties:
+        name:
+          type: string
+        launcher_entry:
+          type: object
+          properties:
+            enabled:
+              type: string
+            title:
+              type: string
+            path_info:
+              type: string
+            icon_url:
+              type: string
+        new_browser_tab:
+          type: string
+    Server:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        cmd:
+          type: string
+        port:
+          type: string
+        managed:
+          type: string
+        unix_socket:
+          type: string

@@ -11,7 +11,7 @@ else:  # pragma: no cover
     from importlib.metadata import entry_points
 
 from jupyter_server.utils import url_path_join as ujoin
-from traitlets import Dict, List, Tuple, Union, default, observe
+from traitlets import Dict, Int, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
 
 from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
@@ -102,7 +102,7 @@ def get_entrypoint_server_processes(serverproxy_config):
     return sps
 
 
-def make_handlers(base_url, server_processes):
+def make_handlers(base_url, manager, server_processes):
     """
     Get tornado handlers for registered server_processes
     """
@@ -110,7 +110,7 @@ def make_handlers(base_url, server_processes):
     for sp in server_processes:
         if sp.command:
             handler = _make_supervisedproxy_handler(sp)
-            kwargs = dict(state={})
+            kwargs = dict(state={}, manager=manager)
         else:
             if not (sp.port or isinstance(sp.unix_socket, str)):
                 warn(
@@ -341,3 +341,13 @@ class ServerProxy(Configurable):
                 )
             )
             self.host_allowlist = change.new
+
+    monitor_interval = Int(
+        10,
+        help="""
+        Proxy polling interval in seconds. The server proxy manager will keep
+        polling the status of running servers with a frequency set by this
+        interval.
+        """,
+        config=True,
+    )

@@ -713,8 +713,9 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         self.command = list()
         super().__init__(*args, **kwargs)
 
-    def initialize(self, state):
+    def initialize(self, state, manager):
         self.state = state
+        self.manager = manager
         if "proc_lock" not in state:
             state["proc_lock"] = Lock()
 
@@ -802,9 +803,16 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
         # Invariant here should be: when lock isn't being held, either 'proc' is in state &
         # running, or not.
         async with self.state["proc_lock"]:
+            # If the server process is terminated via Runningsessions or killed
+            # outside of jsp, we should be able to restart the process. If
+            # process is not in running state, remove proc object and restart
+            # the process
+            if "proc" in self.state:
+                if not self.state["proc"].running:
+                    del self.state["proc"]
+
             if "proc" not in self.state:
                 # FIXME: Prevent races here
-                # FIXME: Handle graceful exits of spawned processes here
 
                 # When command option isn't truthy, it means its a process not
                 # to be managed/started by jupyter-server-proxy. This means we
@@ -838,6 +846,11 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
                     if not is_ready:
                         await proc.kill()
                         raise web.HTTPError(500, f"could not start {self.name} in time")
+
+                    # If process started succesfully, add it to manager
+                    self.manager.add_server_proxy_app(
+                        self.name, self.base_url, cmd, self.port, proc, self.unix_socket
+                    )
                 except:
                     # Make sure we remove proc from state in any error condition
                     del self.state["proc"]

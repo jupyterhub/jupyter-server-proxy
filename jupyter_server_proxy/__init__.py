@@ -1,9 +1,10 @@
-from jupyter_server.utils import url_path_join as ujoin
+import traitlets
 
-from .api import IconHandler, ServersInfoHandler
+from .api import setup_api_handlers
 from .config import ServerProxy as ServerProxyConfig
 from .config import get_entrypoint_server_processes, make_handlers, make_server_process
 from .handlers import setup_handlers
+from .manager import ServerProxyAppManager
 
 
 # Jupyter Extension points
@@ -38,14 +39,31 @@ def _jupyter_labextension_paths():
 def _load_jupyter_server_extension(nbapp):
     # Set up handlers picked up via config
     base_url = nbapp.web_app.settings["base_url"]
+
+    # Add server_proxy_manager trait to ServerApp and Instantiate a manager
+    nbapp.add_traits(server_proxy_manager=traitlets.Instance(ServerProxyAppManager))
+    manager = nbapp.server_proxy_manager = ServerProxyAppManager()
     serverproxy_config = ServerProxyConfig(parent=nbapp)
+
+    # Add a long running background task that monitors the running proxies
+    try:
+        nbapp.io_loop.call_later(
+            serverproxy_config.monitor_interval,
+            manager.monitor,
+            serverproxy_config.monitor_interval,
+        )
+    except AttributeError:
+        nbapp.log.debug(
+            "[jupyter-server-proxy] Server proxy manager is only supportted "
+            "for Notebook >= 7",
+        )
 
     server_processes = [
         make_server_process(name, server_process_config, serverproxy_config)
         for name, server_process_config in serverproxy_config.servers.items()
     ]
     server_processes += get_entrypoint_server_processes(serverproxy_config)
-    server_handlers = make_handlers(base_url, server_processes)
+    server_handlers = make_handlers(base_url, manager, server_processes)
     nbapp.web_app.add_handlers(".*", server_handlers)
 
     # Set up default non-server handler
@@ -54,21 +72,10 @@ def _load_jupyter_server_extension(nbapp):
         serverproxy_config,
     )
 
-    icons = {}
-    for sp in server_processes:
-        if sp.launcher_entry.enabled and sp.launcher_entry.icon_path:
-            icons[sp.name] = sp.launcher_entry.icon_path
-
-    nbapp.web_app.add_handlers(
-        ".*",
-        [
-            (
-                ujoin(base_url, "server-proxy/servers-info"),
-                ServersInfoHandler,
-                {"server_processes": server_processes},
-            ),
-            (ujoin(base_url, "server-proxy/icon/(.*)"), IconHandler, {"icons": icons}),
-        ],
+    setup_api_handlers(
+        nbapp.web_app,
+        manager,
+        server_processes,
     )
 
     nbapp.log.debug(
