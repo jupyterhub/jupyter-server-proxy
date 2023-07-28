@@ -31,13 +31,20 @@ jobs:
       matrix:
         python-version: ["3.8", "3.11"]
         jupyter_server-version: ["1", "2"]
-        jupyterlab-version: ["3"]
+        jupyterlab-version: ["3", "4"]
         os: [ubuntu-22.04]
         include:
           - python-version: "3.11"
             jupyter_server-version: "2"
             jupyterlab-version: "3"
             os: windows-2022
+          - python-version: "3.11"
+            jupyter_server-version: "2"
+            jupyterlab-version: "4"
+            os: windows-2022
+        exclude:
+          - jupyter_server-version: "1"
+            jupyterlab-version: "4"
 
     runs-on: ${{ matrix.os }}
     defaults:

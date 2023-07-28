@@ -2,7 +2,7 @@
 
 Welcome! As a [Jupyter](https://jupyter.org) project, we follow the [Jupyter contributor guide](https://jupyter.readthedocs.io/en/latest/contributor/content-contributor.html).
 
-To setup a local development environment and ru tests, see the small section in
+To setup a local development environment and run tests, see the small section in
 the README.md file.
 
 ## Local development setup
