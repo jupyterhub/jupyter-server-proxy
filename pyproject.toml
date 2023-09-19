@@ -7,7 +7,7 @@ requires = [
     "hatch-jupyter-builder >=0.5",
     "hatch-nodejs-version",
     "hatchling >=1.4.0",
-    "jupyterlab >=3.4.7,<4.0.0",
+    "jupyterlab >=3.4.7,<5.0.0",
 ]
 
 
@@ -31,6 +31,7 @@ classifiers = [
     "Framework :: Jupyter",
     "Framework :: Jupyter :: JupyterLab",
     "Framework :: Jupyter :: JupyterLab :: 3",
+    "Framework :: Jupyter :: JupyterLab :: 4",
     "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
     "Framework :: Jupyter :: JupyterLab :: Extensions",
     "License :: OSI Approved :: BSD License",
