@@ -7,7 +7,7 @@ requires = [
     "hatch-jupyter-builder >=0.5",
     "hatch-nodejs-version",
     "hatchling >=1.4.0",
-    "jupyterlab >=3.4.7,<5.0.0",
+    "jupyterlab >=4.0.6,<5.0.0a0",
 ]
 
 
@@ -61,7 +61,6 @@ test = [
 # acceptance tests additionally require firefox and geckodriver
 acceptance = [
     "jupyter-server-proxy[test]",
-    "notebook <7",
     "robotframework-jupyterlibrary >=0.4.2",
     # Work around https://github.com/robotframework/SeleniumLibrary/issues/1836
     "selenium <4.10",

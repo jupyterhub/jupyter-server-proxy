@@ -125,3 +125,5 @@ c.ServerProxy.non_service_rewrite_response = hello_to_foo
 
 c.ServerApp.jpserver_extensions = {"proxyextension": True}
 c.NotebookApp.nbserver_extensions = {"proxyextension": True}
+
+c.LanguageServerManager.autodetect = False

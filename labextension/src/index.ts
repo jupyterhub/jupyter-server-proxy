@@ -2,15 +2,40 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILayoutRestorer,
+  ILabShell,
 } from "@jupyterlab/application";
+import { ReadonlyPartialJSONObject } from "@lumino/coreutils";
 import { ILauncher } from "@jupyterlab/launcher";
 import { PageConfig } from "@jupyterlab/coreutils";
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
 
+/** An interface for the arguments to the open command. */
+export interface IOpenArgs extends ReadonlyPartialJSONObject {
+  id: string;
+  title: string;
+  url: string;
+  newBrowserTab: boolean;
+}
+
+/** The JSON schema for the open command arguments.
+ *
+ * https://lumino.readthedocs.io/en/latest/api/interfaces/commands.CommandRegistry.ICommandOptions.html
+ */
+export const argSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    title: { type: "string" },
+    url: { type: "string", format: "uri" },
+    newBrowserTab: { type: "boolean" },
+  },
+};
+
+/** Create a new iframe widget. */
 function newServerProxyWidget(
   id: string,
   url: string,
-  text: string,
+  text: string
 ): MainAreaWidget<IFrame> {
   const content = new IFrame({
     sandbox: [
@@ -40,27 +65,27 @@ function newServerProxyWidget(
  */
 async function activate(
   app: JupyterFrontEnd,
-  launcher: ILauncher,
-  restorer: ILayoutRestorer,
+  labShell: ILabShell | null,
+  launcher: ILauncher | null,
+  restorer: ILayoutRestorer | null
 ): Promise<void> {
+  const baseUrl = PageConfig.getBaseUrl();
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
-  const response = await fetch(
-    PageConfig.getBaseUrl() + "server-proxy/servers-info",
-  );
+  const response = await fetch(`${baseUrl}server-proxy/servers-info`);
+
   if (!response.ok) {
-    console.log(
-      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
+    console.warn(
+      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed."
     );
-    console.log(response);
+    console.warn(response);
     return;
   }
+
   const data = await response.json();
 
   const namespace = "server-proxy";
-  const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({
-    namespace,
-  });
-  const command = namespace + ":" + "open";
+  const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({ namespace });
+  const command = `${namespace}:open`;
 
   if (restorer) {
     void restorer.restore(tracker, {
@@ -76,20 +101,19 @@ async function activate(
   }
 
   const { commands, shell } = app;
+
   commands.addCommand(command, {
-    label: (args) => args["title"] as string,
+    label: (args) => (args as IOpenArgs).title,
+    describedBy: async () => {
+      return { args: argSchema };
+    },
     execute: (args) => {
-      const id = args["id"] as string;
-      const title = args["title"] as string;
-      const url = args["url"] as string;
-      const newBrowserTab = args["newBrowserTab"] as boolean;
+      const { id, title, url, newBrowserTab } = args as IOpenArgs;
       if (newBrowserTab) {
         window.open(url, "_blank");
         return;
       }
-      let widget = tracker.find((widget) => {
-        return widget.content.id == id;
-      });
+      let widget = tracker.find((widget) => widget.content.id === id);
       if (!widget) {
         widget = newServerProxyWidget(id, url, title);
       }
@@ -98,38 +122,38 @@ async function activate(
       }
       if (!widget.isAttached) {
         shell.add(widget);
-        return widget;
       } else {
         shell.activateById(widget.id);
       }
+      return widget;
     },
   });
 
-  for (let server_process of data.server_processes) {
-    if (!server_process.launcher_entry.enabled) {
-      continue;
-    }
+  if (launcher) {
+    const baseUrl = PageConfig.getBaseUrl();
+    for (let server_process of data.server_processes) {
+      const { new_browser_tab, launcher_entry, name } = server_process;
 
-    const url =
-      PageConfig.getBaseUrl() + server_process.launcher_entry.path_info;
-    const title = server_process.launcher_entry.title;
-    const newBrowserTab = server_process.new_browser_tab;
-    const id = namespace + ":" + server_process.name;
-    const launcher_item: ILauncher.IItemOptions = {
-      command: command,
-      args: {
-        url: url,
-        title: title + (newBrowserTab ? " [↗]" : ""),
-        newBrowserTab: newBrowserTab,
-        id: id,
-      },
-      category: "Notebook",
-    };
+      if (!launcher_entry.enabled) {
+        continue;
+      }
 
-    if (server_process.launcher_entry.icon_url) {
-      launcher_item.kernelIconUrl = server_process.launcher_entry.icon_url;
+      launcher.add({
+        command: command,
+        args: {
+          url: `${baseUrl}${launcher_entry.path_info}`,
+          title: launcher_entry.title + (new_browser_tab ? " [↗]" : ""),
+          newBrowserTab: new_browser_tab,
+          id: `${namespace}:${name}`,
+        },
+        category: "Notebook",
+        kernelIconUrl: launcher_entry.icon_url || void 0,
+      });
     }
-    launcher.add(launcher_item);
+  }
+
+  if (!labShell) {
+    console.warn("TODO: handle notebook 7");
   }
 }
 
@@ -142,7 +166,7 @@ async function activate(
 const extension: JupyterFrontEndPlugin<void> = {
   id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
-  requires: [ILauncher, ILayoutRestorer],
+  optional: [ILabShell, ILauncher, ILayoutRestorer],
   activate: activate,
 };
 

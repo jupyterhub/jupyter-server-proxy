@@ -24,7 +24,39 @@ on:
   workflow_dispatch:
 
 jobs:
+  build:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: yarn
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+          cache-dependency-path: labextension/yarn.lock
+
+      - name: Update root build packages
+        run: pip install --upgrade build
+
+      - name: Build Python package
+        run: pyproject-build
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ github.run_number }}
+          path: ./dist
+
   test:
+    needs: [build]
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -37,11 +69,17 @@ jobs:
           - python-version: "3.11"
             jupyter_server-version: "2"
             jupyterlab-version: "3"
+            notebook-version: "6"
             os: windows-2022
           - python-version: "3.11"
             jupyter_server-version: "2"
             jupyterlab-version: "4"
             os: windows-2022
+            notebook-version: "7"
+          - jupyterlab-version: "3"
+            notebook-version: "6"
+          - jupyterlab-version: "4"
+            notebook-version: "7"
         exclude:
           - jupyter_server-version: "1"
             jupyterlab-version: "4"
@@ -52,26 +90,21 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v3
+
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.python-version }}"
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: yarn
-          node-version: 18.x
-          registry-url: https://registry.npmjs.org
-          cache-dependency-path: labextension/yarn.lock
-
       - name: Update root build packages
-        run: |
-          pip install --upgrade build pip
+        run: pip install --upgrade pip
 
-      - name: Build Python package
-        run: |
-          pyproject-build
+      - name: Download built artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-${{ github.run_number }}
+          path: ./dist
 
       - name: Install Python package
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
@@ -79,7 +112,7 @@ jobs:
         #
         #       Pytest options are set in `pyproject.toml`.
         run: |
-          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0'
+          pip install -vv $(ls ./dist/*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0' 'notebook~=${{ matrix.notebook-version }}.0'
 
       - name: List Python packages
         run: |
@@ -101,6 +134,7 @@ jobs:
             ./build/coverage
 
       - name: Check the Notebook Server extension is installed
+        if: matrix.jupyterlab-version != '4'
         run: |
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
