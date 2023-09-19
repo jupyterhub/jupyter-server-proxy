@@ -1,5 +1,38 @@
 # Changelog
 
+## 4.1
+
+### 4.1.0 - 2023-09-25
+
+#### New features added
+
+- Add extension for Jupyter Notebook 7 [#425](https://github.com/jupyterhub/jupyter-server-proxy/pull/425) ([@bollwyvl](https://github.com/bollwyvl), [@consideRatio](https://github.com/consideRatio))
+- Add JupyterLab 4 support for the extension [#419](https://github.com/jupyterhub/jupyter-server-proxy/pull/419) ([@trungleduc](https://github.com/trungleduc), [@consideRatio](https://github.com/consideRatio), [@manics](https://github.com/manics), [@bollwyvl](https://github.com/bollwyvl), [@ryanlovett](https://github.com/ryanlovett), [@Khagesh16](https://github.com/Khagesh16))
+
+#### Bugs fixed
+
+- Ensure proxying to Unix sockets constructs separate HTTP clients [#415](https://github.com/jupyterhub/jupyter-server-proxy/pull/415) ([@takluyver](https://github.com/takluyver), [@manics](https://github.com/manics))
+
+#### Continuous integration improvements
+
+- Work around incompatibility (missing firefox_profile arg) for acceptance tests [#416](https://github.com/jupyterhub/jupyter-server-proxy/pull/416) ([@takluyver](https://github.com/takluyver), [@manics](https://github.com/manics))
+- ci: cleanup stashed SHA256 checksum before publish to PyPI [#401](https://github.com/jupyterhub/jupyter-server-proxy/pull/401) ([@consideRatio](https://github.com/consideRatio))
+- Test Windows [#392](https://github.com/jupyterhub/jupyter-server-proxy/pull/392) ([@manics](https://github.com/manics), [@consideRatio](https://github.com/consideRatio), [@bollwyvl](https://github.com/bollwyvl))
+
+#### Dependency updates
+
+- labextension: refreeze yarn.lock [#422](https://github.com/jupyterhub/jupyter-server-proxy/pull/422) ([@consideRatio](https://github.com/consideRatio))
+- labextension: refreeze yarn.lock [#400](https://github.com/jupyterhub/jupyter-server-proxy/pull/400) ([@consideRatio](https://github.com/consideRatio))
+
+#### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2023-04-20&to=2023-09-25&type=c))
+
+@bollwyvl ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2023-04-20..2023-09-25&type=Issues)) | @cataluna84 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Acataluna84+updated%3A2023-04-20..2023-09-25&type=Issues)) | @consideRatio ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2023-04-20..2023-09-25&type=Issues)) | @Khagesh16 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AKhagesh16+updated%3A2023-04-20..2023-09-25&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2023-04-20..2023-09-25&type=Issues)) | @oeway ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aoeway+updated%3A2023-04-20..2023-09-25&type=Issues)) | @ryanlovett ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2023-04-20..2023-09-25&type=Issues)) | @takluyver ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Atakluyver+updated%3A2023-04-20..2023-09-25&type=Issues)) | @trungleduc ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Atrungleduc+updated%3A2023-04-20..2023-09-25&type=Issues))
+
 ## 4.0
 
 ### 4.0.0 - 2023-04-20
