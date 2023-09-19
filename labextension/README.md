@@ -7,11 +7,11 @@ configured server processes managed by the python package `jupyter-server-proxy`
 
 ## Prerequisites
 
-- JupyterLab >=2,<4
+- JupyterLab >=2,<5
 
 ## Installation
 
-For JupyterLab 3, use your preferred Python package manager to install `jupyter-server-proxy`:
+For JupyterLab 3+, use your preferred Python package manager to install `jupyter-server-proxy`:
 
 ```bash
 pip install jupyter-server-proxy
@@ -40,4 +40,4 @@ jupyter labextension install @jupyterhub/jupyter-server-proxy
 > - a download of a great deal of build assets from `npmjs.org`
 > - a large `webpack` build that may exhaust memory and open files handles
 >
-> **Please** consider upgrading to JupyterLab 3 before reporting issues.
+> **Please** consider upgrading to JupyterLab 3+ before reporting issues.
