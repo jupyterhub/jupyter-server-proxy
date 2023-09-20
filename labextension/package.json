@@ -41,7 +41,7 @@
     "watch:src": "jlpm build:lib -w --preserveWatchOutput",
     "watch:labextension": "jupyter labextension watch .",
     "deduplicate": "yarn-deduplicate -s fewer --fail",
-    "lint:prettier": "prettier --write \"../.github/**/*.yaml\" \"../*.{yaml,yml,md}\" \"../docs/**/*.md\" \"src/**/*.{tsx,ts}\""
+    "lint:prettier": "prettier --write \"../.github/**/*.yaml\" \"../*.{yaml,yml,md}\" \"../docs/**/*.md\" \"src/**/*.{tsx,ts}\" \"./*.{yml,json,md}\""
   },
   "dependencies": {
     "@jupyterlab/application": "^2.0 || ^3.0 || ^4.0",
