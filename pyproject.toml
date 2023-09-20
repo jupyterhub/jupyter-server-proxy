@@ -191,6 +191,7 @@ addopts = [
     "--cov-context=test",
     "--cov-report=term-missing:skip-covered",
     "--cov-report=html:build/coverage",
+    "--no-cov-on-fail",
     "--html=build/pytest/index.html",
     "--color=yes",
 ]

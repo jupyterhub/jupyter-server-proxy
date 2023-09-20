@@ -23,6 +23,10 @@ on:
       - "pre-commit-ci-update-config"
   workflow_dispatch:
 
+env:
+  # avoid warnings about config paths
+  JUPYTER_PLATFORM_DIRS: "1"
+
 jobs:
   build:
     runs-on: ubuntu-22.04

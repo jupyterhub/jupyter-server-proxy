@@ -124,6 +124,11 @@ c.ServerProxy.servers = {
 c.ServerProxy.non_service_rewrite_response = hello_to_foo
 
 c.ServerApp.jpserver_extensions = {"proxyextension": True}
+
 c.NotebookApp.nbserver_extensions = {"proxyextension": True}
 
+# disable notebook 7 banner
+c.ServerApp.show_banner = False
+
+# disable slow/noisy discovery of language servers
 c.LanguageServerManager.autodetect = False
