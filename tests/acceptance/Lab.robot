@@ -17,7 +17,7 @@ Launch Browser Tab
     Click Launcher    foo
     Wait Until Keyword Succeeds    3x    0.5s    Switch Window    title:Hello World
     Location Should Contain    foo
-    Page Should Contain    Hello World
+    Wait Until Page Contains    Hello World    timeout=10s
     Close Window
     [Teardown]    Switch Window    title:JupyterLab
 
@@ -25,7 +25,7 @@ Launch Lab Tab
     Click Launcher    bar
     Wait Until Page Contains Element    css:iframe
     Select Frame    css:iframe
-    Page Should Contain    Hello World
+    Wait Until Page Contains    Hello World    timeout=10s
 
 *** Keywords ***
 Start Lab Tests

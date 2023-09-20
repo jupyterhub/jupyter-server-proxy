@@ -27,12 +27,12 @@ Launch Browser Tab
     Click Launcher    foo
     Wait Until Keyword Succeeds    3x    0.5s    Switch Window    title:Hello World
     Location Should Contain    foo
-    Page Should Contain    Hello World
+    Wait Until Page Contains    Hello World    timeout=10s
     Close Window
 
 Launch Another Browser Tab
     Click Launcher    bar
     Wait Until Keyword Succeeds    3x    0.5s    Switch Window    title:Hello World
     Location Should Contain    bar
-    Page Should Contain    Hello World
+    Wait Until Page Contains    Hello World    timeout=10s
     Close Window

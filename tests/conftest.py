@@ -11,19 +11,19 @@ from urllib.error import URLError
 from urllib.request import urlopen
 from uuid import uuid4
 
-from pytest import fixture
+from pytest import fixture, TempPathFactory
 
 HERE = Path(__file__).parent
 RESOURCES = HERE / "resources"
 
 
-@fixture
+@fixture(scope="session")
 def a_token() -> str:
     """Get a random UUID to use for a token."""
     return str(uuid4())
 
 
-@fixture
+@fixture(scope="session")
 def an_unused_port() -> int:
     """Get a random unused port."""
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,20 +34,23 @@ def an_unused_port() -> int:
     return port
 
 
-@fixture(params=["notebook", "lab"])
+@fixture(params=["notebook", "lab"], scope="session")
 def a_server_cmd(request: Any) -> str:
     """Get a viable name for a command."""
     return request.param
 
 
-@fixture
+@fixture(scope="session")
 def a_server(
     a_server_cmd: str,
-    tmp_path: Path,
+    tmp_path_factory: TempPathFactory,
     an_unused_port: int,
     a_token: str,
 ) -> Generator[str, None, None]:
     """Get a running server."""
+
+    tmp_path = tmp_path_factory.mktemp(a_server_cmd)
+
     # get a copy of the resources
     tests = tmp_path / "tests"
     tests.mkdir()
