@@ -123,6 +123,7 @@ __metadata:
     "@jupyterlab/builder": ^4.0.6
     "@jupyterlab/launcher": ^2.0 || ^3.0 || ^4.0
     npm-run-all: ^4.1.5
+    prettier: ^3.0.3
     rimraf: ^5.0.1
     typescript: ~5.2.2
     yarn-berry-deduplicate: ^6.0.0
@@ -3347,6 +3348,15 @@ __metadata:
     picocolors: ^1.0.0
     source-map-js: ^1.0.2
   checksum: 6c810c10c9bd3e03ca016e0b6b6756261e640aba1a9a7b1200b55502bc34b9165e38f590aef3493afc2f30ab55cdfcd43fd0f8408d69a77318ddbcf2a8ad164b
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "prettier@npm:3.0.3"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: e10b9af02b281f6c617362ebd2571b1d7fc9fb8a3bd17e371754428cda992e5e8d8b7a046e8f7d3e2da1dcd21aa001e2e3c797402ebb6111b5cd19609dd228e0
   languageName: node
   linkType: hard
 

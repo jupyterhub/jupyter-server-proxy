@@ -11,6 +11,7 @@ JUPYTER_SERVER_INFO = None
 
 try:
     import notebook
+
     NOTEBOOK_VERSION = int(notebook.__version__.split(".")[0])
 except ImportError:
     NOTEBOOK_VERSION = None

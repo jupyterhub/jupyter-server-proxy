@@ -40,7 +40,8 @@
     "watch": "run-p watch:src watch:labextension",
     "watch:src": "jlpm build:lib -w --preserveWatchOutput",
     "watch:labextension": "jupyter labextension watch .",
-    "deduplicate": "yarn-deduplicate -s fewer --fail"
+    "deduplicate": "yarn-deduplicate -s fewer --fail",
+    "lint:prettier": "prettier --write --list-different \"../.github/*.yaml\" \"../*.{yaml,yml,md}\" \"../docs/**/*.md\" \"src/**/*.{tsx,ts}\""
   },
   "dependencies": {
     "@jupyterlab/application": "^2.0 || ^3.0 || ^4.0",
@@ -49,6 +50,7 @@
   "devDependencies": {
     "@jupyterlab/builder": "^4.0.6",
     "npm-run-all": "^4.1.5",
+    "prettier": "^3.0.3",
     "rimraf": "^5.0.1",
     "typescript": "~5.2.2",
     "yarn-berry-deduplicate": "^6.0.0"

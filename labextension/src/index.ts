@@ -35,7 +35,7 @@ export const argSchema = {
 function newServerProxyWidget(
   id: string,
   url: string,
-  text: string
+  text: string,
 ): MainAreaWidget<IFrame> {
   const content = new IFrame({
     sandbox: [
@@ -67,7 +67,7 @@ async function activate(
   app: JupyterFrontEnd,
   labShell: ILabShell | null,
   launcher: ILauncher | null,
-  restorer: ILayoutRestorer | null
+  restorer: ILayoutRestorer | null,
 ): Promise<void> {
   const baseUrl = PageConfig.getBaseUrl();
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
@@ -75,7 +75,7 @@ async function activate(
 
   if (!response.ok) {
     console.warn(
-      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed."
+      "Could not fetch metadata about registered servers. Make sure jupyter-server-proxy is installed.",
     );
     console.warn(response);
     return;

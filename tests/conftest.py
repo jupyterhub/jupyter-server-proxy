@@ -65,7 +65,7 @@ def a_server(
 
     # prepare an env
     env = dict(os.environ)
-    env.update(JUPYTER_TOKEN=a_token)
+    env.update(JUPYTER_TOKEN=a_token, JUPYTER_PLATFORM_DIRS="1")
 
     # start the process
     server_proc = Popen(args, cwd=str(tmp_path), env=env)
@@ -75,25 +75,7 @@ def a_server(
     canary_url = f"{url}favicon.ico"
     shutdown_url = f"{url}api/shutdown?token={a_token}"
 
-    retries = 10
-
-    while retries:
-        try:
-            urlopen(canary_url)
-            break
-        except URLError:
-            if not retries:
-                print(
-                    f"{a_server_cmd} not ready, aborting",
-                    flush=True,
-                )
-                raise
-            print(
-                f"{a_server_cmd} not ready, will try again in 0.5s [{retries} retries]",
-                flush=True,
-            )
-            time.sleep(0.5)
-            retries -= 1
+    wait_until_urlopen(canary_url)
 
     print(f"{a_server_cmd} is ready...", flush=True)
 
@@ -101,9 +83,30 @@ def a_server(
 
     # clean up after server is no longer needed
     print(f"{a_server_cmd} shutting down...", flush=True)
-    urlopen(shutdown_url, data=[])
+    wait_until_urlopen(shutdown_url, data=[])
     server_proc.wait()
     print(f"{a_server_cmd} is stopped", flush=True)
+
+
+def wait_until_urlopen(url, **kwargs):
+    retries = 10
+    while retries:
+        time.sleep(1)
+        try:
+            urlopen(url, **kwargs)
+            break
+        except URLError:
+            if not retries:
+                print(
+                    f"{url} not ready, aborting",
+                    flush=True,
+                )
+                raise
+            print(
+                f"{url} not ready, will try again in 0.5s [{retries} retries]",
+                flush=True,
+            )
+            retries -= 1
 
 
 @fixture
