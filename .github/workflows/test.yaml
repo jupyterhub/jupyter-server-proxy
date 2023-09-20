@@ -58,8 +58,8 @@ jobs:
   test:
     name: |-
       ${{ matrix.os }}
-      py${{ matrix.python-version }}
-      srv${{ matrix.jupyter_server-version }}
+      ${{ matrix.python-version }}
+      s${{ matrix.jupyter_server-version }}
       lab${{ matrix.jupyterlab-version }}
       nb${{ matrix.notebook-version }}
     needs: [build]
@@ -147,21 +147,13 @@ jobs:
           cd build
           pytest -vv ../tests -c ../pyproject.toml
 
-      - name: Upload pytest and coverage reports
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: |-
-            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage
-
-      - name: Upload acceptance test reports
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: |-
-            acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
-          path: |
             ./build/robot
