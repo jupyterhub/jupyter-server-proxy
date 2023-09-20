@@ -15,5 +15,8 @@
         "new_browser_tab": false
       }
     }
+  },
+  "LanguageServerManager": {
+    "autodetect": false
   }
 }

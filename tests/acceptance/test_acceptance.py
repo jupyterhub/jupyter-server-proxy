@@ -10,6 +10,12 @@ OUTPUT = HERE.parent.parent / "build/robot"
 JUPYTER_SERVER_INFO = None
 
 try:
+    import notebook
+    NOTEBOOK_VERSION = int(notebook.__version__.split(".")[0])
+except ImportError:
+    NOTEBOOK_VERSION = None
+
+try:
     import jupyter_server
 
     JUPYTER_SERVER_INFO = jupyter_server.version_info
@@ -22,6 +28,12 @@ def test_robot():
     pytest.importorskip("JupyterLibrary")
 
     env = dict(**os.environ)
+    robot_args = ["robot", "--consolecolors=on", f"--outputdir={OUTPUT}"]
+
+    if NOTEBOOK_VERSION >= 7:
+        robot_args += ["--exclude", "app:classic"]
+    else:
+        robot_args += ["--exclude", "app:notebook"]
 
     # JUPYTER_LIBRARY_* env vars documentation:
     # https://robotframework-jupyterlibrary.readthedocs.io/en/stable/LIMITS.html#notebookapp-vs-serverapp
@@ -40,7 +52,7 @@ def test_robot():
         shutil.rmtree(OUTPUT)
 
     return_code = subprocess.call(
-        ["robot", "--consolecolors=on", f"--outputdir={OUTPUT}", str(HERE)],
+        [*robot_args, str(HERE)],
         cwd=str(HERE),
         env=env,
     )

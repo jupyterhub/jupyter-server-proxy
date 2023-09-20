@@ -6,6 +6,8 @@ https://robotframework-jupyterlibrary.readthedocs.io/en/stable/.
 Documentation     Server Proxies in Lab
 Library           JupyterLibrary
 Suite Setup       Start Lab Tests
+Test Tags         app:lab
+
 
 *** Test Cases ***
 Lab Loads

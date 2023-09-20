@@ -7,6 +7,7 @@ Documentation     Server Proxies in Notebook Classic
 Library           JupyterLibrary
 Suite Setup       Start Notebook Classic Tests
 Test Setup        Switch Window    MAIN
+Test Tags         app:classic
 
 *** Keywords ***
 Start Notebook Classic Tests
