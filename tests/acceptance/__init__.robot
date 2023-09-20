@@ -6,6 +6,7 @@ https://robotframework-jupyterlibrary.readthedocs.io/en/stable/.
 Documentation     Acceptance tests for jupyter-server-proxy
 Library           JupyterLibrary
 Library           OperatingSystem
+Library           Process
 Suite Setup       Set Up
 Suite Teardown    Clean Up
 
@@ -26,3 +27,4 @@ Set Up
 Clean Up
     Close all Browsers
     Terminate All Jupyter Servers
+    Terminate All Processes

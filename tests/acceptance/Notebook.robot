@@ -22,6 +22,7 @@ Launch Browser Tab
     Location Should Contain    foo
     Wait Until Page Contains    Hello World    timeout=10s
     Close Window
+    [Teardown]    Switch Window    title:Home
 
 Launch Another Browser Tab
     Launch With Toolbar Menu    bar
@@ -29,6 +30,7 @@ Launch Another Browser Tab
     Location Should Contain    bar
     Wait Until Page Contains    Hello World    timeout=10s
     Close Window
+    [Teardown]    Switch Window    title:Home
 
 *** Keywords ***
 Start Notebook Tests
@@ -39,6 +41,8 @@ Start Notebook Tests
 Launch With Toolbar Menu
     [Arguments]    ${title}
     Mouse Over   ${XP_NEW_MENU}
+    Click Element    ${XP_NEW_MENU}
     ${item} =   Set Variable   ${XP_OPEN_COMMAND}//div[text() = '${title}']
     Wait Until Element Is Visible   ${item}
+    Mouse Over   ${item}
     Click Element   ${item}
