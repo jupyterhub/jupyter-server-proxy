@@ -4,32 +4,23 @@ import {
   ILayoutRestorer,
   ILabShell,
 } from "@jupyterlab/application";
-import { ReadonlyPartialJSONObject } from "@lumino/coreutils";
+import { IToolbarWidgetRegistry } from "@jupyterlab/apputils";
+
 import { ILauncher } from "@jupyterlab/launcher";
 import { PageConfig } from "@jupyterlab/coreutils";
 import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
+import { IDefaultFileBrowser } from "@jupyterlab/filebrowser";
 
-/** An interface for the arguments to the open command. */
-export interface IOpenArgs extends ReadonlyPartialJSONObject {
-  id: string;
-  title: string;
-  url: string;
-  newBrowserTab: boolean;
-}
+import {
+  CommandIDs,
+  IOpenArgs,
+  IServerProcess,
+  IServersInfo,
+  NS,
+  argSchema,
+} from "./tokens";
 
-/** The JSON schema for the open command arguments.
- *
- * https://lumino.readthedocs.io/en/latest/api/interfaces/commands.CommandRegistry.ICommandOptions.html
- */
-export const argSchema = {
-  type: "object",
-  properties: {
-    id: { type: "string" },
-    title: { type: "string" },
-    url: { type: "string", format: "uri" },
-    newBrowserTab: { type: "boolean" },
-  },
-};
+import type { Widget, Menu } from "@lumino/widgets";
 
 /** Create a new iframe widget. */
 function newServerProxyWidget(
@@ -68,8 +59,15 @@ async function activate(
   labShell: ILabShell | null,
   launcher: ILauncher | null,
   restorer: ILayoutRestorer | null,
+  toolbarRegistry: IToolbarWidgetRegistry | null,
+  fileBrowser: IDefaultFileBrowser | null,
 ): Promise<void> {
   const baseUrl = PageConfig.getBaseUrl();
+  // determine whether we are in the Notebook 7 tree
+  const notebookPage = PageConfig.getOption("notebookPage");
+  const isNotebook7 = !!notebookPage;
+  const isTree = isNotebook7 && notebookPage === "tree";
+
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
   const response = await fetch(`${baseUrl}server-proxy/servers-info`);
 
@@ -81,15 +79,26 @@ async function activate(
     return;
   }
 
-  const data = await response.json();
+  function argsForServer(server_process: IServerProcess): IOpenArgs {
+    const { new_browser_tab, launcher_entry, name } = server_process;
 
-  const namespace = "server-proxy";
-  const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({ namespace });
-  const command = `${namespace}:open`;
+    const suffix = new_browser_tab && !isNotebook7 ? " [↗]" : "";
+
+    return {
+      url: `${baseUrl}${launcher_entry.path_info}`,
+      title: `${launcher_entry.title}${suffix}`,
+      newBrowserTab: new_browser_tab,
+      id: `${NS}:${name}`,
+    };
+  }
+
+  const data: IServersInfo = await response.json();
+
+  const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({ namespace: NS });
 
   if (restorer) {
     void restorer.restore(tracker, {
-      command: command,
+      command: CommandIDs.open,
       args: (widget) => ({
         url: widget.content.url,
         title: widget.content.title.label,
@@ -102,7 +111,7 @@ async function activate(
 
   const { commands, shell } = app;
 
-  commands.addCommand(command, {
+  commands.addCommand(CommandIDs.open, {
     label: (args) => (args as IOpenArgs).title,
     describedBy: async () => {
       return { args: argSchema };
@@ -130,30 +139,42 @@ async function activate(
   });
 
   if (launcher) {
-    const baseUrl = PageConfig.getBaseUrl();
     for (let server_process of data.server_processes) {
-      const { new_browser_tab, launcher_entry, name } = server_process;
+      const { launcher_entry } = server_process;
 
       if (!launcher_entry.enabled) {
         continue;
       }
 
       launcher.add({
-        command: command,
-        args: {
-          url: `${baseUrl}${launcher_entry.path_info}`,
-          title: launcher_entry.title + (new_browser_tab ? " [↗]" : ""),
-          newBrowserTab: new_browser_tab,
-          id: `${namespace}:${name}`,
-        },
+        command: CommandIDs.open,
+        args: argsForServer(server_process),
         category: "Notebook",
         kernelIconUrl: launcher_entry.icon_url || void 0,
       });
     }
   }
 
-  if (!labShell) {
-    console.warn("TODO: handle notebook 7");
+  if (isTree && !labShell && toolbarRegistry && fileBrowser) {
+    const { toolbar } = fileBrowser;
+    const widgets = ((toolbar.layout || {}) as any).widgets as Widget[];
+    if (widgets && widgets.length) {
+      for (const widget of widgets) {
+        if (widget && (widget as any).menus) {
+          const menu: Menu = (widget as any).menus[0];
+          console.warn(menu);
+          menu.addItem({ type: "separator" });
+          for (const server_process of data.server_processes) {
+            // create args, overriding all to launch in new heavyweight browser tabs
+            let args = {
+              ...argsForServer(server_process),
+              newBrowserTab: true,
+            };
+            menu.addItem({ command: CommandIDs.open, args });
+          }
+        }
+      }
+    }
   }
 }
 
@@ -166,8 +187,14 @@ async function activate(
 const extension: JupyterFrontEndPlugin<void> = {
   id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
-  optional: [ILabShell, ILauncher, ILayoutRestorer],
-  activate: activate,
+  optional: [
+    ILabShell,
+    ILauncher,
+    ILayoutRestorer,
+    IToolbarWidgetRegistry,
+    IDefaultFileBrowser,
+  ],
+  activate,
 };
 
 export default extension;

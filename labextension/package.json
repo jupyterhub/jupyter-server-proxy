@@ -44,8 +44,9 @@
     "lint:prettier": "prettier --write \"../.github/**/*.yaml\" \"../*.{yaml,yml,md}\" \"../docs/**/*.md\" \"src/**/*.{tsx,ts}\" \"./*.{yml,json,md}\""
   },
   "dependencies": {
-    "@jupyterlab/application": "^2.0 || ^3.0 || ^4.0",
-    "@jupyterlab/launcher": "^2.0 || ^3.0 || ^4.0"
+    "@jupyterlab/application": "^3.0 || ^4.0",
+    "@jupyterlab/filebrowser": "^3.0 || ^4.0",
+    "@jupyterlab/launcher": "^3.0 || ^4.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^4.0.6",
