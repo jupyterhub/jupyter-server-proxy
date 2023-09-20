@@ -56,6 +56,12 @@ jobs:
           path: ./dist
 
   test:
+    name: |-
+      ${{ matrix.os }}
+      py${{ matrix.python-version }}
+      srv${{ matrix.jupyter_server-version }}
+      lab${{ matrix.jupyterlab-version }}
+      nb${{ matrix.notebook-version }}
     needs: [build]
     timeout-minutes: 30
     strategy:
@@ -90,7 +96,6 @@ jobs:
         shell: bash
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v4
@@ -119,20 +124,6 @@ jobs:
           pip freeze
           pip check
 
-      - name: Run tests
-        run: |
-          pytest -k "not acceptance" -vv
-
-      - name: Upload pytest and coverage reports
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: |-
-            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
-          path: |
-            ./build/pytest
-            ./build/coverage
-
       - name: Check the Notebook Server extension is installed
         if: matrix.jupyterlab-version != '4'
         run: |
@@ -150,14 +141,21 @@ jobs:
           jupyter labextension list
           jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
 
-      # TODO: re-enable when upstream not broken
-      # - name: Lab extension browser check
-      #   run: |
-      #     python -m jupyterlab.browser_check
-
-      - name: Run acceptance tests
+      - name: Run tests
         run: |
-          pytest -s -k "acceptance"
+          mkdir build
+          cd build
+          pytest -vv ../tests -c ../pyproject.toml
+
+      - name: Upload pytest and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: |-
+            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+          path: |
+            ./build/pytest
+            ./build/coverage
 
       - name: Upload acceptance test reports
         if: always()

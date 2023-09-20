@@ -6,7 +6,7 @@ https://robotframework-jupyterlibrary.readthedocs.io/en/stable/.
 Documentation     Server Proxies in Notebook
 Library           JupyterLibrary
 Suite Setup       Start Notebook Tests
-Test Tags         app:nmotebook
+Test Tags         app:notebook
 
 *** Test Cases ***
 Notebook Loads

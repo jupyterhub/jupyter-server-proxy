@@ -89,9 +89,9 @@ def a_server(
 
 
 def wait_until_urlopen(url, **kwargs):
-    retries = 10
+    retries = 20
+
     while retries:
-        time.sleep(1)
         try:
             urlopen(url, **kwargs)
             break
@@ -107,6 +107,7 @@ def wait_until_urlopen(url, **kwargs):
                 flush=True,
             )
             retries -= 1
+        time.sleep(0.5)
 
 
 @fixture
