@@ -11,7 +11,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 from uuid import uuid4
 
-from pytest import fixture, TempPathFactory
+from pytest import TempPathFactory, fixture
 
 HERE = Path(__file__).parent
 RESOURCES = HERE / "resources"
