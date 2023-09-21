@@ -130,22 +130,33 @@ jobs:
           pip freeze
           pip check
 
-      - name: Check the Notebook Server extension is installed
-        if: matrix.jupyterlab-version != '4'
+      - name: Check server extension for jupyter_server
+        run: |
+          jupyter server extension list
+          jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
+
+      - name: Check server extension for notebook v6
+        if: matrix.notebook-version == '6'
         run: |
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
-      - name: Check the Jupyter Server extension is installed
+      - name: Check frontend extension for notebook v6
+        if: matrix.notebook-version == '6'
         run: |
-          pip install jupyter-server
-          jupyter server extension list
-          jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
+          jupyter nbextension list
+          PYTHONUNBUFFERED=1 jupyter nbextension list 2>&1 | grep -A1 -iE '.*jupyter_server_proxy.*enabled' | grep -B1 -iE "Validating.*OK"
 
-      - name: Check the lab extension
+      - name: Check frontend extension for notebook v7+
+        if: matrix.notebook-version != '6'
         run: |
-          jupyter labextension list
-          jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
+          jupyter notebook extension list
+          jupyter notebook extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
+
+      - name: Check frontend extension for jupyterlab
+        run: |
+          jupyter lab extension list
+          jupyter lab extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
 
       - name: Run tests
         run: |
