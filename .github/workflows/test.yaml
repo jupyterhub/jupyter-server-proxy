@@ -182,4 +182,4 @@ jobs:
       # GitHub action reference: https://github.com/codecov/codecov-action
       - uses: codecov/codecov-action@v3
         with:
-          directory: ./build/coverage
+          directory: build/.coverage
