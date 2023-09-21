@@ -1,15 +1,20 @@
+import type { Widget, Menu } from "@lumino/widgets";
+
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILayoutRestorer,
-  ILabShell,
 } from "@jupyterlab/application";
-import { IToolbarWidgetRegistry } from "@jupyterlab/apputils";
-
-import { ILauncher } from "@jupyterlab/launcher";
-import { PageConfig } from "@jupyterlab/coreutils";
-import { IFrame, MainAreaWidget, WidgetTracker } from "@jupyterlab/apputils";
+import {
+  IToolbarWidgetRegistry,
+  IFrame,
+  MainAreaWidget,
+  WidgetTracker,
+} from "@jupyterlab/apputils";
+import { PageConfig, URLExt } from "@jupyterlab/coreutils";
 import { IDefaultFileBrowser } from "@jupyterlab/filebrowser";
+import { ILauncher } from "@jupyterlab/launcher";
+import { ServerConnection } from "@jupyterlab/services";
 
 import {
   CommandIDs,
@@ -20,7 +25,11 @@ import {
   argSchema,
 } from "./tokens";
 
-import type { Widget, Menu } from "@lumino/widgets";
+// top level constants that won't change during the application lifecycle
+const baseUrl = PageConfig.getBaseUrl();
+const notebookPage = PageConfig.getOption("notebookPage");
+const isNotebook7 = !!notebookPage;
+const isTree = isNotebook7 && notebookPage === "tree";
 
 /** Create a new iframe widget. */
 function newServerProxyWidget(
@@ -48,6 +57,21 @@ function newServerProxyWidget(
   return widget;
 }
 
+/** Generate command args for a given server. */
+function argsForServer(server_process: IServerProcess): IOpenArgs {
+  const { new_browser_tab, launcher_entry, name } = server_process;
+
+  const suffix = new_browser_tab && !isNotebook7 ? " [↗]" : "";
+
+  return {
+    // do not use URLext here due to trailing slash opinions
+    url: `${baseUrl}${launcher_entry.path_info}`,
+    title: `${launcher_entry.title}${suffix}`,
+    newBrowserTab: new_browser_tab,
+    id: `${NS}:${name}`,
+  };
+}
+
 /**
  * The activate function is registered to be called on activation of the
  * jupyterlab extension.
@@ -56,20 +80,19 @@ function newServerProxyWidget(
  */
 async function activate(
   app: JupyterFrontEnd,
-  labShell: ILabShell | null,
   launcher: ILauncher | null,
   restorer: ILayoutRestorer | null,
   toolbarRegistry: IToolbarWidgetRegistry | null,
   fileBrowser: IDefaultFileBrowser | null,
 ): Promise<void> {
-  const baseUrl = PageConfig.getBaseUrl();
-  // determine whether we are in the Notebook 7 tree
-  const notebookPage = PageConfig.getOption("notebookPage");
-  const isNotebook7 = !!notebookPage;
-  const isTree = isNotebook7 && notebookPage === "tree";
+  // server connection settings _can't_ be a global, as it can be potentially be configured
+  const serverSettings = ServerConnection.makeSettings();
 
   // Fetch configured server processes from {base_url}/server-proxy/servers-info
-  const response = await fetch(`${baseUrl}server-proxy/servers-info`);
+  // TODO: consider moving this to a separate plugin
+  // TODO: consider not blocking the application load
+  const url = URLExt.join(baseUrl, `${NS}/servers-info`);
+  const response = await ServerConnection.makeRequest(url, {}, serverSettings);
 
   if (!response.ok) {
     console.warn(
@@ -79,23 +102,11 @@ async function activate(
     return;
   }
 
-  function argsForServer(server_process: IServerProcess): IOpenArgs {
-    const { new_browser_tab, launcher_entry, name } = server_process;
-
-    const suffix = new_browser_tab && !isNotebook7 ? " [↗]" : "";
-
-    return {
-      url: `${baseUrl}${launcher_entry.path_info}`,
-      title: `${launcher_entry.title}${suffix}`,
-      newBrowserTab: new_browser_tab,
-      id: `${NS}:${name}`,
-    };
-  }
-
+  // TODO: consider adding JSON schema-derived types
   const data: IServersInfo = await response.json();
 
+  // handle restoring persistent JupyterLab workspace widgets on page reload
   const tracker = new WidgetTracker<MainAreaWidget<IFrame>>({ namespace: NS });
-
   if (restorer) {
     void restorer.restore(tracker, {
       command: CommandIDs.open,
@@ -109,8 +120,8 @@ async function activate(
     });
   }
 
+  // register commands
   const { commands, shell } = app;
-
   commands.addCommand(CommandIDs.open, {
     label: (args) => (args as IOpenArgs).title,
     describedBy: async () => {
@@ -138,6 +149,8 @@ async function activate(
     },
   });
 
+  // handle adding JupyterLab launcher cards
+  // TODO: consider moving this to a separate plugin (keeping this ID)
   if (launcher) {
     for (let server_process of data.server_processes) {
       const { launcher_entry } = server_process;
@@ -155,14 +168,17 @@ async function activate(
     }
   }
 
-  if (isTree && !labShell && toolbarRegistry && fileBrowser) {
+  // handle adding servers menu items to the Notebook 7 _Tree_ toolbar
+  // TODO: consider moving this to a separate plugin
+  if (isTree && toolbarRegistry && fileBrowser) {
     const { toolbar } = fileBrowser;
     const widgets = ((toolbar.layout || {}) as any).widgets as Widget[];
     if (widgets && widgets.length) {
       for (const widget of widgets) {
         if (widget && (widget as any).menus) {
+          // simple DOM queries can't be used, as there is no guarantee it is
+          // attached yet
           const menu: Menu = (widget as any).menus[0];
-          console.warn(menu);
           menu.addItem({ type: "separator" });
           for (const server_process of data.server_processes) {
             // create args, overriding all to launch in new heavyweight browser tabs
@@ -188,7 +204,6 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: "@jupyterhub/jupyter-server-proxy:add-launcher-entries",
   autoStart: true,
   optional: [
-    ILabShell,
     ILauncher,
     ILayoutRestorer,
     IToolbarWidgetRegistry,
