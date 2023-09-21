@@ -160,7 +160,9 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest
+          mkdir build
+          cd build
+          pytest -vv ../tests -c ../pyproject.toml
 
       - name: Upload test reports
         if: always()
