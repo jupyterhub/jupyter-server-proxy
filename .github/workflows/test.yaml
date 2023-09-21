@@ -1,5 +1,5 @@
 # This is a GitHub workflow defining a set of jobs with a set of steps.
-# ref: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+# ref: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 #
 name: Test
 
@@ -73,26 +73,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-22.04]
         python-version: ["3.8", "3.11"]
         jupyter_server-version: ["1", "2"]
         jupyterlab-version: ["3", "4"]
-        os: [ubuntu-22.04]
         include:
-          - python-version: "3.11"
-            jupyter_server-version: "2"
-            jupyterlab-version: "3"
-            notebook-version: "6"
-            os: windows-2022
-          - python-version: "3.11"
-            jupyter_server-version: "2"
-            jupyterlab-version: "4"
-            os: windows-2022
-            notebook-version: "7"
+          # let jupyterlab-version 3 and 4 imply notebook-version 6 and 7
+          # respectively, to avoid doubling the amount of test runs
           - jupyterlab-version: "3"
             notebook-version: "6"
           - jupyterlab-version: "4"
             notebook-version: "7"
+          # windows should work for all test variations, but a limited selection
+          # is run to avoid doubling the amount of test runs
+          - os: windows-2022
+            python-version: "3.8"
+            jupyter_server-version: "1"
+            jupyterlab-version: "3"
+            notebook-version: "6"
+          - os: windows-2022
+            python-version: "3.11"
+            jupyter_server-version: "2"
+            jupyterlab-version: "4"
+            notebook-version: "7"
         exclude:
+          # jupyterlab-version 4 requires jupyter_server-version 2
           - jupyter_server-version: "1"
             jupyterlab-version: "4"
 
