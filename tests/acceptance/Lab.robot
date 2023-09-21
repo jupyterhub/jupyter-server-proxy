@@ -9,6 +9,9 @@ Suite Setup       Start Lab Tests
 Test Tags         app:lab
 
 
+*** Variables ***
+${CSS_LAUNCHER_CARD}   css:.jp-LauncherCard-label
+
 *** Test Cases ***
 Lab Loads
     Capture Page Screenshot    00-smoke.png
@@ -35,4 +38,6 @@ Start Lab Tests
 
 Click Launcher
     [Arguments]    ${title}
-    Click Element    css:.jp-LauncherCard-label[title^\="${title}"]
+    ${item} =   Set Variable   ${CSS_LAUNCHER_CARD}\[title^\="${title}"]
+    Wait Until Element Is Visible  ${item}  timeout=10s
+    Click Element    ${item}
