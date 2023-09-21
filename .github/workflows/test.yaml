@@ -30,9 +30,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -68,6 +65,11 @@ jobs:
       nb${{ matrix.notebook-version }}
     needs: [build]
     timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash # windows default isn't bash
+
     strategy:
       fail-fast: false
       matrix:
@@ -93,11 +95,6 @@ jobs:
         exclude:
           - jupyter_server-version: "1"
             jupyterlab-version: "4"
-
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - uses: actions/checkout@v4
