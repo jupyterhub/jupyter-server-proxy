@@ -182,6 +182,7 @@ src = "labextension/package.json"
 
 [tool.pytest.ini_options]
 cache_dir = "build/.cache/pytest"
+testpaths = ["tests"]
 addopts = [
     "-vv",
     "--cov=jupyter_server_proxy",
