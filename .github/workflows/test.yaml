@@ -160,9 +160,13 @@ jobs:
 
       - name: Run tests
         run: |
+          # we have installed a pre-built wheel and configured code coverage to
+          # inspect "jupyter_server_proxy", by re-locating to another directory,
+          # there is no confusion about "jupyter_server_proxy" referring to our
+          # installed package rather than the local directory
           mkdir build
           cd build
-          pytest -vv ../tests -c ../pyproject.toml
+          pytest -c ../pyproject.toml
 
       - name: Upload test reports
         if: always()
