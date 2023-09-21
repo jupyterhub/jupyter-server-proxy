@@ -178,3 +178,8 @@ jobs:
             ./build/pytest
             ./build/coverage
             ./build/robot
+
+      # GitHub action reference: https://github.com/codecov/codecov-action
+      - uses: codecov/codecov-action@v3
+        with:
+          directory: ./build/coverage
