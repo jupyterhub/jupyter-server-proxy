@@ -9,6 +9,7 @@ HERE = Path(__file__).parent
 OUTPUT = HERE.parent.parent / "build/robot"
 JUPYTER_SERVER_INFO = None
 
+
 try:
     import notebook
 
@@ -31,7 +32,7 @@ def test_robot():
     env = dict(**os.environ)
     robot_args = ["robot", "--consolecolors=on", f"--outputdir={OUTPUT}"]
 
-    if NOTEBOOK_VERSION >= 7:
+    if NOTEBOOK_VERSION and NOTEBOOK_VERSION >= 7:
         robot_args += ["--exclude", "app:classic"]
     else:
         robot_args += ["--exclude", "app:notebook"]
