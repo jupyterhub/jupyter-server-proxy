@@ -11,19 +11,19 @@ from urllib.error import URLError
 from urllib.request import urlopen
 from uuid import uuid4
 
-from pytest import fixture
+from pytest import TempPathFactory, fixture
 
 HERE = Path(__file__).parent
 RESOURCES = HERE / "resources"
 
 
-@fixture
+@fixture(scope="session")
 def a_token() -> str:
     """Get a random UUID to use for a token."""
     return str(uuid4())
 
 
-@fixture
+@fixture(scope="session")
 def an_unused_port() -> int:
     """Get a random unused port."""
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,20 +34,23 @@ def an_unused_port() -> int:
     return port
 
 
-@fixture(params=["notebook", "lab"])
+@fixture(params=["notebook", "lab"], scope="session")
 def a_server_cmd(request: Any) -> str:
     """Get a viable name for a command."""
     return request.param
 
 
-@fixture
+@fixture(scope="session")
 def a_server(
     a_server_cmd: str,
-    tmp_path: Path,
+    tmp_path_factory: TempPathFactory,
     an_unused_port: int,
     a_token: str,
 ) -> Generator[str, None, None]:
     """Get a running server."""
+
+    tmp_path = tmp_path_factory.mktemp(a_server_cmd)
+
     # get a copy of the resources
     tests = tmp_path / "tests"
     tests.mkdir()
@@ -65,7 +68,7 @@ def a_server(
 
     # prepare an env
     env = dict(os.environ)
-    env.update(JUPYTER_TOKEN=a_token)
+    env.update(JUPYTER_TOKEN=a_token, JUPYTER_PLATFORM_DIRS="1")
 
     # start the process
     server_proc = Popen(args, cwd=str(tmp_path), env=env)
@@ -75,25 +78,7 @@ def a_server(
     canary_url = f"{url}favicon.ico"
     shutdown_url = f"{url}api/shutdown?token={a_token}"
 
-    retries = 10
-
-    while retries:
-        try:
-            urlopen(canary_url)
-            break
-        except URLError:
-            if not retries:
-                print(
-                    f"{a_server_cmd} not ready, aborting",
-                    flush=True,
-                )
-                raise
-            print(
-                f"{a_server_cmd} not ready, will try again in 0.5s [{retries} retries]",
-                flush=True,
-            )
-            time.sleep(0.5)
-            retries -= 1
+    wait_until_urlopen(canary_url)
 
     print(f"{a_server_cmd} is ready...", flush=True)
 
@@ -101,9 +86,31 @@ def a_server(
 
     # clean up after server is no longer needed
     print(f"{a_server_cmd} shutting down...", flush=True)
-    urlopen(shutdown_url, data=[])
+    wait_until_urlopen(shutdown_url, data=[])
     server_proc.wait()
     print(f"{a_server_cmd} is stopped", flush=True)
+
+
+def wait_until_urlopen(url, **kwargs):
+    retries = 20
+
+    while retries:
+        try:
+            urlopen(url, **kwargs)
+            break
+        except URLError:
+            if not retries:
+                print(
+                    f"{url} not ready, aborting",
+                    flush=True,
+                )
+                raise
+            print(
+                f"{url} not ready, will try again in 0.5s [{retries} retries]",
+                flush=True,
+            )
+            retries -= 1
+        time.sleep(0.5)
 
 
 @fixture

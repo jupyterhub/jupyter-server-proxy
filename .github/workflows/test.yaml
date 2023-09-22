@@ -1,5 +1,5 @@
 # This is a GitHub workflow defining a set of jobs with a set of steps.
-# ref: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
+# ref: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
 #
 name: Test
 
@@ -23,55 +23,81 @@ on:
       - "pre-commit-ci-update-config"
   workflow_dispatch:
 
-jobs:
-  test:
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.11"]
-        jupyter_server-version: ["1", "2"]
-        jupyterlab-version: ["3", "4"]
-        os: [ubuntu-22.04]
-        include:
-          - python-version: "3.11"
-            jupyter_server-version: "2"
-            jupyterlab-version: "3"
-            os: windows-2022
-          - python-version: "3.11"
-            jupyter_server-version: "2"
-            jupyterlab-version: "4"
-            os: windows-2022
-        exclude:
-          - jupyter_server-version: "1"
-            jupyterlab-version: "4"
+env:
+  # avoid warnings about config paths
+  JUPYTER_PLATFORM_DIRS: "1"
+  # avoid looking at every version of pip ever released
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: yarn
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+          cache-dependency-path: labextension/yarn.lock
+
+      - name: Update root build packages
+        run: pip install --upgrade build
+
+      - name: Build Python package
+        run: pyproject-build
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ github.run_number }}
+          path: ./dist
+
+  test:
+    name: ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.pip-extras }}
+    needs: [build]
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash
+        shell: bash # windows default isn't bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-2022]
+        python-version: ["3.8", "3.11"]
+        pip-extras: ["lab", "classic"]
+        exclude:
+          # windows should work for all test variations, but a limited selection
+          # is run to avoid doubling the amount of test runs
+          - os: windows-2022
+            python-version: "3.11"
+            pip-extras: classic
+          - os: windows-2022
+            python-version: "3.8"
+            pip-extras: lab
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.python-version }}"
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: yarn
-          node-version: 18.x
-          registry-url: https://registry.npmjs.org
-          cache-dependency-path: labextension/yarn.lock
-
       - name: Update root build packages
-        run: |
-          pip install --upgrade build pip
+        run: pip install --upgrade pip
 
-      - name: Build Python package
-        run: |
-          pyproject-build
+      - name: Download built artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-${{ github.run_number }}
+          path: ./dist
 
       - name: Install Python package
         # NOTE: See CONTRIBUTING.md for a local development setup that differs
@@ -79,53 +105,63 @@ jobs:
         #
         #       Pytest options are set in `pyproject.toml`.
         run: |
-          pip install -vv $(ls ./dist/jupyter_server_proxy-*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0'
+          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\]
 
       - name: List Python packages
         run: |
           pip freeze
           pip check
 
-      - name: Run tests
+      - name: Check server extension for jupyter_server
         run: |
-          pytest -k "not acceptance" -vv
+          jupyter server extension list
+          jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
-      - name: Upload pytest and coverage reports
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: |-
-            unit-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
-          path: |
-            ./build/pytest
-            ./build/coverage
-
-      - name: Check the Notebook Server extension is installed
+      - name: Check server extension for notebook v6
+        if: contains(matrix.pip-extras, 'classic')
         run: |
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
-      - name: Check the Jupyter Server extension is installed
+      - name: Check frontend extension for notebook v6
+        if: contains(matrix.pip-extras, 'classic')
         run: |
-          pip install jupyter-server
-          jupyter server extension list
-          jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
+          jupyter nbextension list
+          PYTHONUNBUFFERED=1 jupyter nbextension list 2>&1 | grep -A1 -iE '.*jupyter_server_proxy.*enabled' | grep -B1 -iE "Validating.*OK"
 
-      - name: Check the lab extension
+      - name: Check frontend extension for notebook v7+
+        if: ${{ !contains(matrix.pip-extras, 'classic') }}
         run: |
-          jupyter labextension list
-          jupyter labextension list 2>&1 | grep -iE '@jupyterhub/jupyter-server-proxy.*OK.*'
-          python -m jupyterlab.browser_check
+          jupyter notebook extension list
+          jupyter notebook extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
 
-      - name: Run acceptance tests
+      - name: Check frontend extension for jupyterlab
         run: |
-          pytest -s -k "acceptance"
+          jupyter lab extension list
+          jupyter lab extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
 
-      - name: Upload acceptance test reports
+      # we have installed a pre-built wheel and configured code coverage to
+      # inspect "jupyter_server_proxy", by re-locating to another directory,
+      # there is no confusion about "jupyter_server_proxy" referring to our
+      # installed package rather than the local directory
+      - name: Run tests
+        run: |
+          mkdir build
+          cd build
+          pytest -c ../pyproject.toml ../tests
+
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: |-
-            acceptance-tests-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ github.run_number }}
           path: |
+            ./build/pytest
+            ./build/coverage
             ./build/robot
+
+      # GitHub action reference: https://github.com/codecov/codecov-action
+      - uses: codecov/codecov-action@v3
+        with:
+          directory: build/.coverage
