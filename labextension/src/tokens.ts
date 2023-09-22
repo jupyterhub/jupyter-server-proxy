@@ -1,3 +1,11 @@
+/**
+ * A collection of tokens and constants used in `index.ts`.
+ *
+ * `import`ing this file should have basically no side-effects.
+ */
+
+import type { IFrame } from "@jupyterlab/apputils";
+
 import type { ReadonlyJSONObject } from "@lumino/coreutils";
 
 /**
@@ -12,12 +20,52 @@ export const NAME = "@jupyterhub/jupyter-server-proxy";
 export const NS = "server-proxy";
 
 /**
+ * The values for the `iframe` `sandbox` attribute.
+ *
+ * These are generally required for most non-trivial client applications, but
+ * do not affect full browser tabs.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox
+ */
+export const sandbox = Object.freeze([
+  "allow-same-origin",
+  "allow-scripts",
+  "allow-popups",
+  "allow-forms",
+  "allow-downloads",
+  "allow-modals",
+]) as IFrame.SandboxExceptions[];
+
+/**
+ * The JSON schema for the open command arguments.
+ *
+ * @see https://lumino.readthedocs.io/en/latest/api/interfaces/commands.CommandRegistry.ICommandOptions.html
+ */
+export const argSchema = Object.freeze({
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    title: { type: "string" },
+    url: { type: "string", format: "uri" },
+    newBrowserTab: { type: "boolean" },
+  },
+});
+
+/**
  * The identifying string names for server proxy commands.
+ *
+ * Namespaces are real objects that exist at runtime in the browser
+ *
+ * @see https://www.typescriptlang.org/docs/handbook/namespaces.html
  */
 export namespace CommandIDs {
   /* Opens a new server proxy tab */
   export const open = `${NS}:open`;
 }
+
+// Below here are TypeScript interfaces. These do _not_ exist at runtime
+// but are useful when working with untyped data such as provided by the server
+// @see https://www.typescriptlang.org/docs/handbook/interfaces.html
 
 /**
  * An interface for the arguments to the open command.
@@ -30,14 +78,14 @@ export interface IOpenArgs extends ReadonlyJSONObject {
 }
 
 /**
- * An interface for the server response.
+ * An interface for the server response from `/server-proxy/servers-info`
  */
 export interface IServersInfo {
   server_processes: IServerProcess[];
 }
 
 /**
- * Public description of a single server process.
+ * An interface for the public description of a single server proxy.
  */
 export interface IServerProcess {
   new_browser_tab: boolean;
@@ -46,26 +94,12 @@ export interface IServerProcess {
 }
 
 /**
- * Description of launcher information.
+ * An interface for launcher-card specific information.
  */
 export interface ILauncherEntry {
   enabled: boolean;
   title: string;
   path_info: string;
+  // the `?` means this argument may not exist, but if it does, it must be a string
   icon_url?: string;
 }
-
-/**
- * The JSON schema for the open command arguments.
- *
- * https://lumino.readthedocs.io/en/latest/api/interfaces/commands.CommandRegistry.ICommandOptions.html
- */
-export const argSchema = Object.freeze({
-  type: "object",
-  properties: {
-    id: { type: "string" },
-    title: { type: "string" },
-    url: { type: "string", format: "uri" },
-    newBrowserTab: { type: "boolean" },
-  },
-});

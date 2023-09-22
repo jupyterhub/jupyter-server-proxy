@@ -26,6 +26,8 @@ on:
 env:
   # avoid warnings about config paths
   JUPYTER_PLATFORM_DIRS: "1"
+  # avoid looking at every version of pip ever released
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 jobs:
   build:
@@ -57,12 +59,7 @@ jobs:
           path: ./dist
 
   test:
-    name: |-
-      ${{ matrix.os }}
-      ${{ matrix.python-version }}
-      s${{ matrix.jupyter_server-version }}
-      lab${{ matrix.jupyterlab-version }}
-      nb${{ matrix.notebook-version }}
+    name: ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.pip-extras }}
     needs: [build]
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
@@ -75,31 +72,16 @@ jobs:
       matrix:
         os: [ubuntu-22.04]
         python-version: ["3.8", "3.11"]
-        jupyter_server-version: ["1", "2"]
-        jupyterlab-version: ["3", "4"]
-        include:
-          # let jupyterlab-version 3 and 4 imply notebook-version 6 and 7
-          # respectively, to avoid doubling the amount of test runs
-          - jupyterlab-version: "3"
-            notebook-version: "6"
-          - jupyterlab-version: "4"
-            notebook-version: "7"
+        pip-extras: ["lab", "classic"]
+        exclude:
           # windows should work for all test variations, but a limited selection
           # is run to avoid doubling the amount of test runs
           - os: windows-2022
-            python-version: "3.8"
-            jupyter_server-version: "1"
-            jupyterlab-version: "3"
-            notebook-version: "6"
-          - os: windows-2022
             python-version: "3.11"
-            jupyter_server-version: "2"
-            jupyterlab-version: "4"
-            notebook-version: "7"
-        exclude:
-          # jupyterlab-version 4 requires jupyter_server-version 2
-          - jupyter_server-version: "1"
-            jupyterlab-version: "4"
+            pip-extras: classic
+          - os: windows-2022
+            python-version: "3.8"
+            pip-extras: lab
 
     steps:
       - uses: actions/checkout@v4
@@ -123,7 +105,7 @@ jobs:
         #
         #       Pytest options are set in `pyproject.toml`.
         run: |
-          pip install -vv $(ls ./dist/*.whl)\[acceptance\] 'jupyterlab~=${{ matrix.jupyterlab-version }}.0' 'jupyter_server~=${{ matrix.jupyter_server-version }}.0' 'notebook~=${{ matrix.notebook-version }}.0'
+          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\]
 
       - name: List Python packages
         run: |
@@ -136,19 +118,19 @@ jobs:
           jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
       - name: Check server extension for notebook v6
-        if: matrix.notebook-version == '6'
+        if: contains(matrix.pip-extras, 'classic')
         run: |
           jupyter serverextension list
           jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
 
       - name: Check frontend extension for notebook v6
-        if: matrix.notebook-version == '6'
+        if: contains(matrix.pip-extras, 'classic')
         run: |
           jupyter nbextension list
           PYTHONUNBUFFERED=1 jupyter nbextension list 2>&1 | grep -A1 -iE '.*jupyter_server_proxy.*enabled' | grep -B1 -iE "Validating.*OK"
 
       - name: Check frontend extension for notebook v7+
-        if: matrix.notebook-version != '6'
+        if: ${{ !contains(matrix.pip-extras, 'classic') }}
         run: |
           jupyter notebook extension list
           jupyter notebook extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
@@ -158,12 +140,12 @@ jobs:
           jupyter lab extension list
           jupyter lab extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
 
+      # we have installed a pre-built wheel and configured code coverage to
+      # inspect "jupyter_server_proxy", by re-locating to another directory,
+      # there is no confusion about "jupyter_server_proxy" referring to our
+      # installed package rather than the local directory
       - name: Run tests
         run: |
-          # we have installed a pre-built wheel and configured code coverage to
-          # inspect "jupyter_server_proxy", by re-locating to another directory,
-          # there is no confusion about "jupyter_server_proxy" referring to our
-          # installed package rather than the local directory
           mkdir build
           cd build
           pytest -c ../pyproject.toml ../tests
@@ -173,7 +155,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: |-
-            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.jupyterlab-version }}-${{ github.run_number }}
+            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ github.run_number }}
           path: |
             ./build/pytest
             ./build/coverage

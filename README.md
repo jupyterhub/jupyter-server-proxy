@@ -52,10 +52,6 @@ Server via the container.
 
 ## Install
 
-### Requirements
-
-Either `jupyterlab>=3` or `notebook` is required.
-
 ### Python package
 
 #### `pip`
@@ -67,17 +63,27 @@ pip install jupyter-server-proxy
 #### `conda`
 
 ```bash
-conda install jupyter-server-proxy -c conda-forge
+conda install -c conda-forge jupyter-server-proxy
 ```
 
-### JupyterLab extension
+### Jupyter Client Extensions
 
-A JupyterLab extension is bundled with the Python package to provide launch
-buttons in JupyterLab's Launcher panel for registered server processes.
+A JupyterLab and Notebook extension is bundled with the Python package to
+provide:
 
-![](docs/source/_static/images/labextension-launcher.png)
+- servers in the _New_ dropwdown of the Notebook Tree view
+- launch buttons in JupyterLab's Launcher panel for registered server processes.
+  - ![a screenshot of the JupyterLab Launcher](docs/source/_static/images/labextension-launcher.png "launch proxied servers as JupyterLab panels or new browser tabs")
 
-Clicking on them opens the proxied application in a new browser window.
+#### Client compatibility
+
+For historical compatibility ranges, see the table below:
+
+| `jupyter-server-proxy` | `notebook` | `jupyterlab` |
+| :--------------------: | :--------: | :----------: |
+|        `4.1.x`         |  `>=6,<8`  |   `>=3,<5`   |
+|        `4.0.x`         |  `>=6,<7`  |   `>=3,<4`   |
+|         `3.x`          |  `>=6,<7`  |   `>=2,<4`   |
 
 ## Disable
 
@@ -88,7 +94,7 @@ jupyter serverextension disable --sys-prefix jupyter_server_proxy
 jupyter server extension disable --sys-prefix jupyter_server_proxy
 ```
 
-### Notebook classic extension
+### Notebook Classic extension
 
 ```bash
 jupyter nbextension disable --sys-prefix --py jupyter_server_proxy

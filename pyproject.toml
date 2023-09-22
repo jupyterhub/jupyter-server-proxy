@@ -63,7 +63,17 @@ acceptance = [
     "jupyter-server-proxy[test]",
     "robotframework-jupyterlibrary >=0.4.2",
 ]
-
+classic = [
+    "jupyter-server <2",
+    "jupyterlab >=3.0.0,<4.0.0a0",
+    "notebook <7.0.0a0",
+]
+lab = [
+    "jupyter-server >=2",
+    "jupyterlab >=4.0.5,<5.0.0a0",
+    "nbclassic",
+    "notebook >=7",
+]
 
 [tool.hatch.version]
 source = "nodejs"
