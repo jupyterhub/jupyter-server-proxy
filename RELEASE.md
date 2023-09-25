@@ -47,7 +47,7 @@ These are instructions on how to make a release.
 
    Following this, the [CI system][] will build and publish a release.
 
-5. Reset the version back to dev, e.g. `4.0.1.dev0` after releasing `4.0.0`.
+5. Reset the version back to dev, e.g. `4.0.1-0.dev` after releasing `4.0.0`.
 
    ```shell
    tbump --no-tag ${NEXT_VERSION}.dev0

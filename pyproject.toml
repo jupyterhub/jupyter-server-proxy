@@ -180,7 +180,7 @@ regex = '''
     (?P<patch>\d+)
     -?
     (?P<pre>((alpha|beta|rc)\.\d+)|)
-    (?P<dev>(dev\.\d+)|)
+    (?P<dev>(0\.dev)|)
 '''
 
 [tool.tbump.git]
