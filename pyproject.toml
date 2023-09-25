@@ -4,9 +4,8 @@
 [build-system]
 build-backend = "hatchling.build"
 requires = [
-    "hatch-jupyter-builder >=0.5",
-    "hatch-nodejs-version",
-    "hatchling >=1.4.0",
+    "hatch-jupyter-builder >=0.8.3",
+    "hatchling >=1.18.0",
     "jupyterlab >=4.0.6,<5.0.0a0",
 ]
 
@@ -17,13 +16,14 @@ requires = [
 #
 [project]
 name = "jupyter_server_proxy"
-dynamic = [
-    "authors",
-    "description",
-    "keywords",
-    "urls",
-    "version",
+description = "A JupyterLab extension accompanying the PyPI package jupyter-server-proxy adding launcher items for configured server processes."
+keywords = ["jupyter", "jupyterlab", "jupyterlab-extension"]
+authors = [
+  { name = "Ryan Lovett", email = "rylo@berkeley.edu" },
+  { name = "Yuvi Panda", email = "yuvipanda@gmail.com" },
+  { name = "Jupyter Development Team", email = "jupyter@googlegroups.com" },
 ]
+dynamic = ["version"]
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
@@ -75,9 +75,16 @@ lab = [
     "notebook >=7",
 ]
 
+[project.urls]
+Documentation = "https://jupyter-server-proxy.readthedocs.io"
+Source = "https://github.com/jupyterhub/jupyter-server-proxy"
+Tracker = "https://github.com/jupyterhub/jupyter-server-proxy/issues"
+
+
+# hatch ref: https://hatch.pypa.io/latest/
+#
 [tool.hatch.version]
-source = "nodejs"
-path = "labextension/package.json"
+path = "jupyter_server_proxy/_version.py"
 
 [tool.hatch.build.targets.sdist]
 artifacts = [
@@ -100,10 +107,6 @@ exclude = [
 [tool.hatch.metadata]
 # Set to true to allow testing of git+https://github.com/user/repo@sha dependencies
 allow-direct-references = false
-
-[tool.hatch.metadata.hooks.nodejs]
-path = "labextension/package.json"
-fields = ["description", "authors", "urls"]
 
 [tool.hatch.build.hooks.jupyter-builder]
 build-function = "hatch_jupyter_builder.npm_builder"
