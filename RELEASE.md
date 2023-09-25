@@ -50,7 +50,7 @@ These are instructions on how to make a release.
 5. Reset the version back to dev, e.g. `4.0.1-0.dev` after releasing `4.0.0`.
 
    ```shell
-   tbump --no-tag ${NEXT_VERSION}.dev0
+   tbump --no-tag ${NEXT_VERSION}-0.dev
    ```
 
 6. Following the release to PyPI, an automated PR should arrive to
