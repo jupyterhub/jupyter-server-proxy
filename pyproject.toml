@@ -171,7 +171,7 @@ profile = "black"
 github_url = "https://github.com/jupyterhub/jupyter-server-proxy"
 
 [tool.tbump.version]
-current = "4.0.0"
+current = "4.1.0"
 regex = '''
     (?P<major>\d+)
     \.
