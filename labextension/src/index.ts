@@ -122,7 +122,7 @@ async function activate(
 
   // Add server proxy session manager to running sessions
   if (sessions) {
-    let manager = new ServerProxyManager(trans, settings);
+    let manager = new ServerProxyManager({ trans, settings });
     addRunningSessionManager(sessions, app, manager, trans);
   }
 

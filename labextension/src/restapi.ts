@@ -17,7 +17,7 @@ const SERVER_PROXY_SERVICE_URL = "server-proxy/api/servers/";
  * @returns A promise that resolves with the list of running session models.
  */
 export async function listRunning(
-  settings: ServerConnection.ISettings = ServerConnection.makeSettings(),
+  settings: ServerConnection.ISettings,
 ): Promise<IModel[]> {
   const url = URLExt.join(settings.baseUrl, SERVER_PROXY_SERVICE_URL);
   const response = await ServerConnection.makeRequest(url, {}, settings);
@@ -46,7 +46,7 @@ export async function listRunning(
 export async function shutdown(
   name: string,
   trans: TranslationBundle,
-  settings: ServerConnection.ISettings = ServerConnection.makeSettings(),
+  settings: ServerConnection.ISettings,
 ): Promise<void> {
   const url = URLExt.join(settings.baseUrl, SERVER_PROXY_SERVICE_URL, name);
   const init = { method: "DELETE" };
