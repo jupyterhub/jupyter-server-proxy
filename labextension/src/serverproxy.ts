@@ -1,6 +1,6 @@
 import { JSONObject } from "@lumino/coreutils";
 import { ISignal } from "@lumino/signaling";
-import { ServerConnection } from "@jupyterlab/services";
+import { IManager as IBaseManager } from "@jupyterlab/services";
 
 /**
  * The server model for a proxy.
@@ -43,21 +43,11 @@ export interface IModel extends JSONObject {
  * The manager is responsible for maintaining the state of running
  * server proxy apps.
  */
-export interface IManager {
-  /**
-   * The server settings for the manager.
-   */
-  readonly serverSettings: ServerConnection.ISettings;
-
+export interface IManager extends IBaseManager {
   /**
    * A signal emitted when the running server proxy apps change.
    */
   runningChanged: ISignal<IManager, IModel[]>;
-
-  /**
-   * A signal emitted when there is a connection failure.
-   */
-  connectionFailure: ISignal<IManager, ServerConnection.NetworkError>;
 
   /**
    * Create an iterator over the known server proxy apps.
