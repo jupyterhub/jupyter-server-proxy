@@ -16,6 +16,7 @@ requires = [
 #
 [project]
 name = "jupyter_server_proxy"
+version = "4.1.1-0.dev"
 description = "A Jupyter server extension to run additional processes and proxy to them that comes bundled JupyterLab extension to launch pre-defined processes."
 keywords = ["jupyter", "jupyterlab", "jupyterlab-extension"]
 authors = [
@@ -23,7 +24,6 @@ authors = [
   { name = "Yuvi Panda", email = "yuvipanda@gmail.com" },
   { name = "Jupyter Development Team", email = "jupyter@googlegroups.com" },
 ]
-dynamic = ["version"]
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
@@ -83,9 +83,6 @@ Tracker = "https://github.com/jupyterhub/jupyter-server-proxy/issues"
 
 # hatch ref: https://hatch.pypa.io/latest/
 #
-[tool.hatch.version]
-path = "jupyter_server_proxy/_version.py"
-
 [tool.hatch.build.targets.sdist]
 artifacts = [
     "jupyter_server_proxy/labextension",
@@ -189,6 +186,9 @@ regex = '''
 [tool.tbump.git]
 message_template = "Bump to {new_version}"
 tag_template = "v{new_version}"
+
+[[tool.tbump.file]]
+src = "pyproject.toml"
 
 [[tool.tbump.file]]
 src = "labextension/package.json"
