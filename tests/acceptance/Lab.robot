@@ -11,10 +11,7 @@ Test Tags         app:lab
 
 *** Test Cases ***
 Lab Loads
-    Capture Page Screenshot    00-smoke.png
-
-*** Keywords ***
-Start Lab Tests
     Open JupyterLab
     Tag With JupyterLab Metadata
     Set Screenshot Directory    ${OUTPUT DIR}${/}lab
+    Capture Page Screenshot    00-smoke.png
