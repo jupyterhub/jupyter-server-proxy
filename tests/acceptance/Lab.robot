@@ -12,9 +12,6 @@ Test Tags         app:lab
 Dummy Test
     ${notebook dir} =    Set Variable    ${OUTPUT DIR}${/}notebooks
 
-Set Up Test
-    Set Up
-
 Set Up And More Test
     Set Up
     Open JupyterLab
@@ -22,7 +19,7 @@ Set Up And More Test
     Set Screenshot Directory    ${OUTPUT DIR}${/}lab
 
 
-*** Keywords ***   
+*** Keywords ***
 
 Set Up
     ${notebook dir} =    Set Variable    ${OUTPUT DIR}${/}notebooks
