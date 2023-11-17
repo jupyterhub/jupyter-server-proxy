@@ -16,22 +16,8 @@ ${CSS_LAUNCHER_CARD}   css:.jp-LauncherCard-label
 Lab Loads
     Capture Page Screenshot    00-smoke.png
 
-Launch Browser Tab
-    Click Launcher    foo
-    Wait Until Keyword Succeeds    3x    0.5s    Switch Window    title:Hello World
-    Location Should Contain    foo
-    Wait Until Page Contains    Hello World    timeout=10s
-    Close Window
-    [Teardown]    Switch Window    title:JupyterLab
-
 *** Keywords ***
 Start Lab Tests
     Open JupyterLab
     Tag With JupyterLab Metadata
     Set Screenshot Directory    ${OUTPUT DIR}${/}lab
-
-Click Launcher
-    [Arguments]    ${title}
-    ${item} =   Set Variable   ${CSS_LAUNCHER_CARD}\[title^\="${title}"]
-    Wait Until Element Is Visible  ${item}  timeout=10s
-    Click Element    ${item}

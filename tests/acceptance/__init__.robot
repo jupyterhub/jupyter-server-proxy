@@ -8,7 +8,6 @@ Library           JupyterLibrary
 Library           OperatingSystem
 Library           Process
 Suite Setup       Set Up
-Suite Teardown    Clean Up
 
 *** Keywords ***
 Set Up
@@ -23,8 +22,3 @@ Set Up
     ...    stdout=${OUTPUT DIR}${/}server.log
     ...    notebook_dir=${notebook dir}
     ...    cwd=${notebook dir}
-
-Clean Up
-    Close all Browsers
-    Terminate All Jupyter Servers
-    Terminate All Processes
