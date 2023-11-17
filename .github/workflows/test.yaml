@@ -96,7 +96,7 @@ jobs:
         #
         #       Pytest options are set in `pyproject.toml`.
         run: |
-          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\]
+          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\] robotframework-seleniumlibrary==6.1.2
 
       - name: List Python packages
         run: |
