@@ -143,6 +143,12 @@ jobs:
 
       - name: Upload test reports
         if: always()
+        run: |
+          cd build/robot
+          cat server.log
+
+      - name: Upload test reports
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: |-
