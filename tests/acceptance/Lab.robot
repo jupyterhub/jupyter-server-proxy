@@ -5,14 +5,11 @@ https://robotframework-jupyterlibrary.readthedocs.io/en/stable/.
 *** Settings ***
 Documentation     Server Proxies in Lab
 Library           JupyterLibrary
+Suite Setup       Set Up
 Test Tags         app:lab
 
 *** Test Cases ***
-Dummy Test
-    ${notebook dir} =    Set Variable    ${OUTPUT DIR}${/}notebooks
-
 Set Up And More Test
-    Set Up
     Open JupyterLab
 
 
