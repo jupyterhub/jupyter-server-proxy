@@ -1,5 +1,6 @@
 from jupyter_server.utils import url_path_join as ujoin
 
+from ._version import __version__  # noqa
 from .api import IconHandler, ServersInfoHandler
 from .config import ServerProxy as ServerProxyConfig
 from .config import get_entrypoint_server_processes, make_handlers, make_server_process
