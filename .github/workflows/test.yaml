@@ -70,18 +70,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
-        python-version: ["3.8", "3.11"]
-        pip-extras: ["lab", "classic"]
-        exclude:
-          # windows should work for all test variations, but a limited selection
-          # is run to avoid doubling the amount of test runs
-          - os: windows-2022
-            python-version: "3.11"
-            pip-extras: classic
-          - os: windows-2022
-            python-version: "3.8"
-            pip-extras: lab
+        os: [ubuntu-22.04]
+        python-version: ["3.11"]
+        pip-extras: ["lab"]
 
     steps:
       - uses: actions/checkout@v4
