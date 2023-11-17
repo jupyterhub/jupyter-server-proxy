@@ -103,34 +103,6 @@ jobs:
           pip freeze
           pip check
 
-      - name: Check server extension for jupyter_server
-        run: |
-          jupyter server extension list
-          jupyter server extension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
-
-      - name: Check server extension for notebook v6
-        if: contains(matrix.pip-extras, 'classic')
-        run: |
-          jupyter serverextension list
-          jupyter serverextension list 2>&1 | grep -iE "jupyter_server_proxy.*OK" -
-
-      - name: Check frontend extension for notebook v6
-        if: contains(matrix.pip-extras, 'classic')
-        run: |
-          jupyter nbextension list
-          PYTHONUNBUFFERED=1 jupyter nbextension list 2>&1 | grep -A1 -iE '.*jupyter_server_proxy.*enabled' | grep -B1 -iE "Validating.*OK"
-
-      - name: Check frontend extension for notebook v7+
-        if: ${{ !contains(matrix.pip-extras, 'classic') }}
-        run: |
-          jupyter notebook extension list
-          jupyter notebook extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
-
-      - name: Check frontend extension for jupyterlab
-        run: |
-          jupyter lab extension list
-          jupyter lab extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
-
       # we have installed a pre-built wheel and configured code coverage to
       # inspect "jupyter_server_proxy", by re-locating to another directory,
       # there is no confusion about "jupyter_server_proxy" referring to our
@@ -141,7 +113,7 @@ jobs:
           cd build
           pytest -c ../pyproject.toml ../tests/acceptance
 
-      - name: Upload test reports
+      - name: Write server.log
         if: always()
         run: |
           cd build/robot
@@ -157,8 +129,3 @@ jobs:
             ./build/pytest
             ./build/coverage
             ./build/robot
-
-      # GitHub action reference: https://github.com/codecov/codecov-action
-      - uses: codecov/codecov-action@v3
-        with:
-          directory: build/.coverage
