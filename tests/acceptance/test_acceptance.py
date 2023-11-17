@@ -30,7 +30,12 @@ def test_robot():
     pytest.importorskip("JupyterLibrary")
 
     env = dict(**os.environ)
-    robot_args = ["robot", "--consolecolors=on", f"--outputdir={OUTPUT}"]
+    robot_args = [
+        "robot",
+        "--consolecolors=on",
+        "--exitonfailure",
+        f"--outputdir={OUTPUT}",
+    ]
 
     if NOTEBOOK_VERSION and NOTEBOOK_VERSION >= 7:
         robot_args += ["--exclude", "app:classic"]
