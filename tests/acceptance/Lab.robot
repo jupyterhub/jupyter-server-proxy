@@ -15,8 +15,6 @@ Dummy Test
 Set Up And More Test
     Set Up
     Open JupyterLab
-    Tag With JupyterLab Metadata
-    Set Screenshot Directory    ${OUTPUT DIR}${/}lab
 
 
 *** Keywords ***
