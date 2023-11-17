@@ -96,7 +96,7 @@ jobs:
         #
         #       Pytest options are set in `pyproject.toml`.
         run: |
-          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\] selenium==4.14.0
+          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\] selenium==4.13.0
 
       - name: List Python packages
         run: |
