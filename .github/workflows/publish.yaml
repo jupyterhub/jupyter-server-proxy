@@ -68,14 +68,14 @@ jobs:
           sha256sum * | tee SHA256SUMS
 
       - name: Upload Python artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
           if-no-files-found: error
 
       - name: Upload Javascript artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jsdist
           path: jsdist

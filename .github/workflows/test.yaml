@@ -53,7 +53,7 @@ jobs:
         run: pyproject-build
 
       - name: Upload built artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.run_number }}
           path: ./dist
@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: |-
             tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ github.run_number }}
