@@ -99,6 +99,7 @@ def wait_until_urlopen(url, **kwargs):
             urlopen(url, **kwargs)
             break
         except URLError:
+            retries -= 1
             if not retries:
                 print(
                     f"{url} not ready, aborting",
@@ -109,7 +110,6 @@ def wait_until_urlopen(url, **kwargs):
                 f"{url} not ready, will try again in 0.5s [{retries} retries]",
                 flush=True,
             )
-            retries -= 1
         time.sleep(0.5)
 
 
