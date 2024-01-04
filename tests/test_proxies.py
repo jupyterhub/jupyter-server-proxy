@@ -408,3 +408,9 @@ def test_bad_server_proxy_url(
     if status >= 400:
         # request should not have been proxied
         assert "X-ProxyContextPath" not in r.headers
+
+
+def test_callable_environment_formatting(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, "/python-http-callable-env/test", TOKEN)
+    assert r.code == 200

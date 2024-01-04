@@ -42,6 +42,10 @@ def cats_only(response, path):
         response.code = 403
         response.body = b"dogs not allowed"
 
+def my_env():
+    return {
+            "MYVAR": "String with escaped {{var}}"
+        }
 
 c.ServerProxy.servers = {
     "python-http": {
@@ -64,6 +68,10 @@ c.ServerProxy.servers = {
     "python-http-mappathf": {
         "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
         "mappath": mappathf,
+    },
+    "python-http-callable-env": {
+        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "environment": my_env,
     },
     "python-websocket": {
         "command": [sys.executable, "./tests/resources/websocket.py", "--port={port}"],

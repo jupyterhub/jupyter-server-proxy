@@ -654,9 +654,7 @@ class NamedLocalProxyHandler(LocalProxyHandler):
     def _realize_rendered_template(self, attribute):
         """Call any callables, then render any templated values."""
         if callable(attribute):
-            attribute = self._render_template(
-                call_with_asked_args(attribute, self.process_args)
-            )
+            attribute = call_with_asked_args(attribute, self.process_args)
         return self._render_template(attribute)
 
     @web.authenticated
