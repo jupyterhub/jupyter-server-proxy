@@ -7,6 +7,7 @@ from typing import Tuple
 from urllib.parse import quote
 
 import pytest
+from tornado.httpclient import HTTPClientError
 from tornado.websocket import websocket_connect
 
 # use ipv4 for CI, etc.
@@ -334,8 +335,8 @@ def test_server_content_encoding_header(
 async def test_server_proxy_websocket_messages(
     a_server_port_and_token: Tuple[int, str]
 ) -> None:
-    PORT = a_server_port_and_token[0]
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket"
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket?token={TOKEN}"
     conn = await websocket_connect(url)
     expected_msg = "Hello, world!"
     await conn.write_message(expected_msg)
@@ -344,8 +345,8 @@ async def test_server_proxy_websocket_messages(
 
 
 async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int, str]):
-    PORT = a_server_port_and_token[0]
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket?token={TOKEN}"
     conn = await websocket_connect(url)
     await conn.write_message("Hello")
     msg = await conn.read_message()
@@ -394,7 +395,7 @@ async def test_server_proxy_websocket_subprotocols(
     proxy_responded,
 ):
     PORT, TOKEN = a_server_port_and_token
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket"
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket?token={TOKEN}"
     conn = await websocket_connect(url, subprotocols=client_requested)
     await conn.write_message("Hello, world!")
 
@@ -416,6 +417,17 @@ async def test_server_proxy_websocket_subprotocols(
         assert "Sec-Websocket-Protocol" not in conn.headers
     else:
         assert "Sec-Websocket-Protocol" in conn.headers
+
+
+async def test_websocket_no_auth_failure(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT = a_server_port_and_token[0]
+    # Intentionally do not pass an appropriate token, which should cause a 403
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
+
+    with pytest.raises(HTTPClientError, match=r".*HTTP 403: Forbidden.*"):
+        await websocket_connect(url)
 
 
 @pytest.mark.parametrize(
