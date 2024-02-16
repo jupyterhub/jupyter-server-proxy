@@ -493,7 +493,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 request=request,
                 on_message_callback=message_cb,
                 on_ping_callback=ping_cb,
-                subprotocols=self.subprotocols,
+                subprotocols=self.selected_subprotocol,
                 resolver=resolver,
             )
             self._record_activity()
@@ -529,14 +529,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         Defer to proxied apps.
         """
-
-    def select_subprotocol(self, subprotocols):
-        """Select a single Sec-WebSocket-Protocol during handshake."""
-        self.subprotocols = subprotocols
-        if isinstance(subprotocols, list) and subprotocols:
-            self.log.debug(f"Client sent subprotocols: {subprotocols}")
-            return subprotocols[0]
-        return super().select_subprotocol(subprotocols)
 
 
 class LocalProxyHandler(ProxyHandler):
