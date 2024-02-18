@@ -374,17 +374,52 @@ def test_server_proxy_websocket_headers(
 
 async def _websocket_subprotocols(a_server_port_and_token: Tuple[int, str]) -> None:
     PORT, TOKEN = a_server_port_and_token
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket"
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
     conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
     await conn.write_message("Hello, world!")
     msg = await conn.read_message()
-    assert json.loads(msg) == ["protocol_1", "protocol_2"]
+    headers = json.loads(msg)
+    assert "Sec-Websocket-Protocol" in headers
+    assert headers["Sec-Websocket-Protocol"] == "protocol_1,protocol_2"
 
 
 def test_server_proxy_websocket_subprotocols(
     event_loop, a_server_port_and_token: Tuple[int, str]
 ):
     event_loop.run_until_complete(_websocket_subprotocols(a_server_port_and_token))
+
+
+async def _websocket_empty_subprotocols(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
+    conn = await websocket_connect(url, subprotocols=[])
+    await conn.write_message("Hello, world!")
+    msg = await conn.read_message()
+    headers = json.loads(msg)
+    assert "Sec-Websocket-Protocol" in headers
+    assert headers["Sec-Websocket-Protocol"] == ""
+
+
+def test_server_proxy_websocket_empty_subprotocols(
+    event_loop, a_server_port_and_token: Tuple[int, str]
+):
+    event_loop.run_until_complete(_websocket_empty_subprotocols(a_server_port_and_token))
+
+
+async def _websocket_no_subprotocols(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
+    conn = await websocket_connect(url)
+    await conn.write_message("Hello, world!")
+    msg = await conn.read_message()
+    headers = json.loads(msg)
+    assert "Sec-Websocket-Protocol" not in headers
+
+
+def test_server_proxy_websocket_no_subprotocols(
+    event_loop, a_server_port_and_token: Tuple[int, str]
+):
+    event_loop.run_until_complete(_websocket_no_subprotocols(a_server_port_and_token))
 
 
 @pytest.mark.parametrize(

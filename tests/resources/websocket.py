@@ -36,7 +36,6 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", MainHandler),
             (r"/echosocket", EchoWebSocket),
-            (r"/subprotocolsocket", SubprotocolWebSocket),
             (r"/headerssocket", HeadersWebSocket),
         ]
         settings = dict(
@@ -61,19 +60,6 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
 class HeadersWebSocket(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         self.write_message(json.dumps(dict(self.request.headers)))
-
-
-class SubprotocolWebSocket(tornado.websocket.WebSocketHandler):
-    def __init__(self, *args, **kwargs):
-        self._subprotocols = None
-        super().__init__(*args, **kwargs)
-
-    def select_subprotocol(self, subprotocols):
-        self._subprotocols = subprotocols
-        return None
-
-    def on_message(self, message):
-        self.write_message(json.dumps(self._subprotocols))
 
 
 def main():
