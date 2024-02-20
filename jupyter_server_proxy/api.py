@@ -22,6 +22,7 @@ class ServersInfoHandler(JupyterHandler):
                     "enabled": sp.launcher_entry.enabled,
                     "title": sp.launcher_entry.title,
                     "path_info": sp.launcher_entry.path_info,
+                    "category": sp.launcher_entry.category,
                 },
                 "new_browser_tab": sp.new_browser_tab,
             }
