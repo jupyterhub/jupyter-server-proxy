@@ -9,7 +9,7 @@ Suite Setup       Start Notebook Tests
 Test Tags         app:notebook
 
 *** Variables ***
-${XP_NEW_MENU}   xpath://div[contains(@class, "jp-FileBrowser-toolbar")]//*[contains(text(), "New")]
+${XP_NEW_MENU}   xpath://jp-toolbar[contains(@class, "jp-FileBrowser-toolbar")]//*[contains(text(), "New")]
 ${XP_OPEN_COMMAND}   xpath://li[@data-command = "server-proxy:open"]
 
 *** Test Cases ***
