@@ -123,9 +123,15 @@ the following keys:
    explicit entry.
 2. **icon_path**
    Full path to an svg icon that could be used with a launcher. Currently only used by the
-   JupyterLab launcher
+   JupyterLab launcher, when category is "Notebook" (default) or "Console".
 3. **title**
    Title to be used for the launcher entry. Defaults to the name of the server if missing.
+4. **path_info**
+   The trailing path that is appended to the user's server URL to access the proxied server.
+   By default it is the name of the server followed by a trailing slash.
+5. **category**
+   The category for the launcher item. Currently only used by the JupyterLab launcher.
+   By default it is "Notebook".
 
 ### `new_browser_tab`
 
