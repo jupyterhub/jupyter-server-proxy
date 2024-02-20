@@ -21,6 +21,9 @@ on:
     branches-ignore:
       - "dependabot/**"
       - "pre-commit-ci-update-config"
+  schedule:
+    # Run at 05:00 on monday and thursday, ref: https://crontab.guru/#0_5_*_*_1,4
+    - cron: "0 5 * * 1,4"
   workflow_dispatch:
 
 env:
