@@ -546,10 +546,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         https://github.com/tornadoweb/tornado/blob/v6.4.0/tornado/websocket.py#L337-L360.
         """
         if subprotocols:
-            # Tornado 5.0 doesn't pass an empty list, but a list with a an empty
-            # string element.
-            if subprotocols[0] == "":
-                return None
             self.log.debug(
                 f"Client sent subprotocols: {subprotocols}, selecting the first"
             )

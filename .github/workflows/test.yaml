@@ -95,7 +95,7 @@ jobs:
             pip-install-constraints: >-
               jupyter-server==1.0
               simpervisor==1.0
-              tornado==5.0
+              tornado==5.1
               traitlets==4.2.1
 
     steps:
