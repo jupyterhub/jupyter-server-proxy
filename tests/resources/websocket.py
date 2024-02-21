@@ -54,16 +54,22 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
+    """Echoes back received messages."""
+
     def on_message(self, message):
         self.write_message(message)
 
 
 class HeadersWebSocket(tornado.websocket.WebSocketHandler):
+    """Echoes back incoming request headers."""
+
     def on_message(self, message):
         self.write_message(json.dumps(dict(self.request.headers)))
 
 
 class SubprotocolWebSocket(tornado.websocket.WebSocketHandler):
+    """Echoes back incoming requested subprotocols."""
+
     def __init__(self, *args, **kwargs):
         self._subprotocols = None
         super().__init__(*args, **kwargs)

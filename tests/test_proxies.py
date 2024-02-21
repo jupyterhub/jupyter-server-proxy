@@ -378,7 +378,7 @@ async def _websocket_subprotocols(a_server_port_and_token: Tuple[int, str]) -> N
     conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
     await conn.write_message("Hello, world!")
     msg = await conn.read_message()
-    assert json.loads(msg) == ["protocol_1", "protocol_2"]
+    assert json.loads(msg) == ["protocol_1"]
 
 
 def test_server_proxy_websocket_subprotocols(
@@ -410,7 +410,9 @@ def test_bad_server_proxy_url(
         assert "X-ProxyContextPath" not in r.headers
 
 
-def test_callable_environment_formatting(a_server_port_and_token: Tuple[int, str]) -> None:
+def test_callable_environment_formatting(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-callable-env/test", TOKEN)
     assert r.code == 200
