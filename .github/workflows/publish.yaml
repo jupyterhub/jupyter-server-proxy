@@ -70,14 +70,14 @@ jobs:
       - name: Upload Python artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ github.run_number }}
+          name: dist-${{ github.run_attempt }}
           path: dist
           if-no-files-found: error
 
       - name: Upload Javascript artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jsdist-${{ github.run_number }}
+          name: jsdist-${{ github.run_attempt }}
           path: jsdist
           if-no-files-found: error
 
@@ -95,7 +95,7 @@ jobs:
       - name: Download artifacts from build
         uses: actions/download-artifact@v4
         with:
-          name: dist-${{ github.run_number }}
+          name: dist-${{ github.run_attempt }}
           path: dist
 
       # The PyPI publishing action will try to publish this checksum file as if
@@ -127,7 +127,7 @@ jobs:
       - name: Download artifacts from build
         uses: actions/download-artifact@v4
         with:
-          name: jsdist-${{ github.run_number }}
+          name: jsdist-${{ github.run_attempt }}
           path: jsdist
 
       - run: |

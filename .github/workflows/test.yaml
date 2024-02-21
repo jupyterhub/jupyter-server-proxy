@@ -55,7 +55,7 @@ jobs:
       - name: Upload built artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ github.run_number }}
+          name: dist-${{ github.run_attempt }}
           path: ./dist
 
   test:
@@ -96,7 +96,7 @@ jobs:
       - name: Download built artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist-${{ github.run_number }}
+          name: dist-${{ github.run_attempt }}
           path: ./dist
 
       - name: Install Python package
@@ -155,7 +155,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: |-
-            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ github.run_number }}
+            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ github.run_attempt }}
           path: |
             ./build/pytest
             ./build/coverage
