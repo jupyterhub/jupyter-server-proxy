@@ -1,4 +1,3 @@
-import asyncio
 import gzip
 import json
 import sys
@@ -332,14 +331,9 @@ def test_server_content_encoding_header(
         assert f.read() == b"this is a test"
 
 
-@pytest.fixture(scope="module")
-def event_loop():
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()
-
-
-async def _websocket_echo(a_server_port_and_token: Tuple[int, str]) -> None:
+async def test_server_proxy_websocket_messages(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
     PORT = a_server_port_and_token[0]
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket"
     conn = await websocket_connect(url)
@@ -349,13 +343,7 @@ async def _websocket_echo(a_server_port_and_token: Tuple[int, str]) -> None:
     assert msg == expected_msg
 
 
-def test_server_proxy_websocket(
-    event_loop, a_server_port_and_token: Tuple[int, str]
-) -> None:
-    event_loop.run_until_complete(_websocket_echo(a_server_port_and_token))
-
-
-async def _websocket_headers(a_server_port_and_token: Tuple[int, str]) -> None:
+async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int, str]):
     PORT = a_server_port_and_token[0]
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
     conn = await websocket_connect(url)
@@ -366,25 +354,15 @@ async def _websocket_headers(a_server_port_and_token: Tuple[int, str]) -> None:
     assert headers["X-Custom-Header"] == "pytest-23456"
 
 
-def test_server_proxy_websocket_headers(
-    event_loop, a_server_port_and_token: Tuple[int, str]
+async def test_server_proxy_websocket_subprotocols(
+    a_server_port_and_token: Tuple[int, str]
 ):
-    event_loop.run_until_complete(_websocket_headers(a_server_port_and_token))
-
-
-async def _websocket_subprotocols(a_server_port_and_token: Tuple[int, str]) -> None:
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket"
     conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
     await conn.write_message("Hello, world!")
     msg = await conn.read_message()
     assert json.loads(msg) == ["protocol_1"]
-
-
-def test_server_proxy_websocket_subprotocols(
-    event_loop, a_server_port_and_token: Tuple[int, str]
-):
-    event_loop.run_until_complete(_websocket_subprotocols(a_server_port_and_token))
 
 
 @pytest.mark.parametrize(
