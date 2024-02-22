@@ -354,15 +354,68 @@ async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int
     assert headers["X-Custom-Header"] == "pytest-23456"
 
 
+@pytest.mark.parametrize(
+    "client_requested,server_received,server_responded,proxy_responded",
+    [
+        (None, None, None, None),
+        (["first"], ["first"], "first", "first"),
+        # IMPORTANT: The tests below verify current bugged behavior, and the
+        #            commented out tests is what we want to succeed!
+        #
+        #            The proxy websocket should actually respond the handshake
+        #            with a subprotocol based on a the server handshake
+        #            response, but we are finalizing the client/proxy handshake
+        #            before the proxy/server handshake, and that makes it
+        #            impossible. We currently instead just pick the first
+        #            requested protocol no matter what what subprotocol the
+        #            server picks.
+        #
+        # Bug 1 - server wasn't passed all subprotocols:
+        (["first", "second"], ["first"], "first", "first"),
+        # (["first", "second"], ["first", "second"], "first", "first"),
+        #
+        # Bug 2 - server_responded doesn't match proxy_responded:
+        (["first", "favored"], ["first"], "first", "first"),
+        # (["first", "favored"], ["first", "favored"], "favored", "favored"),
+        (
+            ["please_select_no_protocol"],
+            ["please_select_no_protocol"],
+            None,
+            "please_select_no_protocol",
+        ),
+        # (["please_select_no_protocol"], ["please_select_no_protocol"], None, None),
+    ],
+)
 async def test_server_proxy_websocket_subprotocols(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
+    client_requested,
+    server_received,
+    server_responded,
+    proxy_responded,
 ):
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket"
-    conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
+    conn = await websocket_connect(url, subprotocols=client_requested)
     await conn.write_message("Hello, world!")
+
+    # verify understanding of websocket_connect that this test relies on
+    if client_requested:
+        assert "Sec-Websocket-Protocol" in conn.request.headers
+    else:
+        assert "Sec-Websocket-Protocol" not in conn.request.headers
+
     msg = await conn.read_message()
-    assert json.loads(msg) == ["protocol_1"]
+    info = json.loads(msg)
+
+    assert info["requested_subprotocols"] == server_received
+    assert info["selected_subprotocol"] == server_responded
+    assert conn.selected_subprotocol == proxy_responded
+
+    # verify proxy response headers directly
+    if proxy_responded is None:
+        assert "Sec-Websocket-Protocol" not in conn.headers
+    else:
+        assert "Sec-Websocket-Protocol" in conn.headers
 
 
 @pytest.mark.parametrize(
