@@ -116,7 +116,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             "rewrite_response",
             tuple(),
         )
-        self.subprotocols = None
         super().__init__(*args, **kwargs)
 
     # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
@@ -489,15 +488,28 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.log.info(f"Trying to establish websocket connection to {client_uri}")
             self._record_activity()
             request = httpclient.HTTPRequest(url=client_uri, headers=headers)
+            subprotocols = (
+                [self.selected_subprotocol] if self.selected_subprotocol else None
+            )
             self.ws = await pingable_ws_connect(
                 request=request,
                 on_message_callback=message_cb,
                 on_ping_callback=ping_cb,
-                subprotocols=self.subprotocols,
+                subprotocols=subprotocols,
                 resolver=resolver,
             )
             self._record_activity()
             self.log.info(f"Websocket connection established to {client_uri}")
+            if (
+                subprotocols
+                and self.ws.selected_subprotocol != self.selected_subprotocol
+            ):
+                self.log.warn(
+                    f"Websocket subprotocol between proxy/server ({self.ws.selected_subprotocol}) "
+                    f"became different than for client/proxy ({self.selected_subprotocol}) "
+                    "due to https://github.com/jupyterhub/jupyter-server-proxy/issues/459. "
+                    f"Requested subprotocols were {subprotocols}."
+                )
 
         # Wait for the WebSocket to be connected before resolving.
         # Otherwise, messages sent by the client before the
@@ -531,12 +543,25 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         """
 
     def select_subprotocol(self, subprotocols):
-        """Select a single Sec-WebSocket-Protocol during handshake."""
-        self.subprotocols = subprotocols
-        if isinstance(subprotocols, list) and subprotocols:
-            self.log.debug(f"Client sent subprotocols: {subprotocols}")
+        """
+        Select a single Sec-WebSocket-Protocol during handshake.
+
+        Note that this subprotocol selection should really be delegated to the
+        server we proxy to, but we don't! For this to happen, we would need to
+        delay accepting the handshake with the client until we have successfully
+        handshaked with the server. This issue is tracked via
+        https://github.com/jupyterhub/jupyter-server-proxy/issues/459.
+
+        Overrides `tornado.websocket.WebSocketHandler.select_subprotocol` that
+        includes an informative docstring:
+        https://github.com/tornadoweb/tornado/blob/v6.4.0/tornado/websocket.py#L337-L360.
+        """
+        if subprotocols:
+            self.log.debug(
+                f"Client sent subprotocols: {subprotocols}, selecting the first"
+            )
             return subprotocols[0]
-        return super().select_subprotocol(subprotocols)
+        return None
 
 
 class LocalProxyHandler(ProxyHandler):

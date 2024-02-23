@@ -50,13 +50,14 @@ dependencies = [
     "importlib_metadata >=4.8.3 ; python_version<\"3.10\"",
     "jupyter-server >=1.0",
     "simpervisor >=1.0",
-    "tornado >=5.0",
+    "tornado >=5.1",
     "traitlets >= 4.2.1",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest",
+    "pytest-asyncio",
     "pytest-cov",
     "pytest-html",
 ]
@@ -195,11 +196,16 @@ src = "pyproject.toml"
 [[tool.tbump.file]]
 src = "labextension/package.json"
 
+
+# pytest is used for running Python based tests
+#
+# ref: https://docs.pytest.org/en/stable/
+#
 [tool.pytest.ini_options]
-cache_dir = "build/.cache/pytest"
-testpaths = ["tests"]
 addopts = [
-    "-vv",
+    "--verbose",
+    "--durations=10",
+    "--color=yes",
     "--cov=jupyter_server_proxy",
     "--cov-branch",
     "--cov-context=test",
@@ -207,9 +213,16 @@ addopts = [
     "--cov-report=html:build/coverage",
     "--no-cov-on-fail",
     "--html=build/pytest/index.html",
-    "--color=yes",
 ]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+cache_dir = "build/.cache/pytest"
 
+
+# pytest-cov / coverage is used to measure code coverage of tests
+#
+# ref: https://coverage.readthedocs.io/en/stable/config.html
+#
 [tool.coverage.run]
 data_file = "build/.coverage"
 concurrency = [
