@@ -76,6 +76,7 @@ jobs:
         os: [ubuntu-22.04, windows-2022]
         python-version: ["3.8", "3.11"]
         pip-extras: ["lab", "classic"]
+        pip-install-constraints: [""]
         exclude:
           # windows should work for all test variations, but a limited selection
           # is run to avoid doubling the amount of test runs
@@ -85,6 +86,17 @@ jobs:
           - os: windows-2022
             python-version: "3.8"
             pip-extras: lab
+
+          # this test is manually updated to reflect the lower bounds of
+          # versions from dependencies
+          - os: ubuntu-22.04
+            python-version: "3.8"
+            pip-extras: classic
+            pip-install-constraints: >-
+              jupyter-server==1.0
+              simpervisor==1.0
+              tornado==5.0
+              traitlets==4.2.1
 
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +120,7 @@ jobs:
         #
         #       Pytest options are set in `pyproject.toml`.
         run: |
-          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\]
+          pip install -vv $(ls ./dist/*.whl)\[acceptance,${{ matrix.pip-extras }}\] ${{ matrix.pip-install-constraints }}
 
       - name: List Python packages
         run: |
