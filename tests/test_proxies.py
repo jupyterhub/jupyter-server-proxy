@@ -6,6 +6,7 @@ import os
 from http.client import HTTPConnection
 from urllib.parse import quote
 import pytest
+from tornado.httpclient import HTTPClientError
 from tornado.websocket import websocket_connect
 
 PORT = os.getenv('TEST_PORT', 8888)
@@ -246,15 +247,9 @@ def test_server_content_encoding_header():
         assert f.read() == b'this is a test'
 
 
-@pytest.fixture(scope="module")
-def event_loop():
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()
-
-
-async def _websocket_echo():
-    url = "ws://localhost:{}/python-websocket/echosocket".format(PORT)
+@pytest.mark.asyncio
+async def test_server_proxy_websocket_messages():
+    url = "ws://localhost:{}/python-websocket/echosocket?token={}".format(PORT, TOKEN)
     conn = await websocket_connect(url)
     expected_msg = "Hello, world!"
     await conn.write_message(expected_msg)
@@ -262,12 +257,9 @@ async def _websocket_echo():
     assert msg == expected_msg
 
 
-def test_server_proxy_websocket(event_loop):
-    event_loop.run_until_complete(_websocket_echo())
-
-
-async def _websocket_headers():
-    url = "ws://localhost:{}/python-websocket/headerssocket".format(PORT)
+@pytest.mark.asyncio
+async def test_server_proxy_websocket_headers():
+    url = "ws://localhost:{}/python-websocket/headerssocket?token={}".format(PORT, TOKEN)
     conn = await websocket_connect(url)
     await conn.write_message("Hello")
     msg = await conn.read_message()
@@ -276,20 +268,23 @@ async def _websocket_headers():
     assert headers['X-Custom-Header'] == 'pytest-23456'
 
 
-def test_server_proxy_websocket_headers(event_loop):
-    event_loop.run_until_complete(_websocket_headers())
-
-
-async def _websocket_subprotocols():
-    url = "ws://localhost:{}/python-websocket/subprotocolsocket".format(PORT)
+@pytest.mark.asyncio
+async def test_server_proxy_websocket_subprotocols():
+    url = "ws://localhost:{}/python-websocket/subprotocolsocket?token={}".format(PORT, TOKEN)
     conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
     await conn.write_message("Hello, world!")
     msg = await conn.read_message()
     assert json.loads(msg) == ["protocol_1", "protocol_2"]
 
 
-def test_server_proxy_websocket_subprotocols(event_loop):
-    event_loop.run_until_complete(_websocket_subprotocols())
+@pytest.mark.asyncio
+async def test_websocket_no_auth_failure():
+    # Intentionally do not pass an appropriate token, which should cause a 403
+    url = "ws://localhost:{}/python-websocket/headerssocket".format(PORT)
+
+    with pytest.raises(HTTPClientError, match=r".*HTTP 403: Forbidden.*"):
+        await websocket_connect(url)
+
 
 @pytest.mark.parametrize(
     "proxy_path, status",

@@ -93,6 +93,7 @@ setup_args = dict(
         # acceptance tests additionally require firefox and geckodriver
         "test": [
             "pytest",
+            "pytest-asyncio",
             "pytest-cov",
             "pytest-html"
         ],
