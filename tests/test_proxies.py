@@ -360,6 +360,7 @@ async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int
     [
         (None, None, None, None),
         (["first"], ["first"], "first", "first"),
+        (["first", "second"], ["first", "second"], "first", "first"),
         # IMPORTANT: The tests below verify current bugged behavior, and the
         #            commented out tests is what we want to succeed!
         #
@@ -369,14 +370,12 @@ async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int
         #            before the proxy/server handshake, and that makes it
         #            impossible. We currently instead just pick the first
         #            requested protocol no matter what what subprotocol the
-        #            server picks.
+        #            server picks and warn if there is a mismatch retroactively.
         #
-        # Bug 1 - server wasn't passed all subprotocols:
-        (["first", "second"], ["first"], "first", "first"),
-        # (["first", "second"], ["first", "second"], "first", "first"),
+        #            Tracked in https://github.com/jupyterhub/jupyter-server-proxy/issues/459.
         #
-        # Bug 2 - server_responded doesn't match proxy_responded:
-        (["first", "favored"], ["first"], "first", "first"),
+        # Bug - server_responded doesn't match proxy_responded:
+        (["first", "favored"], ["first", "favored"], "favored", "first"),
         # (["first", "favored"], ["first", "favored"], "favored", "favored"),
         (
             ["please_select_no_protocol"],
