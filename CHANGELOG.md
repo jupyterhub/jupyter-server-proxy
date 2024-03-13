@@ -1,5 +1,37 @@
 ## 3.2
 
+### 3.2.2 - 2022-09-08
+
+#### Bugs fixed
+
+- add allow-downloads and allow-modals to sandbox [#335](https://github.com/jupyterhub/jupyter-server-proxy/pull/335) ([@djangoliv](https://github.com/djangoliv))
+- allow empty PUT body [#331](https://github.com/jupyterhub/jupyter-server-proxy/pull/331) ([@pepijndevos](https://github.com/pepijndevos))
+- [bugfix] Hop by hop header handling [#328](https://github.com/jupyterhub/jupyter-server-proxy/pull/328) ([@mahnerak](https://github.com/mahnerak))
+
+#### Documentation improvements
+
+- Yarn link malformed. [#320](https://github.com/jupyterhub/jupyter-server-proxy/pull/320) ([@matthew-brett](https://github.com/matthew-brett))
+
+#### Continuous integration improvements
+
+- Install `notebook<7` for notebook test [#340](https://github.com/jupyterhub/jupyter-server-proxy/pull/340) ([@manics](https://github.com/manics))
+- Run publish workflow for tags [#318](https://github.com/jupyterhub/jupyter-server-proxy/pull/318) ([@manics](https://github.com/manics))
+
+#### Dependency updates
+
+- Bump terser from 5.10.0 to 5.14.2 in /jupyterlab-server-proxy [#342](https://github.com/jupyterhub/jupyter-server-proxy/pull/342) ([@dependabot](https://github.com/dependabot))
+- Bump moment from 2.29.2 to 2.29.4 in /jupyterlab-server-proxy [#341](https://github.com/jupyterhub/jupyter-server-proxy/pull/341) ([@dependabot](https://github.com/dependabot))
+- Bump moment from 2.29.1 to 2.29.2 in /jupyterlab-server-proxy [#336](https://github.com/jupyterhub/jupyter-server-proxy/pull/336) ([@dependabot](https://github.com/dependabot))
+- Bump minimist from 1.2.5 to 1.2.6 in /jupyterlab-server-proxy [#334](https://github.com/jupyterhub/jupyter-server-proxy/pull/334) ([@dependabot](https://github.com/dependabot))
+- Bump url-parse from 1.5.3 to 1.5.7 in /jupyterlab-server-proxy [#327](https://github.com/jupyterhub/jupyter-server-proxy/pull/327) ([@dependabot](https://github.com/dependabot))
+
+#### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2022-01-24&to=2022-09-08&type=c))
+
+[@austinmw](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aaustinmw+updated%3A2022-01-24..2022-09-08&type=Issues) | [@bollwyvl](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2022-01-24..2022-09-08&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2022-01-24..2022-09-08&type=Issues) | [@dependabot](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Adependabot+updated%3A2022-01-24..2022-09-08&type=Issues) | [@djangoliv](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Adjangoliv+updated%3A2022-01-24..2022-09-08&type=Issues) | [@jhgoebbert](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajhgoebbert+updated%3A2022-01-24..2022-09-08&type=Issues) | [@mahnerak](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amahnerak+updated%3A2022-01-24..2022-09-08&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2022-01-24..2022-09-08&type=Issues) | [@matthew-brett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amatthew-brett+updated%3A2022-01-24..2022-09-08&type=Issues) | [@meeseeksmachine](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ameeseeksmachine+updated%3A2022-01-24..2022-09-08&type=Issues) | [@pepijndevos](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Apepijndevos+updated%3A2022-01-24..2022-09-08&type=Issues) | [@ryanlovett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2022-01-24..2022-09-08&type=Issues) | [@ryshoooo](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryshoooo+updated%3A2022-01-24..2022-09-08&type=Issues) | [@takluyver](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Atakluyver+updated%3A2022-01-24..2022-09-08&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2022-01-24..2022-09-08&type=Issues)
+
+
 ### 3.2.1 - 2022-01-24
 
 3.2.1 is a security release, fixing a vulnerability [GHSA-gcv9-6737-pjqw](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-gcv9-6737-pjqw) where `allowed_hosts` were not validated correctly.
