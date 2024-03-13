@@ -16,7 +16,7 @@ requires = [
 #
 [project]
 name = "jupyter_server_proxy"
-version = "4.1.1-0.dev"
+version = "4.1.1"
 description = "A Jupyter server extension to run additional processes and proxy to them that comes bundled JupyterLab extension to launch pre-defined processes."
 keywords = ["jupyter", "jupyterlab", "jupyterlab-extension"]
 authors = [
@@ -174,7 +174,7 @@ profile = "black"
 github_url = "https://github.com/jupyterhub/jupyter-server-proxy"
 
 [tool.tbump.version]
-current = "4.1.1-0.dev"
+current = "4.1.1"
 regex = '''
     (?P<major>\d+)
     \.
