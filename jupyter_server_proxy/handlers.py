@@ -130,6 +130,39 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     async def open(self, port, proxied_path):
         raise NotImplementedError("Subclasses of ProxyHandler should implement open")
 
+    async def prepare(self, *args, **kwargs):
+        """
+        Enforce authentication on *all* requests.
+
+        This method is called *before* any other method for all requests.
+        See https://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler.prepare.
+        """
+        # Due to https://github.com/jupyter-server/jupyter_server/issues/1012,
+        # we can not decorate `prepare` with `@web.authenticated`.
+        # `super().prepare`, which calls `JupyterHandler.prepare`, *must* be called
+        # before `@web.authenticated` can work. Since `@web.authenticated` is a decorator
+        # that relies on the decorated method to get access to request information, we can
+        # not call it directly. Instead, we create an empty lambda that takes a request_handler,
+        # decorate that with web.authenticated, and call the decorated function.
+        # super().prepare became async with jupyter_server v2
+        _prepared = super().prepare(*args, **kwargs)
+        if _prepared is not None:
+            await _prepared
+
+        # If this is a GET request that wants to be upgraded to a websocket, users not
+        # already authenticated gets a straightforward 403. Everything else is dealt
+        # with by `web.authenticated`, which does a 302 to the appropriate login url.
+        # Websockets are purely API calls made by JS rather than a direct user facing page,
+        # so redirects do not make sense for them.
+        if (
+            self.request.method == "GET"
+            and self.request.headers.get("Upgrade", "").lower() == "websocket"
+        ):
+            if not self.current_user:
+                raise web.HTTPError(403)
+        else:
+            web.authenticated(lambda request_handler: None)(self)
+
     async def http_get(self, host, port, proxy_path=""):
         """Our non-websocket GET."""
         raise NotImplementedError(
@@ -280,7 +313,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             return host in self.host_allowlist
 
-    @web.authenticated
     async def proxy(self, host, port, proxied_path):
         """
         This serverextension handles:
@@ -682,7 +714,6 @@ class NamedLocalProxyHandler(LocalProxyHandler):
             attribute = call_with_asked_args(attribute, self.process_args)
         return self._render_template(attribute)
 
-    @web.authenticated
     async def proxy(self, port, path):
         if not path.startswith("/"):
             path = "/" + path
@@ -866,7 +897,6 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
                     del self.state["proc"]
                     raise
 
-    @web.authenticated
     async def proxy(self, port, path):
         await self.ensure_process()
         return await ensure_async(super().proxy(port, path))
