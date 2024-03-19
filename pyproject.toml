@@ -40,10 +40,6 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
     "aiohttp",
@@ -153,6 +149,7 @@ target_version = [
     "py39",
     "py310",
     "py311",
+    "py312",
 ]
 extend-exclude = 'contrib\/template\/'
 
