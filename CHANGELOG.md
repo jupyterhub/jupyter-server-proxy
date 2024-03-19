@@ -1,5 +1,9 @@
 ## 3.2
 
+### 3.2.3 - 2024-03-13
+
+This is a security release for [GHSA-w3vc-fx9p-wp4v](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-w3vc-fx9p-wp4v).
+
 ### 3.2.2 - 2022-09-08
 
 #### Bugs fixed
