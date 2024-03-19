@@ -2,6 +2,46 @@
 
 ## 4.1
 
+### 4.1.2 - 2024-03-13
+
+#### Bugs fixed
+
+- Keep proxying all requested subprotocols [#462](https://github.com/jupyterhub/jupyter-server-proxy/pull/462) ([@consideRatio](https://github.com/consideRatio))
+
+### 4.1.1 - 2024-03-13
+
+This release includes an important security patch for the critical vulnerability
+[GHSA-w3vc-fx9p-wp4v](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-w3vc-fx9p-wp4v).
+The security patch is also available in version 3.2.3.
+
+#### Bugs fixed
+
+- Ensure no blank `Sec-Websocket-Protocol` headers and warn if websocket subprotocol edge case occur [#458](https://github.com/jupyterhub/jupyter-server-proxy/pull/458) ([@consideRatio](https://github.com/consideRatio), [@duytnguyendtn](https://github.com/duytnguyendtn), [@minrk](https://github.com/minrk), [@benz0li](https://github.com/benz0li))
+- Fix double formatting of callables (`command`, `environment`, `request_headers_override`) [#437](https://github.com/jupyterhub/jupyter-server-proxy/pull/437) ([@diocas](https://github.com/diocas), [@consideRatio](https://github.com/consideRatio))
+
+#### Maintenance and upkeep improvements
+
+- labextension: refreeze yarn.lock [#461](https://github.com/jupyterhub/jupyter-server-proxy/pull/461) ([@consideRatio](https://github.com/consideRatio))
+- List tornado and traitlets as dependencies explicitly, and cleanup unreachable code [#457](https://github.com/jupyterhub/jupyter-server-proxy/pull/457) ([@consideRatio](https://github.com/consideRatio), [@minrk](https://github.com/minrk))
+- Fix failure to upload code coverage reports [#454](https://github.com/jupyterhub/jupyter-server-proxy/pull/454) ([@consideRatio](https://github.com/consideRatio))
+- Update tests for notebook 7.1 [#451](https://github.com/jupyterhub/jupyter-server-proxy/pull/451) ([@consideRatio](https://github.com/consideRatio))
+- tests: fix failure to log error after all retries failed [#441](https://github.com/jupyterhub/jupyter-server-proxy/pull/441) ([@consideRatio](https://github.com/consideRatio))
+- Declare metadata in pyproject.toml, remove hatch-nodejs-version plugin [#427](https://github.com/jupyterhub/jupyter-server-proxy/pull/427) ([@consideRatio](https://github.com/consideRatio), [@bollwyvl](https://github.com/bollwyvl), [@manics](https://github.com/manics))
+
+#### Continuous integration improvements
+
+- ci: upgrade to v4 of upload/download-artifact actions [#455](https://github.com/jupyterhub/jupyter-server-proxy/pull/455) ([@consideRatio](https://github.com/consideRatio))
+- ci: schedule test runs twice a week [#452](https://github.com/jupyterhub/jupyter-server-proxy/pull/452) ([@consideRatio](https://github.com/consideRatio))
+
+#### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2023-09-25&to=2024-03-13&type=c))
+
+@benz0li ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abenz0li+updated%3A2023-09-25..2024-03-13&type=Issues)) | @bollwyvl ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2023-09-25..2024-03-13&type=Issues)) | @consideRatio ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2023-09-25..2024-03-13&type=Issues)) | @diocas ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Adiocas+updated%3A2023-09-25..2024-03-13&type=Issues)) | @duytnguyendtn ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aduytnguyendtn+updated%3A2023-09-25..2024-03-13&type=Issues)) | @goekce ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Agoekce+updated%3A2023-09-25..2024-03-13&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2023-09-25..2024-03-13&type=Issues)) | @minrk ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aminrk+updated%3A2023-09-25..2024-03-13&type=Issues)) | @rcthomas ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Arcthomas+updated%3A2023-09-25..2024-03-13&type=Issues)) | @sk1p ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ask1p+updated%3A2023-09-25..2024-03-13&type=Issues)) | @steverweber ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Asteverweber+updated%3A2023-09-25..2024-03-13&type=Issues)) | @yuvipanda ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2023-09-25..2024-03-13&type=Issues))
+
 ### 4.1.0 - 2023-09-25
 
 #### New features added
