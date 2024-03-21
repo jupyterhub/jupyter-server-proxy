@@ -15,6 +15,7 @@ from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
 
 from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
+from .websockify import WebsockifyHandler, SuperviseAndWebsockifyHandler
 
 try:
     # Traitlets >= 4.3.3
@@ -41,51 +42,54 @@ ServerProcess = namedtuple(
         "new_browser_tab",
         "request_headers_override",
         "rewrite_response",
+        "websockify",
     ],
 )
 
 
-def _make_namedproxy_handler(sp: ServerProcess):
-    class _Proxy(NamedLocalProxyHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.name = sp.name
-            self.proxy_base = sp.name
-            self.absolute_url = sp.absolute_url
-            self.port = sp.port
-            self.unix_socket = sp.unix_socket
-            self.mappath = sp.mappath
-            self.rewrite_response = sp.rewrite_response
-
-        def get_request_headers_override(self):
-            return self._realize_rendered_template(sp.request_headers_override)
-
-    return _Proxy
-
-
-def _make_supervisedproxy_handler(sp: ServerProcess):
+def _make_proxy_handler(sp: ServerProcess):
     """
-    Create a SuperviseAndProxyHandler subclass with given parameters
+    Create an appropriate handler with given parameters
     """
+    if sp.command:
+        cls = SuperviseAndWebsockifyHandler if sp.websockify else SuperviseAndProxyHandler
+        args = dict(state={})
+    elif not (sp.port or isinstance(sp.unix_socket, str)):
+        warn(
+            f"Server proxy {sp.name} does not have a command, port "
+            f"number or unix_socket path. At least one of these is "
+            f"required."
+        )
+        return
+    else:
+        cls = WebsockifyHandler if sp.websockify else NamedLocalProxyHandler
+        args = {}
 
     # FIXME: Set 'name' properly
-    class _Proxy(SuperviseAndProxyHandler):
+    class _Proxy(cls):
+        kwargs = args
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = sp.name
             self.command = sp.command
             self.proxy_base = sp.name
             self.absolute_url = sp.absolute_url
-            self.requested_port = sp.port
-            self.requested_unix_socket = sp.unix_socket
+            if sp.command:
+                self.requested_port = sp.port
+                self.requested_unix_socket = sp.unix_socket
+            else:
+                self.port = sp.port
+                self.unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
 
-        def get_env(self):
-            return self._realize_rendered_template(sp.environment)
-
         def get_request_headers_override(self):
             return self._realize_rendered_template(sp.request_headers_override)
+
+        # these two methods are only used in supervise classes, but do no harm otherwise
+        def get_env(self):
+            return self._realize_rendered_template(sp.environment)
 
         def get_timeout(self):
             return sp.timeout
@@ -108,24 +112,14 @@ def make_handlers(base_url, server_processes):
     """
     handlers = []
     for sp in server_processes:
-        if sp.command:
-            handler = _make_supervisedproxy_handler(sp)
-            kwargs = dict(state={})
-        else:
-            if not (sp.port or isinstance(sp.unix_socket, str)):
-                warn(
-                    f"Server proxy {sp.name} does not have a command, port "
-                    f"number or unix_socket path. At least one of these is "
-                    f"required."
-                )
-                continue
-            handler = _make_namedproxy_handler(sp)
-            kwargs = {}
+        handler = _make_proxy_handler(sp)
+        if not handler:
+            continue
         handlers.append(
             (
                 ujoin(base_url, sp.name, r"(.*)"),
                 handler,
-                kwargs,
+                handler.kwargs
             )
         )
         handlers.append((ujoin(base_url, sp.name), AddSlashHandler))
@@ -157,6 +151,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
             "rewrite_response",
             tuple(),
         ),
+        websockify=server_process_config.get("websockify", False),
     )
 
 
@@ -273,6 +268,12 @@ class ServerProxy(Configurable):
             instead of "dogs not allowed".
 
             Defaults to the empty tuple ``tuple()``.
+
+          websockify
+            Proxy websocket requests as a TCP (or unix socket) stream.
+            In this mode, only websockets are handled, and messages are sent to the backend,
+            equivalent to running a websockify layer (https://github.com/novnc/websockify).
+            All other HTTP requests return 405.
         """,
         config=True,
     )
