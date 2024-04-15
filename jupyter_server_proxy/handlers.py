@@ -117,6 +117,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             tuple(),
         )
         self._requested_subprotocols = None
+        self.skip_activity_reporting = kwargs.pop("skip_activity_reporting", False)
         super().__init__(*args, **kwargs)
 
     # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
@@ -234,7 +235,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         avoids proxied traffic being ignored by the notebook's
         internal idle-shutdown mechanism
         """
-        self.settings["api_last_activity"] = utcnow()
+        if not self.skip_activity_reporting:
+            self.settings["api_last_activity"] = utcnow()
 
     def _get_context_path(self, host, port):
         """

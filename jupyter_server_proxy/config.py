@@ -1,6 +1,7 @@
 """
 Traitlets based configuration for jupyter_server_proxy
 """
+
 import sys
 from collections import namedtuple
 from warnings import warn
@@ -41,6 +42,7 @@ ServerProcess = namedtuple(
         "new_browser_tab",
         "request_headers_override",
         "rewrite_response",
+        "skip_activity_reporting",
     ],
 )
 
@@ -56,6 +58,7 @@ def _make_namedproxy_handler(sp: ServerProcess):
             self.unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
+            self.skip_activity_reporting = sp.skip_activity_reporting
 
         def get_request_headers_override(self):
             return self._realize_rendered_template(sp.request_headers_override)
@@ -80,6 +83,7 @@ def _make_supervisedproxy_handler(sp: ServerProcess):
             self.requested_unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
+            self.skip_activity_reporting = sp.skip_activity_reporting
 
         def get_env(self):
             return self._realize_rendered_template(sp.environment)
@@ -161,6 +165,9 @@ def make_server_process(name, server_process_config, serverproxy_config):
         rewrite_response=server_process_config.get(
             "rewrite_response",
             tuple(),
+        ),
+        skip_activity_reporting=server_process_config.get(
+            "skip_activity_reporting", False
         ),
     )
 
@@ -282,6 +289,9 @@ class ServerProxy(Configurable):
             instead of "dogs not allowed".
 
             Defaults to the empty tuple ``tuple()``.
+ 
+          skip_activity_reporting
+            Will cause the proxy to not report activity back to JupyterHub.
         """,
         config=True,
     )
