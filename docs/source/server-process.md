@@ -157,6 +157,16 @@ One of:
 - A callable that takes any {ref}`callable arguments <server-process:callable-arguments>`,
   and returns a dictionary of strings that are used & treated same as above.
 
+### `skip_activity_reporting`
+
+Whether to report activity from the proxy to JupyterHub. If _True_, JupyterHub
+will not be notified of new activity.
+
+Useful if you want to have a seperate way of determining activity through a
+proxied application.
+
+Defaults to _False_.
+
 (server-process:callable-arguments)=
 
 #### Callable arguments
