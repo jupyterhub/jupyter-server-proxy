@@ -62,7 +62,7 @@ jobs:
           path: ./dist
 
   test:
-    name: ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.pip-extras }}
+    name: ${{ matrix.os }} ${{ matrix.python-version }} ${{ matrix.pip-extras }} ${{ (matrix.pip-install-constraints != '' && '(oldest deps)') || '' }}
     needs: [build]
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
@@ -87,16 +87,17 @@ jobs:
             python-version: "3.8"
             pip-extras: lab
 
+        include:
           # this test is manually updated to reflect the lower bounds of
           # versions from dependencies
           - os: ubuntu-22.04
             python-version: "3.8"
             pip-extras: classic
             pip-install-constraints: >-
-              jupyter-server==1.0
-              simpervisor==1.0
-              tornado==5.1
-              traitlets==4.2.1
+              jupyter-server==1.24.0
+              simpervisor==1.0.0
+              tornado==6.1.0
+              traitlets==5.1.0
 
     steps:
       - uses: actions/checkout@v4
@@ -170,7 +171,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: |-
-            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ github.run_attempt }}
+            tests-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pip-extras }}-${{ (matrix.pip-install-constraints != '' && 'oldest-') || '' }}${{ github.run_attempt }}
           path: |
             ./build/pytest
             ./build/coverage
