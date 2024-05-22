@@ -16,6 +16,7 @@ from jupyter_server.base.handlers import JupyterHandler, utcnow
 from jupyter_server.utils import ensure_async, url_path_join
 from simpervisor import SupervisedProcess
 from tornado import httpclient, httputil, web
+from tornado.escape import xhtml_escape
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
@@ -327,7 +328,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.write(
                 "Host '{host}' is not allowed. "
                 "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(
-                    host=host
+                    host=xhtml_escape(host)
                 )
             )
             return
