@@ -187,6 +187,15 @@ def test_server_proxy_host_absolute():
     assert 'X-Forwarded-Context' not in s
     assert 'X-Proxycontextpath' not in s
 
+
+@pytest.mark.parametrize("absolute", ["", "/absolute"])
+def test_server_proxy_host_invalid(absolute: str) -> None:
+    r = request_get(PORT, f"/proxy{absolute}/<invalid>:54321/", TOKEN)
+    assert r.code == 403
+    s = r.read().decode("ascii")
+    assert "Host &#39;&lt;invalid&gt;&#39; is not allowed." in s
+
+
 def test_server_proxy_port_non_service_rewrite_response():
     """Test that 'hello' is replaced by 'foo'."""
     r = request_get(PORT, '/proxy/54321/hello', TOKEN)
