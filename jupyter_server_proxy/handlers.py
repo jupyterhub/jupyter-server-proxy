@@ -8,6 +8,7 @@ import os
 import socket
 from asyncio import Lock
 from copy import copy
+from html import escape
 from tempfile import mkdtemp
 from urllib.parse import quote, urlparse, urlunparse
 
@@ -16,7 +17,6 @@ from jupyter_server.base.handlers import JupyterHandler, utcnow
 from jupyter_server.utils import ensure_async, url_path_join
 from simpervisor import SupervisedProcess
 from tornado import httpclient, httputil, web
-from tornado.escape import xhtml_escape
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
@@ -328,7 +328,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.write(
                 "Host '{host}' is not allowed. "
                 "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(
-                    host=xhtml_escape(host)
+                    host=escape(host)
                 )
             )
             return
@@ -393,7 +393,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             if err.code == 599:
                 self._record_activity()
                 self.set_status(599)
-                self.write(str(err))
+                self.write(escape(str(err)))
                 return
             else:
                 raise
@@ -404,7 +404,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         # For all non http errors...
         if response.error and type(response.error) is not httpclient.HTTPError:
             self.set_status(500)
-            self.write(str(response.error))
+            self.write(escape(str(response.error)))
         else:
             # Represent the original response as a RewritableResponse object.
             original_response = RewritableResponse(orig_response=response)
