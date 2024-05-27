@@ -41,7 +41,7 @@ cd jupyter-server-proxy
 # Install package in development mode, with the latest Jupyter clients
 pip install -e ".[test,lab]"
 # Link your development version of the extension with JupyterLab and Notebook
-jlpm labextension develop --overwrite .
+jlpm labextension develop . --overwrite
 # Server extension must be manually installed in develop mode
 jupyter server extension enable jupyter_server_proxy
 ```

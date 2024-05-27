@@ -9,6 +9,9 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
  */
 
+// Unique UUID for new icons
+import {UUID} from '@lumino/coreutils'
+
 // this is a type-only import for low-level components of the UI
 // @see https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html
 import type {
@@ -44,6 +47,9 @@ import { IDefaultFileBrowser } from "@jupyterlab/filebrowser";
 import { ILauncher } from "@jupyterlab/launcher";
 // the application-wide configuration for making HTTP requests with headers, etc.
 import { ServerConnection } from "@jupyterlab/services";
+// LabIcon used for icons of launcher entries
+import { LabIcon } from "@jupyterlab/ui-components";
+
 
 // local imports from `tokens.ts` for immutable constants
 import {
@@ -187,6 +193,23 @@ async function activate(
       }
       return widget;
     },
+    icon: (args) => {
+      const { title } = args as IOpenArgs;
+      const server_process_index = data.server_processes.findIndex(x => x.launcher_entry.title === title)
+
+      const current_launcher_entry = data.server_processes[server_process_index].launcher_entry
+
+      if (current_launcher_entry.icon_url) {
+
+        return new LabIcon({
+          name: UUID.uuid4(),
+          // svgstr: data.server_processes[server_process_index].launcher_entry.icon_svg || "",
+          svgstr: current_launcher_entry.icon_svg || ""
+        }) 
+      } else {
+        return
+      }
+  },
   });
 
   // handle adding JupyterLab launcher cards
@@ -203,6 +226,7 @@ async function activate(
         command: CommandIDs.open,
         args: argsForServer(server_process),
         category: launcher_entry.category,
+        rank: launcher_entry.rank || Infinity,
         kernelIconUrl: launcher_entry.icon_url || void 0,
       });
     }

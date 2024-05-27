@@ -23,12 +23,18 @@ class ServersInfoHandler(JupyterHandler):
                     "title": sp.launcher_entry.title,
                     "path_info": sp.launcher_entry.path_info,
                     "category": sp.launcher_entry.category,
+                    "rank": sp.launcher_entry.rank,
                 },
                 "new_browser_tab": sp.new_browser_tab,
             }
             if sp.launcher_entry.icon_path:
                 icon_url = ujoin(self.base_url, "server-proxy", "icon", sp.name)
                 item["launcher_entry"]["icon_url"] = icon_url
+
+                with open(sp.launcher_entry.icon_path, 'r') as file:
+                    icon_str = file.read().replace('\n', '')
+                item["launcher_entry"]["icon_svg"] = icon_str
+                
 
             data.append(item)
 

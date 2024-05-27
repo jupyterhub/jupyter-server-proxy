@@ -24,7 +24,7 @@ except ImportError:
 
 
 LauncherEntry = namedtuple(
-    "LauncherEntry", ["enabled", "icon_path", "title", "path_info", "category"]
+    "LauncherEntry", ["enabled", "icon_path", "title", "path_info", "category", "rank"]
 )
 ServerProcess = namedtuple(
     "ServerProcess",
@@ -149,6 +149,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
             title=le.get("title", name),
             path_info=le.get("path_info", name + "/"),
             category=le.get("category", "Notebook"),
+            rank=le.get("rank", None),
         ),
         new_browser_tab=server_process_config.get("new_browser_tab", True),
         request_headers_override=server_process_config.get(
@@ -234,6 +235,10 @@ class ServerProxy(Configurable):
               category
                 The category for the launcher item. Currently only used by the JupyterLab launcher.
                 By default it is "Notebook".
+
+              rank
+                The rank for the launcher item. Currently only used by the JupyterLab launcher.
+                By default it is "Infinity".
 
           new_browser_tab
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False

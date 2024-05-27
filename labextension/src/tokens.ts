@@ -102,5 +102,7 @@ export interface ILauncherEntry {
   path_info: string;
   // the `?` means this argument may not exist, but if it does, it must be a string
   icon_url?: string;
+  icon_svg?: string;
   category?: string;
+  rank?: number;
 }
