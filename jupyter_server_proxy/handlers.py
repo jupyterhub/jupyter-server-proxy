@@ -8,7 +8,6 @@ import os
 import socket
 from asyncio import Lock
 from copy import copy
-from html import escape
 from tempfile import mkdtemp
 from urllib.parse import quote, urlparse, urlunparse
 
@@ -324,14 +323,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         """
 
         if not self._check_host_allowlist(host):
-            self.set_status(403)
-            self.write(
-                "Host '{host}' is not allowed. "
-                "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(
-                    host=escape(host)
-                )
+            raise web.HTTPError(
+                403,
+                f"Host '{host}' is not allowed. "
+                "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.",
             )
-            return
 
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
         # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
@@ -392,9 +388,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
             if err.code == 599:
                 self._record_activity()
-                self.set_status(599)
-                self.write(escape(str(err)))
-                return
+                raise web.HTTPError(599, str(err))
             else:
                 raise
 
@@ -403,8 +397,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         # For all non http errors...
         if response.error and type(response.error) is not httpclient.HTTPError:
-            self.set_status(500)
-            self.write(escape(str(response.error)))
+            raise web.HTTPError(500, str(response.error))
         else:
             # Represent the original response as a RewritableResponse object.
             original_response = RewritableResponse(orig_response=response)
