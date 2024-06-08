@@ -1,17 +1,15 @@
 # Changelog
 
-### v4.1.2...master@{2024-06-08}
+## 4.2
 
-([full changelog](https://github.com/jupyterhub/jupyter-server-proxy/compare/v4.1.2...ecb8143b1a202ba76735c947204b9e39771f9132))
+### v4.2.0 - 2024-06-DD
+
+([full changelog](https://github.com/jupyterhub/jupyter-server-proxy/compare/v4.1.2...v4.2.0))
 
 #### Maintenance and upkeep improvements
 
 - Require jupyter_server 1.24+, tornado 6.1+, traitlets 5.1+ [#467](https://github.com/jupyterhub/jupyter-server-proxy/pull/467) ([@consideRatio](https://github.com/consideRatio))
 - Test against Python 3.12 [#450](https://github.com/jupyterhub/jupyter-server-proxy/pull/450) ([@consideRatio](https://github.com/consideRatio))
-
-#### Documentation improvements
-
-- Add changelog for 4.1.1 and 4.1.2 [#465](https://github.com/jupyterhub/jupyter-server-proxy/pull/465) ([@consideRatio](https://github.com/consideRatio))
 
 #### Other merged PRs
 
