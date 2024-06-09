@@ -2,7 +2,10 @@
 
 ## 4.2
 
-### v4.2.0 - 2024-06-DD
+### v4.2.0 - 2024-06-11
+
+This release includes an important security patch for
+[CVE-2024-35225 ](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-fvcq-4x64-hqxr).
 
 ([full changelog](https://github.com/jupyterhub/jupyter-server-proxy/compare/v4.1.2...v4.2.0))
 
