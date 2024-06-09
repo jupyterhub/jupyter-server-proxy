@@ -11,7 +11,7 @@
 - Require jupyter_server 1.24+, tornado 6.1+, traitlets 5.1+ [#467](https://github.com/jupyterhub/jupyter-server-proxy/pull/467) ([@consideRatio](https://github.com/consideRatio))
 - Test against Python 3.12 [#450](https://github.com/jupyterhub/jupyter-server-proxy/pull/450) ([@consideRatio](https://github.com/consideRatio))
 
-#### Other merged PRs
+#### Documentation improvements
 
 - Document the correct default value for new_browser_tab. [#470](https://github.com/jupyterhub/jupyter-server-proxy/pull/470) ([@ryanlovett](https://github.com/ryanlovett))
 
