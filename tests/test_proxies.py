@@ -255,6 +255,17 @@ def test_server_proxy_host_absolute(a_server_port_and_token: Tuple[int, str]) ->
     assert "X-Proxycontextpath" not in s
 
 
+@pytest.mark.parametrize("absolute", ["", "/absolute"])
+def test_server_proxy_host_invalid(
+    a_server_port_and_token: Tuple[int, str], absolute: str
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, f"/proxy{absolute}/<invalid>:54321/", TOKEN)
+    assert r.code == 403
+    s = r.read().decode("ascii")
+    assert "Host &#39;&lt;invalid&gt;&#39; is not allowed." in s
+
+
 def test_server_proxy_port_non_service_rewrite_response(
     a_server_port_and_token: Tuple[int, str]
 ) -> None:
