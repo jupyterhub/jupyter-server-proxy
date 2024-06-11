@@ -202,7 +202,7 @@ async function activate(
       launcher.add({
         command: CommandIDs.open,
         args: argsForServer(server_process),
-        category: "Notebook",
+        category: launcher_entry.category,
         kernelIconUrl: launcher_entry.icon_url || void 0,
       });
     }
