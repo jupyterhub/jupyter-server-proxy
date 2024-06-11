@@ -36,7 +36,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - uses: actions/setup-node@v4
         with:
@@ -68,16 +68,16 @@ jobs:
           sha256sum * | tee SHA256SUMS
 
       - name: Upload Python artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-${{ github.run_attempt }}
           path: dist
           if-no-files-found: error
 
       - name: Upload Javascript artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: jsdist
+          name: jsdist-${{ github.run_attempt }}
           path: jsdist
           if-no-files-found: error
 
@@ -90,12 +90,12 @@ jobs:
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Download artifacts from build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: dist-${{ github.run_attempt }}
           path: dist
 
       # The PyPI publishing action will try to publish this checksum file as if
@@ -125,9 +125,9 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Download artifacts from build
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: jsdist
+          name: jsdist-${{ github.run_attempt }}
           path: jsdist
 
       - run: |

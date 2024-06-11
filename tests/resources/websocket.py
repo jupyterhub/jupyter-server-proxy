@@ -54,26 +54,48 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class EchoWebSocket(tornado.websocket.WebSocketHandler):
+    """Echoes back received messages."""
+
     def on_message(self, message):
         self.write_message(message)
 
 
 class HeadersWebSocket(tornado.websocket.WebSocketHandler):
+    """Echoes back incoming request headers."""
+
     def on_message(self, message):
         self.write_message(json.dumps(dict(self.request.headers)))
 
 
 class SubprotocolWebSocket(tornado.websocket.WebSocketHandler):
+    """
+    Echoes back requested subprotocols and selected subprotocol as a JSON
+    encoded message, and selects subprotocols in a very particular way to help
+    us test things.
+    """
+
     def __init__(self, *args, **kwargs):
-        self._subprotocols = None
+        self._requested_subprotocols = None
         super().__init__(*args, **kwargs)
 
     def select_subprotocol(self, subprotocols):
-        self._subprotocols = subprotocols
-        return None
+        self._requested_subprotocols = subprotocols if subprotocols else None
+
+        if not subprotocols:
+            return None
+        if "please_select_no_protocol" in subprotocols:
+            return None
+        if "favored" in subprotocols:
+            return "favored"
+        else:
+            return subprotocols[0]
 
     def on_message(self, message):
-        self.write_message(json.dumps(self._subprotocols))
+        response = {
+            "requested_subprotocols": self._requested_subprotocols,
+            "selected_subprotocol": self.selected_subprotocol,
+        }
+        self.write_message(json.dumps(response))
 
 
 def main():

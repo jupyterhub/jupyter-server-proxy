@@ -116,7 +116,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             "rewrite_response",
             tuple(),
         )
-        self.subprotocols = None
+        self._requested_subprotocols = None
         super().__init__(*args, **kwargs)
 
     # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
@@ -130,6 +130,39 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
     async def open(self, port, proxied_path):
         raise NotImplementedError("Subclasses of ProxyHandler should implement open")
+
+    async def prepare(self, *args, **kwargs):
+        """
+        Enforce authentication on *all* requests.
+
+        This method is called *before* any other method for all requests.
+        See https://www.tornadoweb.org/en/stable/web.html#tornado.web.RequestHandler.prepare.
+        """
+        # Due to https://github.com/jupyter-server/jupyter_server/issues/1012,
+        # we can not decorate `prepare` with `@web.authenticated`.
+        # `super().prepare`, which calls `JupyterHandler.prepare`, *must* be called
+        # before `@web.authenticated` can work. Since `@web.authenticated` is a decorator
+        # that relies on the decorated method to get access to request information, we can
+        # not call it directly. Instead, we create an empty lambda that takes a request_handler,
+        # decorate that with web.authenticated, and call the decorated function.
+        # super().prepare became async with jupyter_server v2
+        _prepared = super().prepare(*args, **kwargs)
+        if _prepared is not None:
+            await _prepared
+
+        # If this is a GET request that wants to be upgraded to a websocket, users not
+        # already authenticated gets a straightforward 403. Everything else is dealt
+        # with by `web.authenticated`, which does a 302 to the appropriate login url.
+        # Websockets are purely API calls made by JS rather than a direct user facing page,
+        # so redirects do not make sense for them.
+        if (
+            self.request.method == "GET"
+            and self.request.headers.get("Upgrade", "").lower() == "websocket"
+        ):
+            if not self.current_user:
+                raise web.HTTPError(403)
+        else:
+            web.authenticated(lambda request_handler: None)(self)
 
     async def http_get(self, host, port, proxy_path=""):
         """Our non-websocket GET."""
@@ -281,7 +314,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             return host in self.host_allowlist
 
-    @web.authenticated
     async def proxy(self, host, port, proxied_path):
         """
         This serverextension handles:
@@ -291,14 +323,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         """
 
         if not self._check_host_allowlist(host):
-            self.set_status(403)
-            self.write(
-                "Host '{host}' is not allowed. "
-                "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.".format(
-                    host=host
-                )
+            raise web.HTTPError(
+                403,
+                f"Host '{host}' is not allowed. "
+                "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.",
             )
-            return
 
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
         # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
@@ -359,9 +388,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             # Ref: https://www.tornadoweb.org/en/stable/httpclient.html#tornado.httpclient.AsyncHTTPClient.fetch
             if err.code == 599:
                 self._record_activity()
-                self.set_status(599)
-                self.write(str(err))
-                return
+                raise web.HTTPError(599, str(err))
             else:
                 raise
 
@@ -370,8 +397,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         # For all non http errors...
         if response.error and type(response.error) is not httpclient.HTTPError:
-            self.set_status(500)
-            self.write(str(response.error))
+            raise web.HTTPError(500, str(response.error))
         else:
             # Represent the original response as a RewritableResponse object.
             original_response = RewritableResponse(orig_response=response)
@@ -493,11 +519,18 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 request=request,
                 on_message_callback=message_cb,
                 on_ping_callback=ping_cb,
-                subprotocols=self.subprotocols,
+                subprotocols=self._requested_subprotocols,
                 resolver=resolver,
             )
             self._record_activity()
             self.log.info(f"Websocket connection established to {client_uri}")
+            if self.ws.selected_subprotocol != self.selected_subprotocol:
+                self.log.warn(
+                    f"Websocket subprotocol between proxy/server ({self.ws.selected_subprotocol}) "
+                    f"became different than for client/proxy ({self.selected_subprotocol}) "
+                    "due to https://github.com/jupyterhub/jupyter-server-proxy/issues/459. "
+                    f"Requested subprotocols were {self._requested_subprotocols}."
+                )
 
         # Wait for the WebSocket to be connected before resolving.
         # Otherwise, messages sent by the client before the
@@ -531,12 +564,32 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         """
 
     def select_subprotocol(self, subprotocols):
-        """Select a single Sec-WebSocket-Protocol during handshake."""
-        self.subprotocols = subprotocols
-        if isinstance(subprotocols, list) and subprotocols:
-            self.log.debug(f"Client sent subprotocols: {subprotocols}")
+        """
+        Select a single Sec-WebSocket-Protocol during handshake.
+
+        Overrides `tornado.websocket.WebSocketHandler.select_subprotocol` that
+        includes an informative docstring:
+        https://github.com/tornadoweb/tornado/blob/v6.4.0/tornado/websocket.py#L337-L360.
+        """
+        # Stash all requested subprotocols to be re-used as requested
+        # subprotocols in the proxy/server handshake to be performed later. At
+        # least bokeh has used additional subprotocols to pass credentials,
+        # making this a required workaround for now.
+        #
+        self._requested_subprotocols = subprotocols if subprotocols else None
+
+        if subprotocols:
+            self.log.debug(
+                f"Client sent subprotocols: {subprotocols}, selecting the first"
+            )
+            # FIXME: Subprotocol selection should be delegated to the server we
+            #        proxy to, but we don't! For this to happen, we would need
+            #        to delay accepting the handshake with the client until we
+            #        have successfully handshaked with the server. This issue is
+            #        tracked in https://github.com/jupyterhub/jupyter-server-proxy/issues/459.
+            #
             return subprotocols[0]
-        return super().select_subprotocol(subprotocols)
+        return None
 
 
 class LocalProxyHandler(ProxyHandler):
@@ -657,7 +710,6 @@ class NamedLocalProxyHandler(LocalProxyHandler):
             attribute = call_with_asked_args(attribute, self.process_args)
         return self._render_template(attribute)
 
-    @web.authenticated
     async def proxy(self, port, path):
         if not path.startswith("/"):
             path = "/" + path
@@ -841,7 +893,6 @@ class SuperviseAndProxyHandler(NamedLocalProxyHandler):
                     del self.state["proc"]
                     raise
 
-    @web.authenticated
     async def proxy(self, port, path):
         await self.ensure_process()
         return await ensure_async(super().proxy(port, path))

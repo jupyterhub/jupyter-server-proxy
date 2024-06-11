@@ -25,7 +25,7 @@ For example, after installing [`mambaforge`](https://conda-forge.org/miniforge),
 create a new environment with all heavy development and test dependencies:
 
 ```yaml
-mamba create --name=jupyter-server-proxy --channel=conda-forge "python=3.11" "nodejs=20" pip git geckodriver firefox
+mamba create --name=jupyter-server-proxy --channel=conda-forge "python=3.12" "nodejs=20" pip git geckodriver firefox
 mamba activate jupyter-server-proxy
 ```
 

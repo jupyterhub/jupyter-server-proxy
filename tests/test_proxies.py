@@ -1,4 +1,3 @@
-import asyncio
 import gzip
 import json
 import sys
@@ -8,6 +7,7 @@ from typing import Tuple
 from urllib.parse import quote
 
 import pytest
+from tornado.httpclient import HTTPClientError
 from tornado.websocket import websocket_connect
 
 # use ipv4 for CI, etc.
@@ -255,6 +255,17 @@ def test_server_proxy_host_absolute(a_server_port_and_token: Tuple[int, str]) ->
     assert "X-Proxycontextpath" not in s
 
 
+@pytest.mark.parametrize("absolute", ["", "/absolute"])
+def test_server_proxy_host_invalid(
+    a_server_port_and_token: Tuple[int, str], absolute: str
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, f"/proxy{absolute}/<invalid>:54321/", TOKEN)
+    assert r.code == 403
+    s = r.read().decode("ascii")
+    assert "Host &#39;&lt;invalid&gt;&#39; is not allowed." in s
+
+
 def test_server_proxy_port_non_service_rewrite_response(
     a_server_port_and_token: Tuple[int, str]
 ) -> None:
@@ -332,16 +343,11 @@ def test_server_content_encoding_header(
         assert f.read() == b"this is a test"
 
 
-@pytest.fixture(scope="module")
-def event_loop():
-    loop = asyncio.get_event_loop()
-    yield loop
-    loop.close()
-
-
-async def _websocket_echo(a_server_port_and_token: Tuple[int, str]) -> None:
-    PORT = a_server_port_and_token[0]
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket"
+async def test_server_proxy_websocket_messages(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket?token={TOKEN}"
     conn = await websocket_connect(url)
     expected_msg = "Hello, world!"
     await conn.write_message(expected_msg)
@@ -349,15 +355,9 @@ async def _websocket_echo(a_server_port_and_token: Tuple[int, str]) -> None:
     assert msg == expected_msg
 
 
-def test_server_proxy_websocket(
-    event_loop, a_server_port_and_token: Tuple[int, str]
-) -> None:
-    event_loop.run_until_complete(_websocket_echo(a_server_port_and_token))
-
-
-async def _websocket_headers(a_server_port_and_token: Tuple[int, str]) -> None:
-    PORT = a_server_port_and_token[0]
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
+async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int, str]):
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket?token={TOKEN}"
     conn = await websocket_connect(url)
     await conn.write_message("Hello")
     msg = await conn.read_message()
@@ -366,25 +366,78 @@ async def _websocket_headers(a_server_port_and_token: Tuple[int, str]) -> None:
     assert headers["X-Custom-Header"] == "pytest-23456"
 
 
-def test_server_proxy_websocket_headers(
-    event_loop, a_server_port_and_token: Tuple[int, str]
+@pytest.mark.parametrize(
+    "client_requested,server_received,server_responded,proxy_responded",
+    [
+        (None, None, None, None),
+        (["first"], ["first"], "first", "first"),
+        (["first", "second"], ["first", "second"], "first", "first"),
+        # IMPORTANT: The tests below verify current bugged behavior, and the
+        #            commented out tests is what we want to succeed!
+        #
+        #            The proxy websocket should actually respond the handshake
+        #            with a subprotocol based on a the server handshake
+        #            response, but we are finalizing the client/proxy handshake
+        #            before the proxy/server handshake, and that makes it
+        #            impossible. We currently instead just pick the first
+        #            requested protocol no matter what what subprotocol the
+        #            server picks and warn if there is a mismatch retroactively.
+        #
+        #            Tracked in https://github.com/jupyterhub/jupyter-server-proxy/issues/459.
+        #
+        # Bug - server_responded doesn't match proxy_responded:
+        (["first", "favored"], ["first", "favored"], "favored", "first"),
+        # (["first", "favored"], ["first", "favored"], "favored", "favored"),
+        (
+            ["please_select_no_protocol"],
+            ["please_select_no_protocol"],
+            None,
+            "please_select_no_protocol",
+        ),
+        # (["please_select_no_protocol"], ["please_select_no_protocol"], None, None),
+    ],
+)
+async def test_server_proxy_websocket_subprotocols(
+    a_server_port_and_token: Tuple[int, str],
+    client_requested,
+    server_received,
+    server_responded,
+    proxy_responded,
 ):
-    event_loop.run_until_complete(_websocket_headers(a_server_port_and_token))
-
-
-async def _websocket_subprotocols(a_server_port_and_token: Tuple[int, str]) -> None:
     PORT, TOKEN = a_server_port_and_token
-    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket"
-    conn = await websocket_connect(url, subprotocols=["protocol_1", "protocol_2"])
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/subprotocolsocket?token={TOKEN}"
+    conn = await websocket_connect(url, subprotocols=client_requested)
     await conn.write_message("Hello, world!")
+
+    # verify understanding of websocket_connect that this test relies on
+    if client_requested:
+        assert "Sec-Websocket-Protocol" in conn.request.headers
+    else:
+        assert "Sec-Websocket-Protocol" not in conn.request.headers
+
     msg = await conn.read_message()
-    assert json.loads(msg) == ["protocol_1", "protocol_2"]
+    info = json.loads(msg)
+
+    assert info["requested_subprotocols"] == server_received
+    assert info["selected_subprotocol"] == server_responded
+    assert conn.selected_subprotocol == proxy_responded
+
+    # verify proxy response headers directly
+    if proxy_responded is None:
+        assert "Sec-Websocket-Protocol" not in conn.headers
+    else:
+        assert "Sec-Websocket-Protocol" in conn.headers
 
 
-def test_server_proxy_websocket_subprotocols(
-    event_loop, a_server_port_and_token: Tuple[int, str]
-):
-    event_loop.run_until_complete(_websocket_subprotocols(a_server_port_and_token))
+async def test_websocket_no_auth_failure(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT = a_server_port_and_token[0]
+    # Intentionally do not pass an appropriate token, which should cause a 403
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket/headerssocket"
+
+    with pytest.raises(HTTPClientError, match=r".*HTTP 403: Forbidden.*"):
+        await websocket_connect(url)
 
 
 @pytest.mark.parametrize(
@@ -410,7 +463,9 @@ def test_bad_server_proxy_url(
         assert "X-ProxyContextPath" not in r.headers
 
 
-def test_callable_environment_formatting(a_server_port_and_token: Tuple[int, str]) -> None:
+def test_callable_environment_formatting(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-callable-env/test", TOKEN)
     assert r.code == 200

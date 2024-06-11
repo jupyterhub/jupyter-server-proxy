@@ -16,7 +16,7 @@ requires = [
 #
 [project]
 name = "jupyter_server_proxy"
-version = "4.1.1-0.dev"
+version = "4.2.1-0.dev"
 description = "A Jupyter server extension to run additional processes and proxy to them that comes bundled JupyterLab extension to launch pre-defined processes."
 keywords = ["jupyter", "jupyterlab", "jupyterlab-extension"]
 authors = [
@@ -40,21 +40,20 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
     "aiohttp",
     "importlib_metadata >=4.8.3 ; python_version<\"3.10\"",
-    "jupyter-server >=1.0",
-    "simpervisor >=1.0",
+    "jupyter-server >=1.24.0",
+    "simpervisor >=1.0.0",
+    "tornado >=6.1.0",
+    "traitlets >= 5.1.0",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest",
+    "pytest-asyncio",
     "pytest-cov",
     "pytest-html",
 ]
@@ -143,14 +142,6 @@ remove-unused-variables = true
 # ref: https://black.readthedocs.io/en/stable/
 #
 [tool.black]
-# target-version should be all supported versions, see
-# https://github.com/psf/black/issues/751#issuecomment-473066811
-target_version = [
-    "py38",
-    "py39",
-    "py310",
-    "py311",
-]
 extend-exclude = 'contrib\/template\/'
 
 
@@ -171,7 +162,7 @@ profile = "black"
 github_url = "https://github.com/jupyterhub/jupyter-server-proxy"
 
 [tool.tbump.version]
-current = "4.1.1-0.dev"
+current = "4.2.1-0.dev"
 regex = '''
     (?P<major>\d+)
     \.
@@ -193,11 +184,16 @@ src = "pyproject.toml"
 [[tool.tbump.file]]
 src = "labextension/package.json"
 
+
+# pytest is used for running Python based tests
+#
+# ref: https://docs.pytest.org/en/stable/
+#
 [tool.pytest.ini_options]
-cache_dir = "build/.cache/pytest"
-testpaths = ["tests"]
 addopts = [
-    "-vv",
+    "--verbose",
+    "--durations=10",
+    "--color=yes",
     "--cov=jupyter_server_proxy",
     "--cov-branch",
     "--cov-context=test",
@@ -205,9 +201,16 @@ addopts = [
     "--cov-report=html:build/coverage",
     "--no-cov-on-fail",
     "--html=build/pytest/index.html",
-    "--color=yes",
 ]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+cache_dir = "build/.cache/pytest"
 
+
+# pytest-cov / coverage is used to measure code coverage of tests
+#
+# ref: https://coverage.readthedocs.io/en/stable/config.html
+#
 [tool.coverage.run]
 data_file = "build/.coverage"
 concurrency = [

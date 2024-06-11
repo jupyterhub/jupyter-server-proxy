@@ -129,8 +129,8 @@ the following keys:
 
 ### `new_browser_tab`
 
-_JupyterLab only_ - _True_ if the proxied server URL should be opened in a new browser tab.
-_False_ (default) if the proxied server URL should be opened in a new JupyterLab tab.
+_JupyterLab only_ - _True_ (default) if the proxied server URL should be opened in a new browser tab.
+_False_ if the proxied server URL should be opened in a new JupyterLab tab.
 
 If _False_, the proxied server needs to allow its pages to be rendered in an iframe. This
 is generally done by configuring the web server `X-Frame-Options` to `SAMEORIGIN`.
