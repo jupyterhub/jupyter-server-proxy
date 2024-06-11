@@ -1,5 +1,9 @@
 ## 3.2
 
+### 3.2.4 - 2024-06-11
+
+This is a security release for [CVE-2024-35225](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-fvcq-4x64-hqxr).
+
 ### 3.2.3 - 2024-03-13
 
 This is a security release for [GHSA-w3vc-fx9p-wp4v](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-w3vc-fx9p-wp4v).

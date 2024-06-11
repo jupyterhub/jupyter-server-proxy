@@ -3,7 +3,7 @@ from .config import ServerProxy as ServerProxyConfig, make_handlers, get_entrypo
 from jupyter_server.utils import url_path_join as ujoin
 from .api import ServersInfoHandler, IconHandler
 
-__version__ = "3.2.3"
+__version__ = "3.2.4"
 
 # Jupyter Extension points
 def _jupyter_server_extension_points():
