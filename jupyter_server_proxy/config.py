@@ -42,7 +42,7 @@ ServerProcess = namedtuple(
         "new_browser_tab",
         "request_headers_override",
         "rewrite_response",
-        "skip_activity_reporting",
+        "update_last_activity",
     ],
 )
 
@@ -58,7 +58,7 @@ def _make_namedproxy_handler(sp: ServerProcess):
             self.unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
-            self.skip_activity_reporting = sp.skip_activity_reporting
+            self.update_last_activity = sp.update_last_activity
 
         def get_request_headers_override(self):
             return self._realize_rendered_template(sp.request_headers_override)
@@ -83,7 +83,7 @@ def _make_supervisedproxy_handler(sp: ServerProcess):
             self.requested_unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
-            self.skip_activity_reporting = sp.skip_activity_reporting
+            self.update_last_activity = sp.update_last_activity
 
         def get_env(self):
             return self._realize_rendered_template(sp.environment)
@@ -166,8 +166,8 @@ def make_server_process(name, server_process_config, serverproxy_config):
             "rewrite_response",
             tuple(),
         ),
-        skip_activity_reporting=server_process_config.get(
-            "skip_activity_reporting", False
+        update_last_activity=server_process_config.get(
+            "update_last_activity", True
         ),
     )
 
@@ -290,8 +290,8 @@ class ServerProxy(Configurable):
 
             Defaults to the empty tuple ``tuple()``.
  
-          skip_activity_reporting
-            Will cause the proxy to not report activity back to JupyterHub.
+          update_last_activity
+            Will cause the proxy to report activity back to jupyter server.
         """,
         config=True,
     )
