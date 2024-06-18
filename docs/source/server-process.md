@@ -160,7 +160,7 @@ One of:
 ### `update_last_activity`
 
 Whether to report activity from the proxy to Jupyter Server. If _True_, Jupyter Server
-will not be notified of new activity.
+will be notified of new activity. This is primarily used by JupyterHub for idle detection and culling.
 
 Useful if you want to have a seperate way of determining activity through a
 proxied application.
