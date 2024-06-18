@@ -414,7 +414,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         req = self._build_proxy_request(host, port, proxied_path, body, 
                     streaming_callback=streaming_callback, 
                     header_callback=header_callback)
-
+        
+        # no timeout for stream api
+        req.request_timeout = 0
+        
         try:
             response = await client.fetch(req, raise_error=False)
         except httpclient.HTTPError as err:
