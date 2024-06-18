@@ -157,6 +157,16 @@ One of:
 - A callable that takes any {ref}`callable arguments <server-process:callable-arguments>`,
   and returns a dictionary of strings that are used & treated same as above.
 
+### `update_last_activity`
+
+Whether to report activity from the proxy to Jupyter Server. If _True_, Jupyter Server
+will be notified of new activity. This is primarily used by JupyterHub for idle detection and culling.
+
+Useful if you want to have a seperate way of determining activity through a
+proxied application.
+
+Defaults to _True_.
+
 (server-process:callable-arguments)=
 
 #### Callable arguments
