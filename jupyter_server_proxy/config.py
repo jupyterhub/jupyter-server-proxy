@@ -291,7 +291,7 @@ class ServerProxy(Configurable):
             Proxy websocket requests as a TCP (or unix socket) stream.
             In this mode, only websockets are handled, and messages are sent to the backend,
             equivalent to running a websockify layer (https://github.com/novnc/websockify).
-            All other HTTP requests return 405.
+            All other HTTP requests return 405 (and thus this will also bypass rewrite_response).
         """,
         config=True,
     )

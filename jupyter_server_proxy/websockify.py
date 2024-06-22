@@ -22,7 +22,8 @@ class WebsockifyProtocol(asyncio.Protocol):
     def data_received(self, data):
         "Send the buffer as a websocket message."
         self.handler._record_activity()
-        self.handler.write_message(data, binary=True) # async, no wait
+        # async "semi-synchronous", waiting is only needed for control flow and errors:
+        self.handler.write_message(data, binary=True)
 
     def connection_lost(self, exc):
         "Close the websocket connection."
