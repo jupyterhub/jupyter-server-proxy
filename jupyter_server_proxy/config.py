@@ -1,6 +1,7 @@
 """
 Traitlets based configuration for jupyter_server_proxy
 """
+
 import sys
 from collections import namedtuple
 from warnings import warn
@@ -25,7 +26,7 @@ except ImportError:
 
 
 LauncherEntry = namedtuple(
-    "LauncherEntry", ["enabled", "icon_path", "title", "path_info"]
+    "LauncherEntry", ["enabled", "icon_path", "title", "path_info", "category"]
 )
 ServerProcess = namedtuple(
     "ServerProcess",
@@ -42,6 +43,7 @@ ServerProcess = namedtuple(
         "new_browser_tab",
         "request_headers_override",
         "rewrite_response",
+        "update_last_activity",
         "websockify",
     ],
 )
@@ -83,6 +85,7 @@ def _make_proxy_handler(sp: ServerProcess):
                 self.unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
+            self.update_last_activity = sp.update_last_activity
 
         def get_request_headers_override(self):
             return self._realize_rendered_template(sp.request_headers_override)
@@ -101,7 +104,11 @@ def get_entrypoint_server_processes(serverproxy_config):
     sps = []
     for entry_point in entry_points(group="jupyter_serverproxy_servers"):
         name = entry_point.name
-        server_process_config = entry_point.load()()
+        try:
+            server_process_config = entry_point.load()()
+        except Exception as e:
+            warn(f"entry_point {name} was unable to be loaded: {str(e)}")
+            continue
         sps.append(make_server_process(name, server_process_config, serverproxy_config))
     return sps
 
@@ -142,6 +149,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
             icon_path=le.get("icon_path"),
             title=le.get("title", name),
             path_info=le.get("path_info", name + "/"),
+            category=le.get("category", "Notebook"),
         ),
         new_browser_tab=server_process_config.get("new_browser_tab", True),
         request_headers_override=server_process_config.get(
@@ -150,6 +158,9 @@ def make_server_process(name, server_process_config, serverproxy_config):
         rewrite_response=server_process_config.get(
             "rewrite_response",
             tuple(),
+        ),
+        update_last_activity=server_process_config.get(
+            "update_last_activity", True
         ),
         websockify=server_process_config.get("websockify", False),
     )
@@ -225,6 +236,10 @@ class ServerProxy(Configurable):
                 The trailing path that is appended to the user's server URL to access the proxied server.
                 By default it is the name of the server followed by a trailing slash.
 
+              category
+                The category for the launcher item. Currently only used by the JupyterLab launcher.
+                By default it is "Notebook".
+
           new_browser_tab
             Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
             to have it open a new JupyterLab tab. This has no effect in classic notebook.
@@ -268,6 +283,9 @@ class ServerProxy(Configurable):
             instead of "dogs not allowed".
 
             Defaults to the empty tuple ``tuple()``.
+ 
+          update_last_activity
+            Will cause the proxy to report activity back to jupyter server.
 
           websockify
             Proxy websocket requests as a TCP (or unix socket) stream.

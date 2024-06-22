@@ -1,5 +1,29 @@
 # Changelog
 
+## 4.2
+
+### v4.2.0 - 2024-06-11
+
+This release includes an important security patch for
+[CVE-2024-35225 ](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-fvcq-4x64-hqxr).
+
+([full changelog](https://github.com/jupyterhub/jupyter-server-proxy/compare/v4.1.2...v4.2.0))
+
+#### Maintenance and upkeep improvements
+
+- Require jupyter_server 1.24+, tornado 6.1+, traitlets 5.1+ [#467](https://github.com/jupyterhub/jupyter-server-proxy/pull/467) ([@consideRatio](https://github.com/consideRatio))
+- Test against Python 3.12 [#450](https://github.com/jupyterhub/jupyter-server-proxy/pull/450) ([@consideRatio](https://github.com/consideRatio))
+
+#### Documentation improvements
+
+- Document the correct default value for new_browser_tab. [#470](https://github.com/jupyterhub/jupyter-server-proxy/pull/470) ([@ryanlovett](https://github.com/ryanlovett))
+
+#### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2024-03-19&to=2024-06-08&type=c))
+
+[@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2024-03-19..2024-06-08&type=Issues) | [@ryanlovett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2024-03-19..2024-06-08&type=Issues) | [@welcome](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Awelcome+updated%3A2024-03-19..2024-06-08&type=Issues)
+
 ## 4.1
 
 ### 4.1.2 - 2024-03-13

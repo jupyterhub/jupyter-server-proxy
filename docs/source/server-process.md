@@ -123,9 +123,15 @@ the following keys:
    explicit entry.
 2. **icon_path**
    Full path to an svg icon that could be used with a launcher. Currently only used by the
-   JupyterLab launcher
+   JupyterLab launcher, when category is "Notebook" (default) or "Console".
 3. **title**
    Title to be used for the launcher entry. Defaults to the name of the server if missing.
+4. **path_info**
+   The trailing path that is appended to the user's server URL to access the proxied server.
+   By default it is the name of the server followed by a trailing slash.
+5. **category**
+   The category for the launcher item. Currently only used by the JupyterLab launcher.
+   By default it is "Notebook".
 
 ### `new_browser_tab`
 
@@ -150,6 +156,16 @@ One of:
   for **command**.
 - A callable that takes any {ref}`callable arguments <server-process:callable-arguments>`,
   and returns a dictionary of strings that are used & treated same as above.
+
+### `update_last_activity`
+
+Whether to report activity from the proxy to Jupyter Server. If _True_, Jupyter Server
+will be notified of new activity. This is primarily used by JupyterHub for idle detection and culling.
+
+Useful if you want to have a seperate way of determining activity through a
+proxied application.
+
+Defaults to _True_.
 
 (server-process:callable-arguments)=
 

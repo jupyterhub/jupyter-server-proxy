@@ -1,6 +1,6 @@
 {
   "name": "@jupyterhub/jupyter-server-proxy",
-  "version": "4.1.3-0.dev",
+  "version": "4.2.1-0.dev",
   "description": "A JupyterLab extension accompanying the PyPI package jupyter-server-proxy adding launcher items for configured server processes.",
   "keywords": [
     "jupyter",
