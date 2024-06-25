@@ -68,7 +68,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        shell: bash # windows default isn't bash
+        shell: bash --noprofile --norc -eo pipefail {0} # windows default isn't bash
 
     strategy:
       fail-fast: false
