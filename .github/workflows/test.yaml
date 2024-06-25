@@ -87,14 +87,18 @@ jobs:
             python-version: "3.8"
             pip-extras: lab
 
-          # FIXME: If https://github.com/jupyter/notebook/pull/7305 gets merged
-          #        and released, we can test "classic" with python 3.12 as well,
-          #        but until then we exclude it from being run as a Python 3.12
-          #        test and include it as a Python 3.11 test.
+          # pip-extras classic (notebook v6) isn't working with python 3.12 or
+          # later, so we exclude it here and then include it below to run with
+          # python 3.11 instead.
           - os: ubuntu-22.04
             python-version: "3.12"
             pip-extras: classic
         include:
+          # Compensates for an excluded test case above
+          - os: ubuntu-22.04
+            python-version: "3.11"
+            pip-extras: classic
+
           # this test is manually updated to reflect the lower bounds of
           # versions from dependencies
           - os: ubuntu-22.04
@@ -105,11 +109,6 @@ jobs:
               simpervisor==1.0.0
               tornado==6.1.0
               traitlets==5.1.0
-
-          # Workaround for excluded 3.12 test mentioned in a FIXME above
-          - os: ubuntu-22.04
-            python-version: "3.11"
-            pip-extras: classic
 
     steps:
       - uses: actions/checkout@v4
