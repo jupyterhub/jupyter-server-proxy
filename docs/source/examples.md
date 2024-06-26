@@ -25,4 +25,4 @@ c.ServerProxy.servers.update({
     }
 })
 ```
-You should then get a new button in the launcher. Putting it into `/etc/jupyter` will make it available to all users.
+You should then get a new button in the launcher. Putting it into `/etc/jupyter/` will make it available to all users.
