@@ -179,6 +179,9 @@ message_template = "Bump to {new_version}"
 tag_template = "v{new_version}"
 
 [[tool.tbump.file]]
+src = "jupyter_server_proxy/_version.py"
+
+[[tool.tbump.file]]
 src = "pyproject.toml"
 
 [[tool.tbump.file]]
