@@ -16,7 +16,7 @@ from traitlets import Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
 
 from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
-from .websockify import WebsockifyHandler, SuperviseAndWebsockifyHandler
+from .rawsocket import RawSocketHandler, SuperviseAndRawSocketHandler
 
 try:
     # Traitlets >= 4.3.3
@@ -44,7 +44,7 @@ ServerProcess = namedtuple(
         "request_headers_override",
         "rewrite_response",
         "update_last_activity",
-        "websockify",
+        "raw_socket_proxy",
     ],
 )
 
@@ -54,7 +54,7 @@ def _make_proxy_handler(sp: ServerProcess):
     Create an appropriate handler with given parameters
     """
     if sp.command:
-        cls = SuperviseAndWebsockifyHandler if sp.websockify else SuperviseAndProxyHandler
+        cls = SuperviseAndRawSocketHandler if sp.raw_socket_proxy else SuperviseAndProxyHandler
         args = dict(state={})
     elif not (sp.port or isinstance(sp.unix_socket, str)):
         warn(
@@ -64,7 +64,7 @@ def _make_proxy_handler(sp: ServerProcess):
         )
         return
     else:
-        cls = WebsockifyHandler if sp.websockify else NamedLocalProxyHandler
+        cls = RawSocketHandler if sp.raw_socket_proxy else NamedLocalProxyHandler
         args = {}
 
     # FIXME: Set 'name' properly
@@ -162,7 +162,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
         update_last_activity=server_process_config.get(
             "update_last_activity", True
         ),
-        websockify=server_process_config.get("websockify", False),
+        raw_socket_proxy=server_process_config.get("raw_socket_proxy", False),
     )
 
 
@@ -287,10 +287,10 @@ class ServerProxy(Configurable):
           update_last_activity
             Will cause the proxy to report activity back to jupyter server.
 
-          websockify
-            Proxy websocket requests as a TCP (or unix socket) stream.
+          raw_socket_proxy
+            Proxy websocket requests as a raw TCP (or unix socket) stream.
             In this mode, only websockets are handled, and messages are sent to the backend,
-            equivalent to running a websockify layer (https://github.com/novnc/websockify).
+            similar to running a websockify layer (https://github.com/novnc/websockify).
             All other HTTP requests return 405 (and thus this will also bypass rewrite_response).
         """,
         config=True,

@@ -169,7 +169,7 @@ Defaults to _True_.
 
 (server-process:callable-arguments)=
 
-### `websockify`
+### `raw_socket_proxy`
 
 _True_ to proxy only websocket connections into raw stream connections.
 _False_ (default) if the proxied server speaks full HTTP.
@@ -177,7 +177,7 @@ _False_ (default) if the proxied server speaks full HTTP.
 If _True_, the proxied server is treated a raw TCP (or unix socket) server that
 does not use HTTP.
 In this mode, only websockets are handled, and messages are sent to the backend
-server as stream data. This is equivalent to running a
+server as raw stream data. This is similar to running a
 [websockify](https://github.com/novnc/websockify) wrapper.
 All other HTTP requests return 405.
 
