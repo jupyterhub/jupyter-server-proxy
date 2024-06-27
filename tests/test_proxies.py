@@ -469,3 +469,25 @@ def test_callable_environment_formatting(
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-callable-env/test", TOKEN)
     assert r.code == 200
+
+
+@pytest.mark.parametrize("rawsocket_type", [
+    "tcp",
+    pytest.param(
+        "unix",
+        marks=pytest.mark.skipif(
+            sys.platform == "win32", reason="Unix socket not supported on Windows"
+        ),
+    ),
+])
+async def test_server_proxy_rawsocket(
+    rawsocket_type: str,
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    url = f"ws://{LOCALHOST}:{PORT}/python-rawsocket-{rawsocket_type}/?token={TOKEN}"
+    conn = await websocket_connect(url)
+    for msg in [b"Hello,", b"world!"]:
+        await conn.write_message(msg)
+        res = await conn.read_message()
+        assert res == msg.swapcase()
