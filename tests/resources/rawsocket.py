@@ -16,7 +16,7 @@ except ValueError:
     family = socket.AF_UNIX
     addr = where
 
-with socket.create_server(addr, family=family, reuse_port=True) as serv:
+with socket.create_server(addr, family=family) as serv:
     while True:
         # only handle a single connection at a time
         sock, caddr = serv.accept()
