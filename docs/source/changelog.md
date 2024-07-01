@@ -1,5 +1,40 @@
 # Changelog
 
+## 4.3
+
+### v4.3.0 - 2024-07-01
+
+#### New features added
+
+- feat: Allow Skipping of Activity Reporting [#473](https://github.com/jupyterhub/jupyter-server-proxy/pull/473) ([@sdmichelini](https://github.com/sdmichelini), [@yuvipanda](https://github.com/yuvipanda), [@ryanlovett](https://github.com/ryanlovett), [@deser](https://github.com/deser))
+- Allow configuring jupyterlab launcher category [#453](https://github.com/jupyterhub/jupyter-server-proxy/pull/453) ([@dylex](https://github.com/dylex), [@yuvipanda](https://github.com/yuvipanda), [@bollwyvl](https://github.com/bollwyvl), [@imcovangent](https://github.com/imcovangent))
+- Add `raw_socket_proxy` to directly proxy websockets to TCP/unix sockets [#447](https://github.com/jupyterhub/jupyter-server-proxy/pull/447) ([@dylex](https://github.com/dylex), [@yuvipanda](https://github.com/yuvipanda), [@manics](https://github.com/manics))
+
+#### Bugs fixed
+
+- Fix failure to update \_\_version\_\_ [#481](https://github.com/jupyterhub/jupyter-server-proxy/pull/481) ([@consideRatio](https://github.com/consideRatio))
+- Prevent failed entrypoints from spoiling the launch [#443](https://github.com/jupyterhub/jupyter-server-proxy/pull/443) ([@banesullivan-kobold](https://github.com/banesullivan-kobold), [@yuvipanda](https://github.com/yuvipanda))
+
+#### Documentation improvements
+
+- Detail fixes in RELEASE.md [#487](https://github.com/jupyterhub/jupyter-server-proxy/pull/487) ([@consideRatio](https://github.com/consideRatio))
+- Fixed jlpm to jupyter in bash command [#478](https://github.com/jupyterhub/jupyter-server-proxy/pull/478) ([@imcovangent](https://github.com/imcovangent), [@yuvipanda](https://github.com/yuvipanda))
+
+#### Continuous integration improvements
+
+- ci: remove workaround running test in py311 instead of py312 [#485](https://github.com/jupyterhub/jupyter-server-proxy/pull/485) ([@consideRatio](https://github.com/consideRatio))
+- ci: reference node lts to avoid need to bump in october [#484](https://github.com/jupyterhub/jupyter-server-proxy/pull/484) ([@consideRatio](https://github.com/consideRatio))
+- ci: fix test failure on windows and error on bash pipe failures etc [#483](https://github.com/jupyterhub/jupyter-server-proxy/pull/483) ([@consideRatio](https://github.com/consideRatio))
+
+#### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2024-06-11&to=2024-07-01&type=c))
+
+@banesullivan-kobold ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abanesullivan-kobold+updated%3A2024-06-11..2024-07-01&type=Issues)) | @bollwyvl ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Abollwyvl+updated%3A2024-06-11..2024-07-01&type=Issues)) | @consideRatio ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2024-06-11..2024-07-01&type=Issues)) | @costa ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Acosta+updated%3A2024-06-11..2024-07-01&type=Issues)) | @deser ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Adeser+updated%3A2024-06-11..2024-07-01&type=Issues)) | @dylex ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Adylex+updated%3A2024-06-11..2024-07-01&type=Issues)) | @imcovangent ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aimcovangent+updated%3A2024-06-11..2024-07-01&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2024-06-11..2024-07-01&type=Issues)) | @ryanlovett ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2024-06-11..2024-07-01&type=Issues)) | @sdmichelini ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Asdmichelini+updated%3A2024-06-11..2024-07-01&type=Issues)) | @yuvipanda ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2024-06-11..2024-07-01&type=Issues))
+
 ## 4.2
 
 ### v4.2.0 - 2024-06-11
