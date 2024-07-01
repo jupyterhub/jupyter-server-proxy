@@ -1,12 +1,12 @@
 # How to make a release
 
-`jupyter-server-proxy` is a package available on [PyPI][] and [conda-forge][].
+`jupyter-server-proxy` is a package available on [PyPI] and [conda-forge].
 These are instructions on how to make a release.
 
 ## Pre-requisites
 
-- Push rights to [github.com/jupyterhub/jupyter-server-proxy][]
-- Push rights to [conda-forge/jupyter-server-proxy-feedstock][]
+- Push rights to [github.com/jupyterhub/jupyter-server-proxy]
+- Push rights to [conda-forge/jupyter-server-proxy-feedstock]
 
 ## Steps to make a release
 
@@ -18,13 +18,15 @@ These are instructions on how to make a release.
    `.github/workflows/publish.yaml` workflow's `build` job as summarized below.
 
    ```shell
+   # git clean -xfd can be needed to ensure labextension/yarn.lock
+   # gets re-created during pyproject-build
    rm labextension/yarn.lock
 
    pip install --upgrade pip build
    pyproject-build
    ```
 
-2. Create a PR updating `docs/source/changelog.md` with [github-activity][] and
+2. Create a PR updating `docs/source/changelog.md` with [github-activity] and
    continue only when its merged.
 
 3. Checkout main and make sure it is up to date.
@@ -45,7 +47,7 @@ These are instructions on how to make a release.
    tbump ${VERSION}
    ```
 
-   Following this, the [CI system][] will build and publish a release.
+   Following this, the [CI system] will build and publish a release.
 
 5. Reset the version back to dev, e.g. `4.0.1-0.dev` after releasing `4.0.0`.
 
@@ -54,7 +56,7 @@ These are instructions on how to make a release.
    ```
 
 6. Following the release to PyPI, an automated PR should arrive to
-   [conda-forge/jupyter-server-proxy-feedstock][] with instructions.
+   [conda-forge/jupyter-server-proxy-feedstock] with instructions.
 
 [github-activity]: https://github.com/executablebooks/github-activity
 [github.com/jupyterhub/jupyter-server-proxy]: https://github.com/jupyterhub/jupyter-server-proxy
