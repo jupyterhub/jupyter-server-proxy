@@ -8,15 +8,12 @@
 
 - feat: Allow Skipping of Activity Reporting [#473](https://github.com/jupyterhub/jupyter-server-proxy/pull/473) ([@sdmichelini](https://github.com/sdmichelini), [@yuvipanda](https://github.com/yuvipanda), [@ryanlovett](https://github.com/ryanlovett), [@deser](https://github.com/deser))
 - Allow configuring jupyterlab launcher category [#453](https://github.com/jupyterhub/jupyter-server-proxy/pull/453) ([@dylex](https://github.com/dylex), [@yuvipanda](https://github.com/yuvipanda), [@bollwyvl](https://github.com/bollwyvl), [@imcovangent](https://github.com/imcovangent))
-
-#### Enhancements made
-
 - Add `raw_socket_proxy` to directly proxy websockets to TCP/unix sockets [#447](https://github.com/jupyterhub/jupyter-server-proxy/pull/447) ([@dylex](https://github.com/dylex), [@yuvipanda](https://github.com/yuvipanda), [@manics](https://github.com/manics))
 
 #### Bugs fixed
 
 - Fix failure to update \_\_version\_\_ [#481](https://github.com/jupyterhub/jupyter-server-proxy/pull/481) ([@consideRatio](https://github.com/consideRatio))
-- Prevent failed entrypoints from spoiling the bunch [#443](https://github.com/jupyterhub/jupyter-server-proxy/pull/443) ([@banesullivan-kobold](https://github.com/banesullivan-kobold), [@yuvipanda](https://github.com/yuvipanda))
+- Prevent failed entrypoints from spoiling the launch [#443](https://github.com/jupyterhub/jupyter-server-proxy/pull/443) ([@banesullivan-kobold](https://github.com/banesullivan-kobold), [@yuvipanda](https://github.com/yuvipanda))
 
 #### Documentation improvements
 
