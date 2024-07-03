@@ -366,17 +366,24 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 body = b""
             else:
                 body = None
-        accept_type = self.request.headers.get('Accept')
-        if accept_type == 'text/event-stream':
-            return await self._proxy_progressive(host, port, proxied_path, body)
+        if self.unix_socket is not None:
+            # Port points to a Unix domain socket
+            self.log.debug("Making client for Unix socket %r", self.unix_socket)
+            assert host == "localhost", "Unix sockets only possible on localhost"
+            client = SimpleAsyncHTTPClient(
+                force_instance=True, resolver=UnixResolver(self.unix_socket)
+            )
         else:
-            return await self._proxy_normal(host, port, proxied_path, body)
+            client = httpclient.AsyncHTTPClient()
+        # check if the request is stream request
+        proxy_streaming = self.request.headers.get('Accept')
+        if proxy_streaming == 'text/event-stream':
+            return await self._proxy_progressive(host, port, proxied_path, body, client)
+        else:
+            return await self._proxy_buffered(host, port, proxied_path, body, client)
     
-    async def _proxy_progressive(self, host, port, proxied_path, body):
+    async def _proxy_progressive(self, host, port, proxied_path, body, client):
         # Proxy in progressive flush mode, whenever chunks are received. Potentially slower but get results quicker for voila
-
-        client = httpclient.AsyncHTTPClient()
-
         # Set up handlers so we can progressively flush result
 
         headers_raw = []
@@ -404,6 +411,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             headers_raw.append(line)
 
         def streaming_callback(chunk):
+            # record activity at start and end of requests
+            self._record_activity()
             # Do this here, not in header_callback so we can be sure headers are out of the way first
             dump_headers(headers_raw) # array will be empty if this was already called before
             self.write(chunk)
@@ -429,9 +438,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             else:
                 raise
 
-        # record activity at start and end of requests
-        self._record_activity()
-
         # For all non http errors...
         if response.error and type(response.error) is not httpclient.HTTPError:
             self.set_status(500)
@@ -444,16 +450,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             if response.body: # Likewise, should already be chunked out and flushed
                 self.write(response.body)
 
-    async def _proxy_normal(self, host, port, proxied_path, body):
-        if self.unix_socket is not None:
-            # Port points to a Unix domain socket
-            self.log.debug("Making client for Unix socket %r", self.unix_socket)
-            assert host == "localhost", "Unix sockets only possible on localhost"
-            client = SimpleAsyncHTTPClient(
-                force_instance=True, resolver=UnixResolver(self.unix_socket)
-            )
-        else:
-            client = httpclient.AsyncHTTPClient()
+    async def _proxy_buffered(self, host, port, proxied_path, body, client):
 
         req = self._build_proxy_request(host, port, proxied_path, body)
 
