@@ -1,13 +1,14 @@
 import gzip
 import json
 import sys
+import time
 from http.client import HTTPConnection
 from io import BytesIO
 from typing import Tuple
 from urllib.parse import quote
 
 import pytest
-from tornado.httpclient import HTTPClientError
+from tornado.httpclient import AsyncHTTPClient, HTTPClientError
 from tornado.websocket import websocket_connect
 
 # use ipv4 for CI, etc.
@@ -341,6 +342,39 @@ def test_server_content_encoding_header(
     assert r.headers["Content-Encoding"] == "gzip"
     with gzip.GzipFile(fileobj=BytesIO(r.read()), mode="r") as f:
         assert f.read() == b"this is a test"
+
+
+async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    # The test server under eventstream.py will send back monotonically increasing numbers
+    # starting at 0 until the specified limit, with a 500ms gap between them. We test that:
+    # 1. We get back as many callbacks from our streaming read as the total number,
+    #    as the server does a flush after writing each entry.
+    # 2. The streaming entries are read (with some error margin) around the 500ms mark, to
+    #    ensure this is *actually* being streamed
+    limit = 3
+    last_cb_time = time.perf_counter()
+    times_called = 0
+    stream_read_intervals = []
+
+    def streaming_cb(data):
+        nonlocal times_called, last_cb_time, stream_read_intervals
+        time_taken = time.perf_counter() - last_cb_time
+        last_cb_time = time.perf_counter()
+        stream_read_intervals.append(time_taken)
+        times_called += 1
+
+    url = f"http://{LOCALHOST}:{PORT}/python-eventstream/stream/{limit}?token={TOKEN}"
+    client = AsyncHTTPClient()
+    await client.fetch(
+        url,
+        headers={"Accept": "text/event-stream"},
+        request_timeout=22,
+        streaming_callback=streaming_cb,
+    )
+    assert times_called == limit
+    print(stream_read_intervals)
+    assert all([0.45 < t < 0.7 for t in stream_read_intervals])
 
 
 async def test_server_proxy_websocket_messages(
