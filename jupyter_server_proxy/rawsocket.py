@@ -10,6 +10,8 @@ or process through with all messages pass for translation.
 import asyncio
 
 from .handlers import NamedLocalProxyHandler, SuperviseAndProxyHandler
+from tornado import web
+
 
 class RawSocketProtocol(asyncio.Protocol):
     """
