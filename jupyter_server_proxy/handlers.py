@@ -441,7 +441,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                         },
                     )
 
-                # Now we can cleanly apply the partially evaulated function to a copy of
+                # Now we can cleanly apply the partially evaluated function to a copy of
                 # the rewritten response.
                 rewritten_response = rewritten_response._apply_to_copy(rewrite_pe)
 
