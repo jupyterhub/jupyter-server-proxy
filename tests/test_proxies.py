@@ -356,6 +356,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
     last_cb_time = time.perf_counter()
     times_called = 0
     stream_read_intervals = []
+    stream_data = []
 
     def streaming_cb(data):
         nonlocal times_called, last_cb_time, stream_read_intervals
@@ -363,6 +364,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
         last_cb_time = time.perf_counter()
         stream_read_intervals.append(time_taken)
         times_called += 1
+        stream_data.append(data)
 
     url = f"http://{LOCALHOST}:{PORT}/python-eventstream/stream/{limit}?token={TOKEN}"
     client = AsyncHTTPClient()
@@ -375,6 +377,8 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
     assert times_called == limit
     print(stream_read_intervals)
     assert all([0.45 < t < 3.0 for t in stream_read_intervals])
+    print(stream_data)
+    assert stream_data == ['data: 1\n\n','data: 2\n\n','data: 3\n\n']
 
 
 async def test_server_proxy_websocket_messages(
