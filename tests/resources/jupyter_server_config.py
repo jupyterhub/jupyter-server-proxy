@@ -79,6 +79,9 @@ c.ServerProxy.servers = {
             "X-Custom-Header": "pytest-23456",
         },
     },
+    "python-eventstream": {
+        "command": [sys.executable, "./tests/resources/eventstream.py", "--port={port}"]
+    },
     "python-unix-socket-true": {
         "command": [
             sys.executable,
