@@ -371,13 +371,10 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
     await client.fetch(
         url,
         headers={"Accept": "text/event-stream"},
-        request_timeout=22,
         streaming_callback=streaming_cb,
     )
     assert times_called == limit
-    print(stream_read_intervals)
     assert all([0.45 < t < 3.0 for t in stream_read_intervals])
-    print(stream_data)
     assert stream_data == [b'data: 0\n\n', b'data: 1\n\n', b'data: 2\n\n']
 
 

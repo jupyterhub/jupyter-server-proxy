@@ -376,8 +376,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             client = httpclient.AsyncHTTPClient()
         # check if the request is stream request
-        proxy_streaming = self.request.headers.get('Accept')
-        if proxy_streaming == 'text/event-stream':
+        accept_header = self.request.headers.get('Accept')
+        if accept_header == 'text/event-stream':
             return await self._proxy_progressive(host, port, proxied_path, body, client)
         else:
             return await self._proxy_buffered(host, port, proxied_path, body, client)
