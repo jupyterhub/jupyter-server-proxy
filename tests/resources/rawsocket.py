@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import socket
 import sys
 
@@ -11,7 +10,7 @@ where = sys.argv[1]
 try:
     port = int(where)
     family = socket.AF_INET
-    addr = ('localhost', port)
+    addr = ("localhost", port)
 except ValueError:
     family = socket.AF_UNIX
     addr = where
