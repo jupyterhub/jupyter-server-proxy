@@ -1,4 +1,5 @@
 """Reusable test fixtures for ``jupyter_server_proxy``."""
+
 import os
 import shutil
 import socket
