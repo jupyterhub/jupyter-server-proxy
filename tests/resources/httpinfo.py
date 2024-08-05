@@ -2,6 +2,7 @@
 Simple webserver to respond with an echo of the sent request. It can listen to
 either a tcp port or a unix socket.
 """
+
 import argparse
 import socket
 import sys
