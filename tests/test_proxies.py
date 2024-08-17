@@ -375,7 +375,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
     )
     assert times_called == limit
     assert all([0.45 < t < 3.0 for t in stream_read_intervals])
-    assert stream_data == [b'data: 0\n\n', b'data: 1\n\n', b'data: 2\n\n']
+    assert stream_data == [b"data: 0\n\n", b"data: 1\n\n", b"data: 2\n\n"]
 
 
 async def test_server_proxy_websocket_messages(

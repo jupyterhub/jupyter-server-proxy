@@ -4,7 +4,8 @@ Authenticated HTTP proxy for Jupyter Notebooks
 Some original inspiration from https://github.com/senko/tornado-proxy
 """
 
-import os, json, re
+import os
+import re
 import socket
 from asyncio import Lock
 from copy import copy
@@ -307,7 +308,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             decompress_response=False,
             headers=headers,
             **self.proxy_request_options(),
-             **extra_opts,
+            **extra_opts,
         )
         return req
 
@@ -376,12 +377,12 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             client = httpclient.AsyncHTTPClient(force_instance=True)
         # check if the request is stream request
-        accept_header = self.request.headers.get('Accept')
-        if accept_header == 'text/event-stream':
+        accept_header = self.request.headers.get("Accept")
+        if accept_header == "text/event-stream":
             return await self._proxy_progressive(host, port, proxied_path, body, client)
         else:
             return await self._proxy_buffered(host, port, proxied_path, body, client)
-    
+
     async def _proxy_progressive(self, host, port, proxied_path, body, client):
         # Proxy in progressive flush mode, whenever chunks are received. Potentially slower but get results quicker for voila
         # Set up handlers so we can progressively flush result
@@ -390,15 +391,19 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         def dump_headers(headers_raw):
             for line in headers_raw:
-                r = re.match('^([a-zA-Z0-9\-_]+)\s*\:\s*([^\r\n]+)[\r\n]*$', line)
+                r = re.match("^([a-zA-Z0-9\\-_]+)\\s*\\:\\s*([^\r\n]+)[\r\n]*$", line)
                 if r:
-                    k,v = r.groups([1,2])
-                    if k not in ('Content-Length', 'Transfer-Encoding',
-                                  'Content-Encoding', 'Connection'):
+                    k, v = r.groups([1, 2])
+                    if k not in (
+                        "Content-Length",
+                        "Transfer-Encoding",
+                        "Content-Encoding",
+                        "Connection",
+                    ):
                         # some header appear multiple times, eg 'Set-Cookie'
-                        self.set_header(k,v)
+                        self.set_header(k, v)
                 else:
-                    r = re.match('^HTTP[^\s]* ([0-9]+)', line)
+                    r = re.match(r"^HTTP[^\s]* ([0-9]+)", line)
                     if r:
                         status_code = r.group(1)
                         self.set_status(int(status_code))
@@ -414,20 +419,27 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             # record activity at start and end of requests
             self._record_activity()
             # Do this here, not in header_callback so we can be sure headers are out of the way first
-            dump_headers(headers_raw) # array will be empty if this was already called before
+            dump_headers(
+                headers_raw
+            )  # array will be empty if this was already called before
             self.write(chunk)
             self.flush()
 
         # Now make the request
 
-        req = self._build_proxy_request(host, port, proxied_path, body, 
-                    streaming_callback=streaming_callback, 
-                    header_callback=header_callback)
-        
+        req = self._build_proxy_request(
+            host,
+            port,
+            proxied_path,
+            body,
+            streaming_callback=streaming_callback,
+            header_callback=header_callback,
+        )
+
         # no timeout for stream api
         req.request_timeout = 7200
         req.connect_timeout = 600
-        
+
         try:
             response = await client.fetch(req, raise_error=False)
         except httpclient.HTTPError as err:
@@ -444,15 +456,16 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.set_status(500)
             self.write(str(response.error))
         else:
-            self.set_status(response.code, response.reason) # Should already have been set
+            self.set_status(
+                response.code, response.reason
+            )  # Should already have been set
 
-            dump_headers(headers_raw) # Should already have been emptied
+            dump_headers(headers_raw)  # Should already have been emptied
 
-            if response.body: # Likewise, should already be chunked out and flushed
+            if response.body:  # Likewise, should already be chunked out and flushed
                 self.write(response.body)
 
     async def _proxy_buffered(self, host, port, proxied_path, body, client):
-
         req = self._build_proxy_request(host, port, proxied_path, body)
 
         self.log.debug(f"Proxying request to {req.url}")
@@ -534,7 +547,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
             if rewritten_response.body:
                 self.write(rewritten_response.body)
-
 
     async def proxy_open(self, host, port, proxied_path=""):
         """

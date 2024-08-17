@@ -42,10 +42,10 @@ def cats_only(response, path):
         response.code = 403
         response.body = b"dogs not allowed"
 
+
 def my_env():
-    return {
-            "MYVAR": "String with escaped {{var}}"
-        }
+    return {"MYVAR": "String with escaped {{var}}"}
+
 
 c.ServerProxy.servers = {
     "python-http": {
