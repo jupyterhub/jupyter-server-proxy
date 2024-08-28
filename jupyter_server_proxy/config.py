@@ -54,7 +54,11 @@ def _make_proxy_handler(sp: ServerProcess):
     Create an appropriate handler with given parameters
     """
     if sp.command:
-        cls = SuperviseAndRawSocketHandler if sp.raw_socket_proxy else SuperviseAndProxyHandler
+        cls = (
+            SuperviseAndRawSocketHandler
+            if sp.raw_socket_proxy
+            else SuperviseAndProxyHandler
+        )
         args = dict(state={})
     elif not (sp.port or isinstance(sp.unix_socket, str)):
         warn(
@@ -122,13 +126,7 @@ def make_handlers(base_url, server_processes):
         handler = _make_proxy_handler(sp)
         if not handler:
             continue
-        handlers.append(
-            (
-                ujoin(base_url, sp.name, r"(.*)"),
-                handler,
-                handler.kwargs
-            )
-        )
+        handlers.append((ujoin(base_url, sp.name, r"(.*)"), handler, handler.kwargs))
         handlers.append((ujoin(base_url, sp.name), AddSlashHandler))
     return handlers
 
@@ -159,9 +157,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
             "rewrite_response",
             tuple(),
         ),
-        update_last_activity=server_process_config.get(
-            "update_last_activity", True
-        ),
+        update_last_activity=server_process_config.get("update_last_activity", True),
         raw_socket_proxy=server_process_config.get("raw_socket_proxy", False),
     )
 

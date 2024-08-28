@@ -9,8 +9,9 @@ or process through with all messages pass for translation.
 
 import asyncio
 
-from .handlers import NamedLocalProxyHandler, SuperviseAndProxyHandler
 from tornado import web
+
+from .handlers import NamedLocalProxyHandler, SuperviseAndProxyHandler
 
 
 class RawSocketProtocol(asyncio.Protocol):
@@ -18,6 +19,7 @@ class RawSocketProtocol(asyncio.Protocol):
     A protocol handler for the proxied stream connection.
     Sends any received blocks directly as websocket messages.
     """
+
     def __init__(self, handler):
         self.handler = handler
 
@@ -30,14 +32,18 @@ class RawSocketProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc):
         "Close the websocket connection."
-        self.handler.log.info(f"Raw websocket {self.handler.name} connection lost: {exc}")
+        self.handler.log.info(
+            f"Raw websocket {self.handler.name} connection lost: {exc}"
+        )
         self.handler.close()
+
 
 class RawSocketHandler(NamedLocalProxyHandler):
     """
     HTTP handler that proxies websocket connections into a backend stream.
     All other HTTP requests return 405.
     """
+
     def _create_ws_connection(self, proto: asyncio.BaseProtocol):
         "Create the appropriate backend asyncio connection"
         loop = asyncio.get_running_loop()
@@ -46,17 +52,21 @@ class RawSocketHandler(NamedLocalProxyHandler):
             return loop.create_unix_connection(proto, self.unix_socket)
         else:
             self.log.info(f"RawSocket {self.name} connecting to port {self.port}")
-            return loop.create_connection(proto, 'localhost', self.port)
+            return loop.create_connection(proto, "localhost", self.port)
 
     async def proxy(self, port, path):
-        raise web.HTTPError(405, "this raw_socket_proxy backend only supports websocket connections")
+        raise web.HTTPError(
+            405, "this raw_socket_proxy backend only supports websocket connections"
+        )
 
     async def proxy_open(self, host, port, proxied_path=""):
         """
         Open the backend connection. host and port are ignored (as they are in
         the parent for unix sockets) since they are always passed known values.
         """
-        transp, proto = await self._create_ws_connection(lambda: RawSocketProtocol(self))
+        transp, proto = await self._create_ws_connection(
+            lambda: RawSocketProtocol(self)
+        )
         self.ws_transp = transp
         self.ws_proto = proto
         self._record_activity()
@@ -66,8 +76,10 @@ class RawSocketHandler(NamedLocalProxyHandler):
         "Send websocket messages as stream writes, encoding if necessary."
         self._record_activity()
         if isinstance(message, str):
-            message = message.encode('utf-8')
-        self.ws_transp.write(message) # buffered non-blocking. should block (needs new enough tornado)
+            message = message.encode("utf-8")
+        self.ws_transp.write(
+            message
+        )  # buffered non-blocking. should block (needs new enough tornado)
 
     def on_ping(self, message):
         "No-op"
@@ -78,6 +90,7 @@ class RawSocketHandler(NamedLocalProxyHandler):
         self.log.info(f"RawSocket {self.name} connection closed")
         if hasattr(self, "ws_transp"):
             self.ws_transp.close()
+
 
 class SuperviseAndRawSocketHandler(SuperviseAndProxyHandler, RawSocketHandler):
     async def _http_ready_func(self, p):
