@@ -152,8 +152,8 @@ For example, RStudio uses the term _frame origin_ and require the flag
 One of:
 
 - A dictionary of strings that are passed in as HTTP headers to the proxy
-  request. The strings `{port}` and `{base_url}` will be replaced as
-  for **command**.
+  request. The strings `{port}`, `{unix_socket}` and `{base_url}` will be
+  replaced as for **command**.
 - A callable that takes any {ref}`callable arguments <server-process:callable-arguments>`,
   and returns a dictionary of strings that are used & treated same as above.
 
@@ -181,9 +181,11 @@ server as raw stream data. This is similar to running a
 [websockify](https://github.com/novnc/websockify) wrapper.
 All other HTTP requests return 405.
 
-#### Callable arguments
+### Callable arguments
 
-Any time you specify a callable in the config, it can ask for any arguments it needs
+Certain config options accept callables, as documented above. This should return
+the same type of object that the option normally expects.
+When you use a callable this way, it can ask for any arguments it needs
 by simply declaring it - only arguments the callable asks for will be passed to it.
 
 For example, with the following config:
@@ -213,13 +215,18 @@ The `port` argument will be passed to the callable. This is a simple form of dep
 injection that helps us add more parameters in the future without breaking backwards
 compatibility.
 
-##### Available arguments
+#### Available arguments
 
-Currently, the following arguments are available:
+Unless otherwise documented for specific options, the arguments available for
+callables are:
 
 1. **port**
-   The port the command should listen on
-2. **base_url**
+   The TCP port on which the server should listen, or is listening.
+   This is 0 if a Unix socket is used instead of TCP.
+2. **unix_socket**
+   The path of a Unix socket on which the server should listen, or is listening.
+   This is an empty string if a TCP socket is used.
+3. **base_url**
    The base URL of the notebook
 
 If any of the returned strings, lists or dictionaries contain strings
