@@ -8,7 +8,6 @@
 
 - feat: support stream api [#479](https://github.com/jupyterhub/jupyter-server-proxy/pull/479) ([@ganisback](https://github.com/ganisback))
 
-
 #### Bugs fixed
 
 - fix: missing tornadoimport for rawsocket handler [#491](https://github.com/jupyterhub/jupyter-server-proxy/pull/491) ([@imfing](https://github.com/imfing))
