@@ -132,12 +132,12 @@ c.ServerProxy.servers = {
     "python-proxyto54321-no-command": {"port": 54321},
     "python-rawsocket-tcp": {
         "command": [sys.executable, "./tests/resources/rawsocket.py", "{port}"],
-        "raw_socket_proxy": True
+        "raw_socket_proxy": True,
     },
     "python-rawsocket-unix": {
         "command": [sys.executable, "./tests/resources/rawsocket.py", "{unix_socket}"],
         "unix_socket": True,
-        "raw_socket_proxy": True
+        "raw_socket_proxy": True,
     },
 }
 

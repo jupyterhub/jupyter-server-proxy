@@ -506,18 +506,20 @@ def test_callable_environment_formatting(
     assert r.code == 200
 
 
-@pytest.mark.parametrize("rawsocket_type", [
-    "tcp",
-    pytest.param(
-        "unix",
-        marks=pytest.mark.skipif(
-            sys.platform == "win32", reason="Unix socket not supported on Windows"
+@pytest.mark.parametrize(
+    "rawsocket_type",
+    [
+        "tcp",
+        pytest.param(
+            "unix",
+            marks=pytest.mark.skipif(
+                sys.platform == "win32", reason="Unix socket not supported on Windows"
+            ),
         ),
-    ),
-])
+    ],
+)
 async def test_server_proxy_rawsocket(
-    rawsocket_type: str,
-    a_server_port_and_token: Tuple[int, str]
+    rawsocket_type: str, a_server_port_and_token: Tuple[int, str]
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/python-rawsocket-{rawsocket_type}/?token={TOKEN}"
