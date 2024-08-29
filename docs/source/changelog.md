@@ -1,5 +1,31 @@
 # Changelog
 
+## 4.4
+
+### v4.4.0 - 2024-08-29
+
+#### New features added
+
+- feat: support stream api [#479](https://github.com/jupyterhub/jupyter-server-proxy/pull/479) ([@ganisback](https://github.com/ganisback))
+
+#### Bugs fixed
+
+- fix: missing tornadoimport for rawsocket handler [#491](https://github.com/jupyterhub/jupyter-server-proxy/pull/491) ([@imfing](https://github.com/imfing))
+
+#### Maintenance and upkeep improvements
+
+- labextension: refreeze yarn.lock [#499](https://github.com/jupyterhub/jupyter-server-proxy/pull/499) ([@krassowski](https://github.com/krassowski))
+
+#### Documentation improvements
+
+- Document unix_socket as a parameter for callables in config [#497](https://github.com/jupyterhub/jupyter-server-proxy/pull/497) ([@takluyver](https://github.com/takluyver))
+
+## Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2024-07-01&to=2024-08-29&type=c))
+
+[@ganisback](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aganisback+updated%3A2024-07-01..2024-08-29&type=Issues) | [@imfing](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aimfing+updated%3A2024-07-01..2024-08-29&type=Issues) | [@krassowski](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Akrassowski+updated%3A2024-07-01..2024-08-29&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2024-07-01..2024-08-29&type=Issues) | [@takluyver](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Atakluyver+updated%3A2024-07-01..2024-08-29&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2024-07-01..2024-08-29&type=Issues)
+
 ## 4.3
 
 ### v4.3.0 - 2024-07-01
