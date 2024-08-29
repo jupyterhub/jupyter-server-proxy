@@ -1,9 +1,13 @@
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).parent.resolve()
 
-sys.path.append(str(HERE))
+def _get_path(*args):
+    """Resolve a path relative to this file"""
+    return str(Path(__file__).parent.resolve().joinpath(*args))
+
+
+sys.path.append(_get_path())
 
 # load the config object for traitlets based configuration
 c = get_config()  # noqa
@@ -49,43 +53,43 @@ def my_env():
 
 c.ServerProxy.servers = {
     "python-http": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
     },
     "python-http-abs": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "absolute_url": True,
     },
     "python-http-port54321": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "port": 54321,
     },
     "python-http-mappath": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "mappath": {
             "/": "/index.html",
         },
     },
     "python-http-mappathf": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "mappath": mappathf,
     },
     "python-http-callable-env": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "environment": my_env,
     },
     "python-websocket": {
-        "command": [sys.executable, "./tests/resources/websocket.py", "--port={port}"],
+        "command": [sys.executable, _get_path("websocket.py"), "--port={port}"],
         "request_headers_override": {
             "X-Custom-Header": "pytest-23456",
         },
     },
     "python-eventstream": {
-        "command": [sys.executable, "./tests/resources/eventstream.py", "--port={port}"]
+        "command": [sys.executable, _get_path("eventstream.py"), "--port={port}"]
     },
     "python-unix-socket-true": {
         "command": [
             sys.executable,
-            "./tests/resources/httpinfo.py",
+            _get_path("httpinfo.py"),
             "--unix-socket={unix_socket}",
         ],
         "unix_socket": True,
@@ -93,7 +97,7 @@ c.ServerProxy.servers = {
     "python-unix-socket-file": {
         "command": [
             sys.executable,
-            "./tests/resources/httpinfo.py",
+            _get_path("httpinfo.py"),
             "--unix-socket={unix_socket}",
         ],
         "unix_socket": "/tmp/jupyter-server-proxy-test-socket",
@@ -104,38 +108,38 @@ c.ServerProxy.servers = {
         "unix_socket": "/tmp/jupyter-server-proxy-test-socket",
     },
     "python-request-headers": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "request_headers_override": {
             "X-Custom-Header": "pytest-23456",
         },
     },
     "python-gzipserver": {
-        "command": [sys.executable, "./tests/resources/gzipserver.py", "{port}"],
+        "command": [sys.executable, _get_path("gzipserver.py"), "{port}"],
     },
     "python-http-rewrite-response": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "rewrite_response": translate_ciao,
         "port": 54323,
     },
     "python-chained-rewrite-response": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "rewrite_response": [translate_ciao, hello_to_foo],
     },
     "python-cats-only-rewrite-response": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "rewrite_response": [dog_to_cat, cats_only],
     },
     "python-dogs-only-rewrite-response": {
-        "command": [sys.executable, "./tests/resources/httpinfo.py", "--port={port}"],
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "rewrite_response": [cats_only, dog_to_cat],
     },
     "python-proxyto54321-no-command": {"port": 54321},
     "python-rawsocket-tcp": {
-        "command": [sys.executable, "./tests/resources/rawsocket.py", "{port}"],
+        "command": [sys.executable, _get_path("rawsocket.py"), "{port}"],
         "raw_socket_proxy": True,
     },
     "python-rawsocket-unix": {
-        "command": [sys.executable, "./tests/resources/rawsocket.py", "{unix_socket}"],
+        "command": [sys.executable, _get_path("rawsocket.py"), "{unix_socket}"],
         "unix_socket": True,
         "raw_socket_proxy": True,
     },
