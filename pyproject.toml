@@ -62,6 +62,9 @@ acceptance = [
     "jupyter-server-proxy[test]",
     "robotframework-jupyterlibrary >=0.4.2",
 ]
+nativeproxy = [
+    "jupyterhub"
+]
 classic = [
     "jupyter-server <2",
     "jupyterlab >=3.0.0,<4.0.0a0",
@@ -78,6 +81,9 @@ lab = [
 Documentation = "https://jupyter-server-proxy.readthedocs.io"
 Source = "https://github.com/jupyterhub/jupyter-server-proxy"
 Tracker = "https://github.com/jupyterhub/jupyter-server-proxy/issues"
+
+[project.scripts]
+jupyter-nativeproxy = "jupyter_server_proxy.native_proxy:main"
 
 
 # hatch ref: https://hatch.pypa.io/latest/
