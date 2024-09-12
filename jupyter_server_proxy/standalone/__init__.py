@@ -26,8 +26,6 @@ def run(
     request_timeout=300,
     last_activity_interval=300,
     force_alive=True,
-    forward_user_info=False,
-    query_user_info=False,
     progressive=False,
     websocket_max_message_size=0,
 ):
@@ -54,8 +52,6 @@ def run(
         request_timeout,
         debug,
         logs,
-        forward_user_info,
-        query_user_info,
         progressive,
         websocket_max_message_size,
     )
@@ -131,18 +127,6 @@ def main():
         action="store_true",
         default=True,
         help="Always report, that there has been activity (force keep alive) - only if last-activity-interval > 0.",
-    )
-    parser.add_argument(
-        "--forward-user-info",
-        action="store_true",
-        default=False,
-        help="Forward a 'X-CDSDASHBOARDS-JH-USER' HTTP header to process containing JupyterHub user data.",
-    )
-    parser.add_argument(
-        "--query-user-info",
-        action="store_true",
-        default=False,
-        help="Add a 'CDSDASHBOARDS_JH_USER GET' query arg in HTTP request to process containing JupyterHub user data.",
     )
     parser.add_argument(
         "--progressive",

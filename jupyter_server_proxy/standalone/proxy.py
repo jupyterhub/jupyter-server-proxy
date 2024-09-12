@@ -54,59 +54,10 @@ def _make_native_proxy_handler(command, environment, port, mappath):
             return {
                 "port": self.port,
                 "base_url": self.base_url,
-                # "presentation_path": self.presentation_path,
-                # "presentation_basename": self.presentation_basename,
-                # "presentation_dirname": self.presentation_dirname,
                 "origin_host": self.request.host,  # ToDo!
                 "-": "-",
                 "--": "--",
             }
-
-        @property
-        def base_url(self):
-            return self.settings.get("base_url", "/")
-
-        # @property
-        # def presentation_path(self):
-        #     return self.settings.get("presentation_path", ".")
-        #
-        # @property
-        # def presentation_basename(self):
-        #     return self.settings.get("presentation_basename", "")
-        #
-        # @property
-        # def presentation_dirname(self):
-        #     return self.settings.get("presentation_dirname", ".")
-
-        @property
-        def hub_users(self):
-            return {self.settings["user"]}
-
-        @property
-        def hub_groups(self):
-            if self.settings["group"]:
-                return {self.settings["group"]}
-            return set()
-
-        @property
-        def allow_all(self):
-            if "anyone" in self.settings:
-                return self.settings["anyone"] == "1"
-            return super().allow_all
-
-        def _render_template(self, value):
-            args = self.process_args
-            if type(value) is str:
-                return value.format(**args)
-            elif type(value) is list:
-                return [self._render_template(v) for v in value]
-            elif type(value) is dict:
-                return {
-                    self._render_template(k): self._render_template(v)
-                    for k, v in value.items()
-                }
-            else:
-                raise ValueError(f"Value of unrecognized type {type(value)}")
 
         def get_env(self):
             if callable(environment):
@@ -142,21 +93,9 @@ def make_app(
     request_timeout,
     debug,
     logs,
-    forward_user_info,
-    query_user_info,
     progressive,
     websocket_max_message_size,
 ):
-    # ToDo: Presentation_path?
-    # presentation_basename = ""
-    # presentation_dirname = ""
-    #
-    # if presentation_path:
-    #     if not os.path.isabs(presentation_path):
-    #         presentation_path = os.path.join(os.getcwd(), presentation_path)
-    #     presentation_basename = os.path.basename(presentation_path)
-    #     presentation_dirname = os.path.dirname(presentation_path)
-
     patch_default_headers()
 
     proxy_handler = _make_native_proxy_handler(command, {}, destport, {})
@@ -169,9 +108,6 @@ def make_app(
         group=os.environ.get("JUPYTERHUB_GROUP") or "",
         anyone=os.environ.get("JUPYTERHUB_ANYONE") or "",
         base_url=prefix,  # This is a confusing name, sorry
-        # presentation_path=presentation_path,
-        # presentation_basename=presentation_basename,
-        # presentation_dirname=presentation_dirname,
         request_timeout=request_timeout,
     )
 
@@ -189,7 +125,7 @@ def make_app(
                 proxy_handler,
                 dict(
                     state={},
-                    # ToDo: authtype=authtype, forward_user_info=forward_user_info, query_user_info=query_user_info, progressive=progressive
+                    # ToDo: authtype=authtype, progressive=progressive
                 ),
             ),
             (
@@ -260,7 +196,7 @@ def start_keep_alive(last_activity_interval, force_alive, settings):
         print(
             "The following env vars are required to report activity back to the hub for keep alive: "
             "JUPYTERHUB_ACTIVITY_URL ({}), JUPYTERHUB_SERVER_NAME({})".format(
-                hub_activity_url, server_name, api_token
+                hub_activity_url, server_name
             )
         )
         return
