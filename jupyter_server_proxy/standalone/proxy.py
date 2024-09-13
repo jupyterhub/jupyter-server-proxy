@@ -9,6 +9,7 @@ from jupyterhub.services.auth import HubOAuthCallbackHandler
 from jupyterhub.utils import exponential_backoff, isoformat, make_ssl_context
 from tornado import httpclient, ioloop
 from tornado.web import Application, RedirectHandler, RequestHandler
+from tornado.websocket import WebSocketHandler
 
 from ..handlers import SuperviseAndProxyHandler
 
@@ -25,50 +26,47 @@ def configure_http_client():
     httpclient.AsyncHTTPClient.configure(None, defaults={"ssl_options": ssl_context})
 
 
-def _make_native_proxy_handler(command, environment, port, mappath):
+class StandaloneHubProxyHandler(SuperviseAndProxyHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.authtype = "oauth"
+        self.environment = {}
+        self.timeout = 60
+
+    def prepare(self, *args, **kwargs):
+        # ToDo: Automatically disable if not spawned by JupyterHub
+        if self.authtype == "oauth":
+            return super().prepare(*args, **kwargs)
+        else:
+            pass
+
+    def check_origin(self, origin: str = None):
+        # Skip JupyterHandler.check_origin
+        return WebSocketHandler.check_origin(self, origin)
+
+    def get_env(self):
+        return self._render_template(self.environment)
+
+    def get_timeout(self):
+        return self.timeout
+
+
+def _make_native_proxy_handler(command, port, mappath, authtype, environment, timeout):
     """
-    Create a SuperviseAndProxyHandler subclass with given parameters
+    Create a StandaloneHubProxyHandler subclass with given parameters
     """
 
-    class _Proxy(SuperviseAndProxyHandler):
+    class _Proxy(StandaloneHubProxyHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
+            self.name = command[0]
             self.proxy_base = command[0]
             self.requested_port = port
             self.mappath = mappath
             self.command = command
-
-            # ToDo?
-            self.origin_host = None
-
-        # ToDo!
-        def prepare(self, *args, **kwargs):
-            pass
-
-        # ToDo!
-        def skip_check_origin(self) -> bool:
-            return True
-
-        @property
-        def process_args(self):
-            return {
-                "port": self.port,
-                "base_url": self.base_url,
-                "origin_host": self.request.host,  # ToDo!
-                "-": "-",
-                "--": "--",
-            }
-
-        def get_env(self):
-            if callable(environment):
-                raise Exception(
-                    "return self._render_template(call_with_asked_args(environment, self.process_args))"
-                )
-            else:
-                return self._render_template(environment)
-
-        def get_timeout(self):
-            return 60
+            self.authtype = authtype
+            self.environment = environment
+            self.timeout = timeout
 
     return _Proxy
 
@@ -90,7 +88,7 @@ def make_app(
     prefix,
     command,
     authtype,
-    request_timeout,
+    timeout,
     debug,
     logs,
     progressive,
@@ -98,7 +96,10 @@ def make_app(
 ):
     patch_default_headers()
 
-    proxy_handler = _make_native_proxy_handler(command, {}, destport, {})
+    # ToDo: Environment
+    proxy_handler = _make_native_proxy_handler(
+        command, destport, {}, authtype, {}, timeout
+    )
 
     options = dict(
         debug=debug,
@@ -108,7 +109,6 @@ def make_app(
         group=os.environ.get("JUPYTERHUB_GROUP") or "",
         anyone=os.environ.get("JUPYTERHUB_ANYONE") or "",
         base_url=prefix,  # This is a confusing name, sorry
-        request_timeout=request_timeout,
     )
 
     if websocket_max_message_size:
@@ -125,7 +125,7 @@ def make_app(
                 proxy_handler,
                 dict(
                     state={},
-                    # ToDo: authtype=authtype, progressive=progressive
+                    # ToDo: progressive=progressive
                 ),
             ),
             (

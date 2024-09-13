@@ -23,7 +23,7 @@ def run(
     debug=False,
     logs=True,
     authtype="oauth",
-    request_timeout=300,
+    timeout=60,
     last_activity_interval=300,
     force_alive=True,
     progressive=False,
@@ -49,7 +49,7 @@ def run(
         prefix,
         list(command),
         authtype,
-        request_timeout,
+        timeout,
         debug,
         logs,
         progressive,
@@ -111,10 +111,10 @@ def main():
         help="Authentication Metod.",
     )
     parser.add_argument(
-        "--request-timeout",
-        default=300,
+        "--timeout",
+        default=60,
         type=int,
-        help="Timeout for proxied HTTP calls to subprocess in seconds.",
+        help="Timeout to wait until the subprocess has started and can be addressed.",
     )
     parser.add_argument(
         "--last-activity-interval",
