@@ -6,13 +6,8 @@ from tornado import ioloop
 from tornado.httpserver import HTTPServer
 from tornado.log import app_log
 
-from .proxy import (
-    configure_http_client,
-    get_port_from_env,
-    get_ssl_options,
-    make_app,
-    start_keep_alive,
-)
+from .activity import start_activity_update
+from .proxy import configure_http_client, get_port_from_env, get_ssl_options, make_app
 
 
 def run(
@@ -24,8 +19,7 @@ def run(
     logs=True,
     authtype="oauth",
     timeout=60,
-    last_activity_interval=300,
-    force_alive=True,
+    activity_interval=300,
     progressive=False,
     websocket_max_message_size=0,
 ):
@@ -69,8 +63,8 @@ def run(
     print(f"Auth Type: {authtype}")
     print(f"Command: {command}")
 
-    if last_activity_interval > 0:
-        start_keep_alive(last_activity_interval, force_alive, app.settings)
+    if activity_interval > 0:
+        start_activity_update(activity_interval)
 
     ioloop.IOLoop.current().start()
 
@@ -117,16 +111,10 @@ def main():
         help="Timeout to wait until the subprocess has started and can be addressed.",
     )
     parser.add_argument(
-        "--last-activity-interval",
+        "--activity-interval",
         default=300,
         type=int,
-        help="Frequency to notify Hub that the WebApp is still running in seconds. 0 for never.",
-    )
-    parser.add_argument(
-        "--force-alive",
-        action="store_true",
-        default=True,
-        help="Always report, that there has been activity (force keep alive) - only if last-activity-interval > 0.",
+        help="Frequency to notify Hub that the WebApp is still running (In seconds, 0 for never).",
     )
     parser.add_argument(
         "--progressive",

@@ -1,13 +1,11 @@
-import json
 import os
 import re
-from datetime import datetime
 from urllib.parse import urlparse
 
 from jupyterhub import __version__ as __jh_version__
 from jupyterhub.services.auth import HubOAuthCallbackHandler
-from jupyterhub.utils import exponential_backoff, isoformat, make_ssl_context
-from tornado import httpclient, ioloop
+from jupyterhub.utils import make_ssl_context
+from tornado import httpclient
 from tornado.web import Application, RedirectHandler, RequestHandler
 from tornado.websocket import WebSocketHandler
 
@@ -183,70 +181,3 @@ def get_port_from_env():
         elif url.scheme == "https":
             return 443
     return 8888
-
-
-def start_keep_alive(last_activity_interval, force_alive, settings):
-    client = httpclient.AsyncHTTPClient()
-
-    hub_activity_url = os.environ.get("JUPYTERHUB_ACTIVITY_URL", "")
-    server_name = os.environ.get("JUPYTERHUB_SERVER_NAME", "")
-    api_token = os.environ.get("JUPYTERHUB_API_TOKEN", "")
-
-    if api_token == "" or server_name == "" or hub_activity_url == "":
-        print(
-            "The following env vars are required to report activity back to the hub for keep alive: "
-            "JUPYTERHUB_ACTIVITY_URL ({}), JUPYTERHUB_SERVER_NAME({})".format(
-                hub_activity_url, server_name
-            )
-        )
-        return
-
-    async def send_activity():
-        async def notify():
-            print("About to notify Hub of activity")
-
-            last_activity_timestamp = None
-
-            if force_alive:
-                last_activity_timestamp = datetime.utcnow()
-            else:
-                last_activity_timestamp = settings.get("api_last_activity", None)
-
-            if last_activity_timestamp:
-                last_activity_timestamp = isoformat(last_activity_timestamp)
-                req = httpclient.HTTPRequest(
-                    url=hub_activity_url,
-                    method="POST",
-                    headers={
-                        "Authorization": f"token {api_token}",
-                        "Content-Type": "application/json",
-                    },
-                    body=json.dumps(
-                        {
-                            "servers": {
-                                server_name: {"last_activity": last_activity_timestamp}
-                            },
-                            "last_activity": last_activity_timestamp,
-                        }
-                    ),
-                )
-                try:
-                    await client.fetch(req)
-                except Exception as e:
-                    print(f"Error notifying Hub of activity: {e}")
-                    return False
-                else:
-                    return True
-
-            return True  # Nothing to report, so really it worked
-
-        await exponential_backoff(
-            notify,
-            fail_message="Failed to notify Hub of activity",
-            start_wait=1,
-            max_wait=15,
-            timeout=60,
-        )
-
-    pc = ioloop.PeriodicCallback(send_activity, 1e3 * last_activity_interval, 0.1)
-    pc.start()
