@@ -3,13 +3,13 @@ import re
 from urllib.parse import urlparse
 
 from jupyterhub import __version__ as __jh_version__
-from jupyterhub.services.auth import HubOAuthCallbackHandler
+from jupyterhub.services.auth import HubOAuthCallbackHandler, HubOAuthenticated
 from jupyterhub.utils import make_ssl_context
 from tornado import httpclient
-from tornado.web import Application, RedirectHandler, RequestHandler
+from tornado.web import Application, RedirectHandler
 from tornado.websocket import WebSocketHandler
 
-from ..handlers import SuperviseAndProxyHandler
+from ..handlers import ProxyHandler, SuperviseAndProxyHandler
 
 
 def configure_http_client():
@@ -24,19 +24,18 @@ def configure_http_client():
     httpclient.AsyncHTTPClient.configure(None, defaults={"ssl_options": ssl_context})
 
 
-class StandaloneHubProxyHandler(SuperviseAndProxyHandler):
+class StandaloneProxyHandler(SuperviseAndProxyHandler):
+    """
+    Base class for standalone proxies. Will not ensure any authentication!
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.authtype = "oauth"
         self.environment = {}
         self.timeout = 60
 
     def prepare(self, *args, **kwargs):
-        # ToDo: Automatically disable if not spawned by JupyterHub
-        if self.authtype == "oauth":
-            return super().prepare(*args, **kwargs)
-        else:
-            pass
+        pass
 
     def check_origin(self, origin: str = None):
         # Skip JupyterHandler.check_origin
@@ -49,12 +48,57 @@ class StandaloneHubProxyHandler(SuperviseAndProxyHandler):
         return self.timeout
 
 
-def _make_native_proxy_handler(command, port, mappath, authtype, environment, timeout):
+class StandaloneHubProxyHandler(StandaloneProxyHandler, HubOAuthenticated):
+    """
+    Standalone Proxy used when spawned by a JupyterHub.
+    Will restrict access to the application by authentication with the JupyterHub API.
+    """
+
+    @property
+    def hub_users(self):
+        return {self.settings["user"]}
+
+    @property
+    def hub_groups(self):
+        if self.settings["group"]:
+            return {self.settings["group"]}
+        return set()
+
+    @property
+    def allow_all(self):
+        if "anyone" in self.settings:
+            return self.settings["anyone"] == "1"
+        return super().allow_all
+
+    def prepare(self, *args, **kwargs):
+        # Enable Authentication Check
+        return ProxyHandler.prepare(self, *args, **kwargs)
+
+    def set_default_headers(self):
+        self.set_header("X-JupyterHub-Version", __jh_version__)
+
+
+def _make_native_proxy_handler(
+    command, port, mappath, overwrite_authentication, environment, timeout
+):
     """
     Create a StandaloneHubProxyHandler subclass with given parameters
     """
 
-    class _Proxy(StandaloneHubProxyHandler):
+    # Try to determine if we are launched by a JupyterHub via environment variables.
+    # See jupyterhub/spawner.py#L1035
+    if overwrite_authentication is not None:
+        base = (
+            StandaloneHubProxyHandler
+            if overwrite_authentication is True
+            else StandaloneProxyHandler
+        )
+    elif "JUPYTERHUB_API_TOKEN" in os.environ and "JUPYTERHUB_API_URL" in os.environ:
+        base = StandaloneHubProxyHandler
+    else:
+        base = StandaloneProxyHandler
+
+    class _Proxy(base):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = command[0]
@@ -62,23 +106,10 @@ def _make_native_proxy_handler(command, port, mappath, authtype, environment, ti
             self.requested_port = port
             self.mappath = mappath
             self.command = command
-            self.authtype = authtype
             self.environment = environment
             self.timeout = timeout
 
     return _Proxy
-
-
-def patch_default_headers():
-    if hasattr(RequestHandler, "_orig_set_default_headers"):
-        return
-    RequestHandler._orig_set_default_headers = RequestHandler.set_default_headers
-
-    def set_jupyterhub_header(self):
-        self._orig_set_default_headers()
-        self.set_header("X-JupyterHub-Version", __jh_version__)
-
-    RequestHandler.set_default_headers = set_jupyterhub_header
 
 
 def make_app(
@@ -92,8 +123,6 @@ def make_app(
     progressive,
     websocket_max_message_size,
 ):
-    patch_default_headers()
-
     # ToDo: Environment
     proxy_handler = _make_native_proxy_handler(
         command, destport, {}, authtype, {}, timeout
