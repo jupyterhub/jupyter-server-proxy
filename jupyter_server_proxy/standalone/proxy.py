@@ -1,5 +1,6 @@
 import os
 import re
+import ssl
 from logging import Logger
 
 from jupyterhub import __version__ as __jh_version__
@@ -10,7 +11,7 @@ from tornado.log import app_log
 from tornado.web import Application
 from tornado.websocket import WebSocketHandler
 
-from ..handlers import SuperviseAndProxyHandler
+from ..handlers import AddSlashHandler, SuperviseAndProxyHandler
 
 
 class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
@@ -69,20 +70,34 @@ class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
 
 
 def configure_ssl():
-    keyfile = os.environ.get("JUPYTERHUB_SSL_KEYFILE")
-    certfile = os.environ.get("JUPYTERHUB_SSL_CERTFILE")
-    cafile = os.environ.get("JUPYTERHUB_SSL_CLIENT_CA")
+    # See jupyter_server/serverapp:init_webapp
+    keyfile = os.environ.get("JUPYTERHUB_SSL_KEYFILE", "")
+    certfile = os.environ.get("JUPYTERHUB_SSL_CERTFILE", "")
+    client_ca = os.environ.get("JUPYTERHUB_SSL_CLIENT_CA", "")
 
-    if not (keyfile and certfile and cafile):
+    if not (keyfile or certfile or client_ca):
         app_log.warn("Could not configure SSL")
         return None
 
-    ssl_context = make_ssl_context(keyfile, certfile, cafile)
+    ssl_options = {}
+    if keyfile:
+        ssl_options["keyfile"] = keyfile
+    if certfile:
+        ssl_options["certfile"] = certfile
+    if client_ca:
+        ssl_options["ca_certs"] = client_ca
+
+    # PROTOCOL_TLS selects the highest ssl/tls protocol version that both the client and
+    # server support. When PROTOCOL_TLS is not available use PROTOCOL_SSLv23.
+    ssl_options["ssl_version"] = getattr(ssl, "PROTOCOL_TLS", ssl.PROTOCOL_SSLv23)
+    if ssl_options.get("ca_certs", False):
+        ssl_options["cert_reqs"] = ssl.CERT_REQUIRED
 
     # Configure HTTPClient to use SSL for Proxy Requests
+    ssl_context = make_ssl_context(keyfile, certfile, client_ca)
     httpclient.AsyncHTTPClient.configure(None, defaults={"ssl_options": ssl_context})
 
-    return ssl_context
+    return ssl_options
 
 
 def make_proxy_app(
@@ -130,6 +145,8 @@ def make_proxy_app(
 
     app = Application(
         [
+            # Redirects from the JupyterHub might not contain a slash
+            (r"^" + re.escape(prefix) + r"$", AddSlashHandler),
             (
                 r"^" + re.escape(prefix) + r"/(.*)",
                 Proxy,
