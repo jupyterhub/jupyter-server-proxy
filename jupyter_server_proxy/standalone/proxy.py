@@ -3,15 +3,16 @@ import re
 import ssl
 from logging import Logger
 
+from jupyter_server.utils import ensure_async
 from jupyterhub import __version__ as __jh_version__
 from jupyterhub.services.auth import HubOAuthCallbackHandler, HubOAuthenticated
 from jupyterhub.utils import make_ssl_context
 from tornado import httpclient, web
 from tornado.log import app_log
-from tornado.web import Application
+from tornado.web import Application, RedirectHandler
 from tornado.websocket import WebSocketHandler
 
-from ..handlers import AddSlashHandler, SuperviseAndProxyHandler
+from ..handlers import SuperviseAndProxyHandler
 
 
 class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
@@ -52,7 +53,7 @@ class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
         if self.skip_authentication:
             return await super().proxy(port, path)
         else:
-            return await self.oauth_proxy(port, path)
+            return await ensure_async(self.oauth_proxy(port, path))
 
     @web.authenticated
     async def oauth_proxy(self, port, path):
@@ -133,6 +134,7 @@ def make_proxy_app(
 
     settings = dict(
         debug=debug,
+        base_url=prefix,
         # Required for JupyterHub
         hub_user=os.environ.get("JUPYTERHUB_USER", ""),
         hub_group=os.environ.get("JUPYTERHUB_GROUP", ""),
@@ -143,12 +145,13 @@ def make_proxy_app(
         app_log.debug(f"Restricting WebSocket Messages to {websocket_max_message_size}")
         settings["websocket_max_message_size"] = websocket_max_message_size
 
+    escaped_prefix = re.escape(prefix)
     app = Application(
         [
             # Redirects from the JupyterHub might not contain a slash
-            (r"^" + re.escape(prefix) + r"$", AddSlashHandler),
+            (rf"^{escaped_prefix}$", RedirectHandler, dict(url=rf"^{escaped_prefix}/")),
             (
-                r"^" + re.escape(prefix) + r"/(.*)",
+                rf"^{escaped_prefix}/(.*)",
                 Proxy,
                 dict(
                     state={},
@@ -156,7 +159,7 @@ def make_proxy_app(
                 ),
             ),
             (
-                r"^" + re.escape(prefix) + r"/oauth_callback",
+                rf"^{escaped_prefix}/oauth_callback",
                 HubOAuthCallbackHandler,
             ),
         ],
