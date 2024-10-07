@@ -73,11 +73,17 @@ lab = [
     "nbclassic",
     "notebook >=7",
 ]
+standalone = [
+    "jupyterhub"
+]
 
 [project.urls]
 Documentation = "https://jupyter-server-proxy.readthedocs.io"
 Source = "https://github.com/jupyterhub/jupyter-server-proxy"
 Tracker = "https://github.com/jupyterhub/jupyter-server-proxy/issues"
+
+[project.scripts]
+jupyter-standaloneproxy = "jupyter_server_proxy.standalone:main"
 
 
 # hatch ref: https://hatch.pypa.io/latest/
