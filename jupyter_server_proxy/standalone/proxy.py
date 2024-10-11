@@ -9,7 +9,7 @@ from jupyterhub.services.auth import HubOAuthCallbackHandler, HubOAuthenticated
 from jupyterhub.utils import make_ssl_context
 from tornado import httpclient, web
 from tornado.log import app_log
-from tornado.web import Application, RedirectHandler
+from tornado.web import Application, RedirectHandler, RequestHandler
 from tornado.websocket import WebSocketHandler
 
 from ..handlers import SuperviseAndProxyHandler
@@ -49,6 +49,14 @@ class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
     def prepare(self, *args, **kwargs):
         pass
 
+    def check_origin(self, origin: str = None):
+        # Skip JupyterHandler.check_origin
+        return WebSocketHandler.check_origin(self, origin)
+
+    def write_error(self, status_code: int, **kwargs):
+        # ToDo: Return proper error page, like in jupyter-server/JupyterHub
+        return RequestHandler.write_error(self, status_code, **kwargs)
+
     async def proxy(self, port, path):
         if self.skip_authentication:
             return await super().proxy(port, path)
@@ -58,10 +66,6 @@ class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
     @web.authenticated
     async def oauth_proxy(self, port, path):
         return await super().proxy(port, path)
-
-    def check_origin(self, origin: str = None):
-        # Skip JupyterHandler.check_origin
-        return WebSocketHandler.check_origin(self, origin)
 
     def get_env(self):
         return self._render_template(self.environment)
