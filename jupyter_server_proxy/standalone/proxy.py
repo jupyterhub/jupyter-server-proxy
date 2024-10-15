@@ -153,18 +153,15 @@ def make_proxy_app(
     app = Application(
         [
             # Redirects from the JupyterHub might not contain a slash
-            (rf"^{escaped_prefix}$", RedirectHandler, dict(url=rf"^{escaped_prefix}/")),
+            (f"^{escaped_prefix}$", RedirectHandler, dict(url=f"^{escaped_prefix}/")),
+            (f"^{escaped_prefix}/oauth_callback", HubOAuthCallbackHandler),
             (
-                rf"^{escaped_prefix}/(.*)",
+                f"^{escaped_prefix}/(.*)",
                 Proxy,
                 dict(
                     state={},
                     # ToDo: progressive=progressive
                 ),
-            ),
-            (
-                rf"^{escaped_prefix}/oauth_callback",
-                HubOAuthCallbackHandler,
             ),
         ],
         **settings,
