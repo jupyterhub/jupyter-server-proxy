@@ -53,6 +53,10 @@ class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
         # Skip JupyterHandler.check_origin
         return WebSocketHandler.check_origin(self, origin)
 
+    def check_xsrf_cookie(self):
+        # Skip HubAuthenticated.check_xsrf_cookie
+        pass
+
     def write_error(self, status_code: int, **kwargs):
         # ToDo: Return proper error page, like in jupyter-server/JupyterHub
         return RequestHandler.write_error(self, status_code, **kwargs)
