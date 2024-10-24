@@ -3,6 +3,7 @@ Traitlets based configuration for jupyter_server_proxy
 """
 
 import sys
+from textwrap import dedent, indent
 from warnings import warn
 
 if sys.version_info < (3, 10):  # pragma: no cover
@@ -344,6 +345,16 @@ def make_server_process(name, server_process_config, serverproxy_config):
     return ServerProcess(name=name, **server_process_config)
 
 
+def _serverproxy_servers_help():
+    serverprocess_help = ""
+    for k, v in ServerProcess.class_traits().items():
+        help = v.metadata.get("help", "").lstrip("\n").rstrip()
+        if help:
+            help = indent(dedent(help), "    ")
+            serverprocess_help += f"{k}\n{help}\n\n"
+    return serverprocess_help
+
+
 class ServerProxy(Configurable):
     servers = Dict(
         {},
@@ -354,123 +365,9 @@ class ServerProxy(Configurable):
         the URL prefix, and all requests matching this prefix are routed to this process.
 
         Value should be a dictionary with the following keys:
-          command
-            An optional list of strings that should be the full command to be executed.
-            The optional template arguments {{port}}, {{unix_socket}} and {{base_url}}
-            will be substituted with the port or Unix socket path the process should
-            listen on and the base-url of the notebook.
 
-            Could also be a callable. It should return a list.
-
-            If the command is not specified or is an empty list, the server
-            process is assumed to be started ahead of time and already available
-            to be proxied to.
-
-          environment
-            A dictionary of environment variable mappings. As with the command
-            traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
-
-            Could also be a callable. It should return a dictionary.
-
-          timeout
-            Timeout in seconds for the process to become ready, default 5s.
-
-          absolute_url
-            Proxy requests default to being rewritten to '/'. If this is True,
-            the absolute URL will be sent to the backend instead.
-
-          port
-            Set the port that the service will listen on. The default is to automatically select an unused port.
-
-          unix_socket
-            If set, the service will listen on a Unix socket instead of a TCP port.
-            Set to True to use a socket in a new temporary folder, or a string
-            path to a socket. This overrides port.
-
-            Proxying websockets over a Unix socket requires Tornado >= 6.3.
-
-          mappath
-            Map request paths to proxied paths.
-            Either a dictionary of request paths to proxied paths,
-            or a callable that takes parameter ``path`` and returns the proxied path.
-
-          launcher_entry
-            A dictionary of various options for entries in classic notebook / jupyterlab launchers.
-
-            Keys recognized are:
-
-              enabled
-                Set to True (default) to make an entry in the launchers. Set to False to have no
-                explicit entry.
-
-              icon_path
-                Full path to an svg icon that could be used with a launcher. Currently only used by the
-                JupyterLab launcher
-
-              title
-                Title to be used for the launcher entry. Defaults to the name of the server if missing.
-
-              path_info
-                The trailing path that is appended to the user's server URL to access the proxied server.
-                By default it is the name of the server followed by a trailing slash.
-
-              category
-                The category for the launcher item. Currently only used by the JupyterLab launcher.
-                By default it is "Notebook".
-
-          new_browser_tab
-            Set to True (default) to make the proxied server interface opened as a new browser tab. Set to False
-            to have it open a new JupyterLab tab. This has no effect in classic notebook.
-
-          request_headers_override
-            A dictionary of additional HTTP headers for the proxy request. As with
-            the command traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
-
-          rewrite_response
-            An optional function to rewrite the response for the given service.
-            Input is a RewritableResponse object which is an argument that MUST be named
-            ``response``. The function should modify one or more of the attributes
-            ``.body``, ``.headers``, ``.code``, or ``.reason`` of the ``response``
-            argument. For example:
-
-                def dog_to_cat(response):
-                    response.headers["I-Like"] = "tacos"
-                    response.body = response.body.replace(b'dog', b'cat')
-
-                c.ServerProxy.servers['my_server']['rewrite_response'] = dog_to_cat
-
-            The ``rewrite_response`` function can also accept several optional
-            positional arguments. Arguments named ``host``, ``port``, and ``path`` will
-            receive values corresponding to the URL ``/proxy/<host>:<port><path>``. In
-            addition, the original Tornado ``HTTPRequest`` and ``HTTPResponse`` objects
-            are available as arguments named ``request`` and ``orig_response``. (These
-            objects should not be modified.)
-
-            A list or tuple of functions can also be specified for chaining multiple
-            rewrites. For example:
-
-                def cats_only(response, path):
-                    if path.startswith("/cat-club"):
-                        response.code = 403
-                        response.body = b"dogs not allowed"
-
-                c.ServerProxy.servers['my_server']['rewrite_response'] = [dog_to_cat, cats_only]
-
-            Note that if the order is reversed to ``[cats_only, dog_to_cat]``, then accessing
-            ``/cat-club`` will produce a "403 Forbidden" response with body "cats not allowed"
-            instead of "dogs not allowed".
-
-            Defaults to the empty tuple ``tuple()``.
- 
-          update_last_activity
-            Will cause the proxy to report activity back to jupyter server.
-
-          raw_socket_proxy
-            Proxy websocket requests as a raw TCP (or unix socket) stream.
-            In this mode, only websockets are handled, and messages are sent to the backend,
-            similar to running a websockify layer (https://github.com/novnc/websockify).
-            All other HTTP requests return 405 (and thus this will also bypass rewrite_response).
-        """,
+        """
+        + indent(_serverproxy_servers_help(), "        "),
         config=True,
     )
 
