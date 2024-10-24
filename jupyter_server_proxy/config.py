@@ -3,7 +3,6 @@ Traitlets based configuration for jupyter_server_proxy
 """
 
 import sys
-from collections import namedtuple
 from warnings import warn
 
 if sys.version_info < (3, 10):  # pragma: no cover
@@ -19,7 +18,6 @@ from traitlets import (
     Instance,
     Int,
     List,
-    TraitError,
     Tuple,
     Unicode,
     Union,
@@ -32,9 +30,49 @@ from traitlets.config import Configurable
 from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
 from .rawsocket import RawSocketHandler, SuperviseAndRawSocketHandler
 
-LauncherEntry = namedtuple(
-    "LauncherEntry", ["enabled", "icon_path", "title", "path_info", "category"]
-)
+
+class LauncherEntry(Configurable):
+    enabled = Bool(
+        True,
+        help="""
+        Set to True (default) to make an entry in the launchers. Set to False to have no
+        explicit entry.
+    """,
+    )
+
+    icon_path = Unicode(
+        "",
+        help="""
+        Full path to an svg icon that could be used with a launcher. Currently only used by the
+        JupyterLab launcher
+    """,
+    )
+
+    title = Unicode(
+        allow_none=False,
+        help="""
+        Title to be used for the launcher entry. Defaults to the name of the server if missing.
+    """,
+    )
+
+    path_info = Unicode(
+        help="""
+        The trailing path that is appended to the user's server URL to access the proxied server.
+        By default it is the name of the server followed by a trailing slash.
+    """,
+    )
+
+    @default("path_info")
+    def _default_path_info(self):
+        return self.title + "/"
+
+    category = Unicode(
+        "Notebook",
+        help="""
+        The category for the launcher item. Currently only used by the JupyterLab launcher.
+        By default it is "Notebook".
+    """,
+    )
 
 
 class ServerProcess(Configurable):
@@ -107,9 +145,8 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
-    # Can't use Instance(LauncherEntry) because LauncherEntry is not a class
     launcher_entry = Union(
-        [Instance(object), Dict()],
+        [Instance(LauncherEntry), Dict()],
         allow_none=False,
         help="""
         A dictionary of various options for entries in classic notebook / jupyterlab launchers.
@@ -139,23 +176,13 @@ class ServerProcess(Configurable):
 
     @validate("launcher_entry")
     def _validate_launcher_entry(self, proposal):
-        le = proposal["value"]
-        invalid_keys = set(le.keys()).difference(
-            {"enabled", "icon_path", "title", "path_info", "category"}
-        )
-        if invalid_keys:
-            raise TraitError(
-                f"launcher_entry {le} contains invalid keys: {invalid_keys}"
-            )
-        return (
-            LauncherEntry(
-                enabled=le.get("enabled", True),
-                icon_path=le.get("icon_path"),
-                title=le.get("title", self.name),
-                path_info=le.get("path_info", self.name + "/"),
-                category=le.get("category", "Notebook"),
-            ),
-        )
+        kwargs = {"title": self.name}
+        kwargs.update(proposal["value"])
+        return LauncherEntry(**kwargs)
+
+    @default("launcher_entry")
+    def _default_launcher_entry(self):
+        return LauncherEntry(title=self.name)
 
     new_browser_tab = Bool(
         True,
