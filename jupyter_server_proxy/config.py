@@ -126,6 +126,7 @@ class ServerProcess(Configurable):
     unix_socket = Union(
         [Bool(False), Unicode()],
         default_value=None,
+        allow_none=True,
         help="""
         If set, the service will listen on a Unix socket instead of a TCP port.
         Set to True to use a socket in a new temporary folder, or a string
