@@ -12,18 +12,11 @@ else:  # pragma: no cover
     from importlib.metadata import entry_points
 
 from jupyter_server.utils import url_path_join as ujoin
-from traitlets import Dict, List, Tuple, Union, default, observe
+from traitlets import Callable, Dict, List, Tuple, Union, default, observe
 from traitlets.config import Configurable
 
 from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxyHandler
 from .rawsocket import RawSocketHandler, SuperviseAndRawSocketHandler
-
-try:
-    # Traitlets >= 4.3.3
-    from traitlets import Callable
-except ImportError:
-    from .utils import Callable
-
 
 LauncherEntry = namedtuple(
     "LauncherEntry", ["enabled", "icon_path", "title", "path_info", "category"]
