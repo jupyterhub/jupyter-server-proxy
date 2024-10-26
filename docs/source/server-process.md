@@ -17,7 +17,7 @@ pairs.
 
 ```{eval-rst}
 
-.. autoserverprocessconfigurable:: jupyter_server_proxy.config.ServerProcess
+.. serverprocess:: jupyter_server_proxy.config ServerProcess
 ```
 
 ## Specifying config via traitlets
