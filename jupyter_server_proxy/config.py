@@ -77,12 +77,13 @@ class LauncherEntry(Configurable):
 
 
 class ServerProcess(Configurable):
-    name = Unicode(help="Name").tag(config=True)
+    name = Unicode(help="Name of the server").tag(config=True)
+
     command = List(
         Unicode(),
-        help="""\
+        help="""
         An optional list of strings that should be the full command to be executed.
-        The optional template arguments {{port}}, {{unix_socket}} and {{base_url}}
+        The optional template arguments ``{port}``, ``{unix_socket}`` and ``{base_url}``
         will be substituted with the port or Unix socket path the process should
         listen on and the base-url of the notebook.
 
@@ -97,9 +98,9 @@ class ServerProcess(Configurable):
     environment = Union(
         [Dict(Unicode()), Callable()],
         default_value={},
-        help="""\
+        help="""
         A dictionary of environment variable mappings. As with the command
-        traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
+        traitlet, ``{port}``, ``{unix_socket}`` and ``{base_url}`` will be substituted.
 
         Could also be a callable. It should return a dictionary.
     """,
@@ -112,7 +113,7 @@ class ServerProcess(Configurable):
     absolute_url = Bool(
         False,
         help="""
-        Proxy requests default to being rewritten to '/'. If this is True,
+        Proxy requests default to being rewritten to ``/``. If this is True,
         the absolute URL will be sent to the backend instead.
     """,
     ).tag(config=True)
@@ -155,24 +156,24 @@ class ServerProcess(Configurable):
 
         Keys recognized are:
 
-            enabled
-            Set to True (default) to make an entry in the launchers. Set to False to have no
-            explicit entry.
+            ``enabled``
+                Set to True (default) to make an entry in the launchers. Set to False to have no
+                explicit entry.
 
-            icon_path
-            Full path to an svg icon that could be used with a launcher. Currently only used by the
-            JupyterLab launcher
+            ``icon_path``
+                Full path to an svg icon that could be used with a launcher. Currently only used by the
+                JupyterLab launcher
 
-            title
-            Title to be used for the launcher entry. Defaults to the name of the server if missing.
+            ``title``
+                Title to be used for the launcher entry. Defaults to the name of the server if missing.
 
-            path_info
-            The trailing path that is appended to the user's server URL to access the proxied server.
-            By default it is the name of the server followed by a trailing slash.
+            ``path_info``
+                The trailing path that is appended to the user's server URL to access the proxied server.
+                By default it is the name of the server followed by a trailing slash.
 
-            category
-            The category for the launcher item. Currently only used by the JupyterLab launcher.
-            By default it is "Notebook".
+            ``category``
+                The category for the launcher item. Currently only used by the JupyterLab launcher.
+                By default it is "Notebook".
     """,
     ).tag(config=True)
 
@@ -199,7 +200,7 @@ class ServerProcess(Configurable):
         default_value={},
         help="""
         A dictionary of additional HTTP headers for the proxy request. As with
-        the command traitlet, {{port}}, {{unix_socket}} and {{base_url}} will be substituted.
+        the command traitlet, ``{port}``, ``{unix_socket}`` and ``{base_url}`` will be substituted.
     """,
     ).tag(config=True)
 
@@ -212,6 +213,8 @@ class ServerProcess(Configurable):
         ``response``. The function should modify one or more of the attributes
         ``.body``, ``.headers``, ``.code``, or ``.reason`` of the ``response``
         argument. For example:
+
+        .. code-block::
 
             def dog_to_cat(response):
                 response.headers["I-Like"] = "tacos"
@@ -228,6 +231,8 @@ class ServerProcess(Configurable):
 
         A list or tuple of functions can also be specified for chaining multiple
         rewrites. For example:
+
+        .. code-block::
 
             def cats_only(response, path):
                 if path.startswith("/cat-club"):
