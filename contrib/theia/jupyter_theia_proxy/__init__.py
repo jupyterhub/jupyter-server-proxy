@@ -4,6 +4,7 @@ Return config on servers to start for theia
 See https://jupyter-server-proxy.readthedocs.io/en/latest/server-process.html
 for more information.
 """
+
 import os
 import shutil
 
