@@ -528,3 +528,11 @@ async def test_server_proxy_rawsocket(
         await conn.write_message(msg)
         res = await conn.read_message()
         assert res == msg.swapcase()
+
+
+def test_server_configurable_class(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, "/test-serverprocessentrypoint/", TOKEN, host="127.0.0.1")
+    assert r.code == 200
+    s = r.read().decode("ascii")
+    assert "X-Custom-Header: custom-configurable\n" in s
