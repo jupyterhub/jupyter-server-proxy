@@ -103,7 +103,7 @@ def run(
 def main():
     parser = argparse.ArgumentParser(
         "jupyter-standalone-proxy",
-        description="Wrap an arbitrary WebApp so it can be used in place of 'jupyterhub-singleuser' in a JupyterHub setting.",
+        description="Wrap an arbitrary web service so it can be used in place of 'jupyterhub-singleuser' in a JupyterHub setting.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -112,14 +112,14 @@ def main():
         "--port",
         type=int,
         dest="port",
-        help="Set port for the proxy server to listen on. Will use 'JUPYTERHUB_SERVICE_URL' or '127.0.0.1' by default.",
+        help="Set port for the proxy server to listen on. Will use 'JUPYTERHUB_SERVICE_URL' or '8888' by default.",
     )
     parser.add_argument(
         "-a",
         "--address",
         type=str,
         dest="address",
-        help="Set address for the proxy server to listen on. Will use 'JUPYTERHUB_SERVICE_URL' or '8888' by default.",
+        help="Set address for the proxy server to listen on. Will use 'JUPYTERHUB_SERVICE_URL' or '127.0.0.1' by default.",
     )
     parser.add_argument(
         "-s",
@@ -127,7 +127,7 @@ def main():
         default=0,
         type=int,
         dest="server_port",
-        help="Port for the WebApp should end up running on (0 for random open port).",
+        help="Port for the web service should end up running on (0 for random open port).",
     )
     parser.add_argument(
         "--socket-path",
@@ -187,7 +187,7 @@ def main():
         "--activity-interval",
         default=300,
         type=int,
-        help="Frequency to notify Hub that the WebApp is still running (In seconds, 0 for never).",
+        help="Frequency to notify Hub that the service is still running (In seconds, 0 for never).",
     )
     # ToDo: Progressive Proxy
     # parser.add_argument(
@@ -203,7 +203,7 @@ def main():
         help="Max size of websocket data (leave at 0 for library defaults).",
     )
     parser.add_argument(
-        "command", nargs="+", help="The command executed for starting the WebApp"
+        "command", nargs="+", help="The command executed for starting the web service."
     )
 
     args = parser.parse_args()
