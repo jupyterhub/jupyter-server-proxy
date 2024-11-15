@@ -52,6 +52,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
+    "jupyter-server-proxy[standalone]",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",

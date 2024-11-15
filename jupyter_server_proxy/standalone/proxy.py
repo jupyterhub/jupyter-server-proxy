@@ -1,3 +1,5 @@
+from __future__ import annotations  # For Python 3.8 compatibility
+
 import os
 import re
 import ssl
@@ -157,7 +159,7 @@ def make_proxy_app(
     app = Application(
         [
             # Redirects from the JupyterHub might not contain a slash
-            (f"^{escaped_prefix}$", RedirectHandler, dict(url=f"^{escaped_prefix}/")),
+            (f"^{escaped_prefix}$", RedirectHandler, dict(url=f"{escaped_prefix}/")),
             (f"^{escaped_prefix}/oauth_callback", HubOAuthCallbackHandler),
             (
                 f"^{escaped_prefix}/(.*)",

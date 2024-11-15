@@ -1,3 +1,5 @@
+from __future__ import annotations  # For Python 3.8 compatibility
+
 import argparse
 import logging
 import os
