@@ -28,3 +28,20 @@ def call_with_asked_args(callback, args):
             )
         )
     return callback(*asked_arg_values)
+
+
+def mime_types_match(pattern: str, value: str) -> bool:
+    """
+    Compare a MIME type pattern, possibly with wildcards, and a value
+    """
+    value = value.split(";")[0]  # Remove optional details
+    if pattern == value:
+        return True
+
+    type, subtype = value.split("/")
+    pattern = pattern.split("/")
+
+    if pattern[0] == "*" or (pattern[0] == type and pattern[1] == "*"):
+        return True
+
+    return False

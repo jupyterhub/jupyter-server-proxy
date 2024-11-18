@@ -36,6 +36,7 @@ ServerProcess = namedtuple(
         "new_browser_tab",
         "request_headers_override",
         "rewrite_response",
+        "progressive",
         "update_last_activity",
         "raw_socket_proxy",
     ],
@@ -150,6 +151,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
             "rewrite_response",
             tuple(),
         ),
+        progressive=server_process_config.get("progressive", False),
         update_last_activity=server_process_config.get("update_last_activity", True),
         raw_socket_proxy=server_process_config.get("raw_socket_proxy", False),
     )
@@ -272,6 +274,15 @@ class ServerProxy(Configurable):
             instead of "dogs not allowed".
 
             Defaults to the empty tuple ``tuple()``.
+            
+          progressive
+            Makes the proxy progressive, meaning it won't buffer any requests from the server.
+            Useful for applications streaming their data, where the buffering of requests can lead
+            to a lagging, e.g. in video streams.
+            
+            Must be either a bool, when all requests are supposed to be progressive, or a function
+            taking the "Accept" header of the request as input and returning a bool, whether this request
+            should be made progressive.
  
           update_last_activity
             Will cause the proxy to report activity back to jupyter server.

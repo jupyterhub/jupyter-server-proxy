@@ -22,7 +22,7 @@ from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, o
 from traitlets.traitlets import HasTraits
 
 from .unixsock import UnixResolver
-from .utils import call_with_asked_args
+from .utils import call_with_asked_args, mime_types_match
 from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 
 
@@ -95,6 +95,14 @@ class AddSlashHandler(JupyterHandler):
         self.redirect(urlunparse(dest))
 
 
+COMMON_BINARY_MIME_TYPES = [
+    "image/*" "audio/*",
+    "video/*",
+    "application/*",
+    "text/event-stream",
+]
+
+
 class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     """
     A tornado request handler that proxies HTTP and websockets from
@@ -117,9 +125,36 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             "rewrite_response",
             tuple(),
         )
+        self.progressive = kwargs.pop("progressive", False)
         self._requested_subprotocols = None
         self.update_last_activity = kwargs.pop("update_last_activity", True)
         super().__init__(*args, **kwargs)
+
+    @property
+    def progressive(self):
+        accept_header = self.request.headers.get("Accept")
+
+        if self._progressive:
+            if callable(self._progressive):
+                return self._progressive(accept_header)
+            else:
+                return True
+
+        # Progressive and RewritableResponse are mutually exclusive
+        if self.rewrite_response:
+            return False
+
+        if accept_header is None:
+            return False
+
+        return any(
+            mime_types_match(pattern, accept_header)
+            for pattern in COMMON_BINARY_MIME_TYPES
+        )
+
+    @progressive.setter
+    def progressive(self, value):
+        self._progressive = value
 
     # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
     # to enable cross origin requests propagated by e.g. inverting proxies.
@@ -376,9 +411,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             )
         else:
             client = httpclient.AsyncHTTPClient(force_instance=True)
-        # check if the request is stream request
-        accept_header = self.request.headers.get("Accept")
-        if accept_header == "text/event-stream":
+
+        if self.progressive:
             return await self._proxy_progressive(host, port, proxied_path, body, client)
         else:
             return await self._proxy_buffered(host, port, proxied_path, body, client)
