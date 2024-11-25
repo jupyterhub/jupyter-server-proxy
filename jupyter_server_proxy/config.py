@@ -151,7 +151,7 @@ def make_server_process(name, server_process_config, serverproxy_config):
             "rewrite_response",
             tuple(),
         ),
-        progressive=server_process_config.get("progressive", False),
+        progressive=server_process_config.get("progressive", None),
         update_last_activity=server_process_config.get("update_last_activity", True),
         raw_socket_proxy=server_process_config.get("raw_socket_proxy", False),
     )
@@ -280,9 +280,15 @@ class ServerProxy(Configurable):
             Useful for applications streaming their data, where the buffering of requests can lead
             to a lagging, e.g. in video streams.
             
-            Must be either a bool, when all requests are supposed to be progressive, or a function
-            taking the "Accept" header of the request as input and returning a bool, whether this request
-            should be made progressive.
+            Must be either None (default), a bool, or a function. Setting it to a boolean will enable/disable 
+            progressive requests for all types. Setting to None, jupyter-server-proxy will only enable progressive 
+            for somespecial types, like videos, images and binary data. A function must be taking the "Accept" header of
+            the request from the client as input and returning a bool, whether this request should be made progressive.
+            
+            Note: `progressive` and `rewrite_response` are mutually exclusive on the same request. When rewrite_response
+            is given and progressive is None, the proxying will never be progressive. If progressive is a function,
+            rewrite_response will only be called on requests where it returns False. Progressive takes precedence over
+            rewrite_response when both are given!
  
           update_last_activity
             Will cause the proxy to report activity back to jupyter server.

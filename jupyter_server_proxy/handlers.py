@@ -96,7 +96,8 @@ class AddSlashHandler(JupyterHandler):
 
 
 COMMON_BINARY_MIME_TYPES = [
-    "image/*" "audio/*",
+    "image/*",
+    "audio/*",
     "video/*",
     "application/*",
     "text/event-stream",
@@ -125,7 +126,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             "rewrite_response",
             tuple(),
         )
-        self.progressive = kwargs.pop("progressive", False)
+        self.progressive = kwargs.pop("progressive", None)
         self._requested_subprotocols = None
         self.update_last_activity = kwargs.pop("update_last_activity", True)
         super().__init__(*args, **kwargs)
@@ -134,17 +135,21 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     def progressive(self):
         accept_header = self.request.headers.get("Accept")
 
-        if self._progressive:
+        if self._progressive is not None:
             if callable(self._progressive):
                 return self._progressive(accept_header)
             else:
-                return True
+                return self._progressive
 
         # Progressive and RewritableResponse are mutually exclusive
         if self.rewrite_response:
             return False
 
         if accept_header is None:
+            return False
+
+        # If the client can accept multiple types, we will not make the request progressive
+        if "," in accept_header.split(";")[0]:
             return False
 
         return any(
