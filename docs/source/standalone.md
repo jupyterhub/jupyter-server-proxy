@@ -3,11 +3,11 @@
 # Spawning and proxying a web service from JupyterHub
 
 The `standalone` feature of Jupyter Server Proxy enables JupyterHub Admins to launch and proxy arbitrary web services
-directly, in place of the JupyterLab or Notebook. You can use Jupyter Server Proxy to spawn a single proxy,
+directly, instead of JupyterLab or Notebook. You can use Jupyter Server Proxy to spawn a single proxy,
 without it being attached to a Jupyter server. The proxy securely authenticates and restricts access to authorized
-users through JupyterHub, giving a unified way to securely provide arbitrary applications.
+users through JupyterHub, providing a unified way to access arbitrary applications securely.
 
-This works similar to {ref}`proxying Server Processes <server-process>`, where a server process is started and proxied.
+This works similarly to {ref}`proxying Server Processes <server-process>`, where a server process is started and proxied.
 The Proxy is usually started from the command line, often by modifying the `Spawner.cmd` in your
 [JupyterHub Configuration](https://jupyterhub.readthedocs.io/en/stable/tutorial/getting-started/spawners-basics.html).
 
@@ -16,7 +16,7 @@ This feature builds upon the work of [Dan Lester](https://github.com/danlester),
 
 ## Installation
 
-This feature has a dependency to JupyterHub and must be explicitly installed via an optional dependency:
+This feature has a dependency on JupyterHub and must be explicitly installed via an optional dependency:
 
 ```shell
 pip install jupyter-server-proxy[standalone]
@@ -32,17 +32,17 @@ The standalone proxy is controlled with the `jupyter standaloneproxy` command. Y
 jupyter standaloneproxy -- voila --no-browser --port={port} /path/to/some/Notebook.ipynb
 ```
 
-Executing this command will spawn a new HTTP Server, which will spawn the voilà dashboard and render the notebook.
+Executing this command will spawn a new HTTP Server, creating the voilà dashboard and rendering the notebook.
 Any template strings (like the `--port={port}`) inside the command will be automatically replaced when the command is
 executed.
 
-The CLI has multiple advanced options to customize the behavior of the proxy. Execute `jupyter standaloneproxy --help`
+The CLI has multiple advanced options to customize the proxy behavior. Execute `jupyter standaloneproxy --help`
 to get a complete list of all arguments.
 
-### Specify address and port
+### Specify the address and port
 
-The proxy will try to extract the address and port from the `JUPYTERHUB_SERVICE_URL` environment variable, which is
-set if an application is launched by JupyterHub. Otherwise, it will be launched on `127.0.0.1:8888`.
+The proxy will try to extract the address and port from the `JUPYTERHUB_SERVICE_URL` environment variable. This variable
+will be set by JupyterHub. Otherwise, the server will be launched on `127.0.0.1:8888`.
 You can also explicitly overwrite these values:
 
 ```shell
@@ -52,7 +52,7 @@ jupyter standaloneproxy --address=localhost --port=8000 ...
 ### Disable Authentication
 
 For testing, it can be useful to disable the authentication with JupyterHub. Passing `--skip-authentication` will
-not triggering the login process when accessing the application.
+not trigger the login process when accessing the application.
 
 ```{warning} Disabling authentication will leave the application open to anyone! Be careful with it,
 especially on multi-user systems.
@@ -61,7 +61,7 @@ especially on multi-user systems.
 ## Usage with JupyterHub
 
 To launch a standalone proxy with JupyterHub, you need to customize the `Spawner` inside the configuration
-using traitlets:
+using `traitlets`:
 
 ```python
 c.Spawner.cmd = "jupyter-standaloneproxy"
@@ -69,7 +69,7 @@ c.Spawner.args = ["--", "voila", "--no-browser", "--port={port}", "/path/to/some
 ```
 
 This will hard-code JupyterHub to launch voilà instead of `jupyterhub-singleuser`. In case you want to give the users
-of the JupyterHub the ability to select which application to launch (like selecting either JupyterLab or voilà),
+of JupyterHub the ability to select which application to launch (like selecting either JupyterLab or voilà),
 you will want to make this configuration optional:
 
 ```python
@@ -108,15 +108,14 @@ This executable is usually a wrapper around the `JupyterLab` or `Notebook` appli
 additions regarding authentication and multi-user systems.
 In the standalone feature, we try to mimic these additions, but instead of using `JupyterLab` or `Notebook`, we
 will wrap them around an arbitrary web application.
-This will ensure only authenticated access to the application, while providing direct access to the application
-without needing a Jupyter server to be running in the background.
-The different additions will be discussed in more detail below.
+This will ensure direct, authenticated access to the application, without needing a Jupyter server to be running
+in the background. The different additions will be discussed in more detail below.
 
 ### Structure
 
 The standalone feature is built on top of the `SuperviseAndProxyhandler`, which will spawn a process and proxy
-requests to this server. While this process is called _Server_ in the documentation, I will call it _Application_
-here, to avoid confusion with the other server where the `SuperviseAndProxyhandler` is attached to.
+requests to this server. While this process is called _Server_ in the documentation, the term _Application_ will be
+used here, to avoid confusion with the other server where the `SuperviseAndProxyhandler` is attached to.
 When using jupyter-server-proxy, the proxies are attached to the Jupyter server and will proxy requests
 to the application.
 Since we do not want to use the Jupyter server here, we instead require an alternative server, which will be used
@@ -127,9 +126,9 @@ For that, we use tornado `HTTPServer`.
 
 One central component is the authentication with the JupyterHub Server.
 Any client accessing the application will need to authenticate with the JupyterHub API, which will ensure only
-the user themselves (or otherwise allowed users, e.g., admins) can access the application.
+users themselves (or otherwise allowed users, e.g., admins) can access the application.
 The Login process is started by deriving our `StandaloneProxyHandler` from
-[jupyterub.services.auth.HubOAuthenticated](https://github.com/jupyterhub/jupyterhub/blob/5.0.0/jupyterhub/services/auth.py#L1541)
+[jupyterhub.services.auth.HubOAuthenticated](https://github.com/jupyterhub/jupyterhub/blob/5.0.0/jupyterhub/services/auth.py#L1541)
 and decorating any methods we want to authenticate with `tornado.web.authenticated`.
 For the proxy, we just decorate the `proxy` method with `web.authenticated`, which will authenticate all routes on all HTTP Methods.
 `HubOAuthenticated` will automatically provide the login URL for the authentication process and any
@@ -140,12 +139,12 @@ This redirect will be received on the `/oauth_callback` path, from where we need
 root of the application.
 We use the [HubOAuthCallbackHander](https://github.com/jupyterhub/jupyterhub/blob/5.0.0/jupyterhub/services/auth.py#L1547),
 another handler from the JupyterHub package, for this.
-It will also cache the received OAuth state from the login, so that we can skip authentication for the next requests
+It will also cache the received OAuth state from the login so that we can skip authentication for the next requests
 and do not need to go through the whole login process for each request.
 
 ### SSL certificates
 
-In some JupyterHub configurations, the launched application will be configured to use an SSL certificate for request
+In some JupyterHub configurations, the launched application will be configured to use an SSL certificate for requests
 between the JupyterLab / Notebook and the JupyterHub API. The path of the certificate is given in the
 `JUPYTERHUB_SSL_*` environment variables. We use these variables to create a new SSL Context for both
 the `AsyncHTTPClient` (used for Activity Notification, see below) and the `HTTPServer`.
@@ -153,8 +152,8 @@ the `AsyncHTTPClient` (used for Activity Notification, see below) and the `HTTPS
 ### Activity Notifications
 
 The `jupyterhub-singleuser` will periodically send an activity notification to the JupyterHub API and inform it that
-the currently running application is still active. Whether this information is actually used or not depends on the
-specific configuration of this JupyterHub.
+the currently running application is still active. Whether this information is used or not depends on the specific
+configuration of this JupyterHub.
 
 ### Environment Variables
 

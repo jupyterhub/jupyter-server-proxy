@@ -10,7 +10,7 @@ from tornado.log import app_log as log
 async def notify_activity():
     """
     Regularly notify JupyterHub of activity.
-    See `jupyrehub/singleuser/extensions#L396`
+    See https://github.com/jupyterhub/jupyterhub/blob/4.x/jupyterhub/singleuser/extension.py#L389
     """
 
     client = httpclient.AsyncHTTPClient()

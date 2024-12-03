@@ -1,4 +1,4 @@
-from __future__ import annotations  # For Python 3.8 compatibility
+from __future__ import annotations
 
 import os
 import re
@@ -81,7 +81,7 @@ class StandaloneHubProxyHandler(HubOAuthenticated, SuperviseAndProxyHandler):
 
 
 def configure_ssl():
-    # See jupyter_server/serverapp:init_webapp
+    # See https://github.com/jupyter-server/jupyter_server/blob/v2.0.0/jupyter_server/serverapp.py#L2053-L2073
     keyfile = os.environ.get("JUPYTERHUB_SSL_KEYFILE", "")
     certfile = os.environ.get("JUPYTERHUB_SSL_CERTFILE", "")
     client_ca = os.environ.get("JUPYTERHUB_SSL_CLIENT_CA", "")
