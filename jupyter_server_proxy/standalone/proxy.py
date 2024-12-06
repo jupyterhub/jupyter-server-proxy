@@ -6,6 +6,7 @@ from jupyterhub import __version__ as __jh_version__
 from jupyterhub.services.auth import HubOAuthCallbackHandler, HubOAuthenticated
 from jupyterhub.utils import make_ssl_context
 from tornado import httpclient, web
+from tornado.log import app_log
 from tornado.web import Application, RedirectHandler
 from tornado.websocket import WebSocketHandler
 
@@ -78,57 +79,41 @@ class StandaloneHubProxyHandler(HubOAuthenticated, StandaloneProxyHandler):
         self.set_header("X-JupyterHub-Version", __jh_version__)
 
 
-def _make_native_proxy_handler(
-    command, port, mappath, overwrite_authentication, environment, timeout
+def make_proxy_app(
+    command: list[str],
+    prefix: str,
+    port: int,
+    unix_socket: bool | str,
+    environment: dict[str, str],
+    mappath: dict[str, str],
+    timeout: int,
+    skip_authentication: bool,
+    debug: bool,
+    # progressive: bool,
+    websocket_max_message_size: int,
 ):
     """
     Create a StandaloneHubProxyHandler subclass with given parameters
     """
+    app_log.debug(f"Process will use {port = }")
+    app_log.debug(f"Process will use {unix_socket = }")
+    app_log.debug(f"Process environment: {environment}")
+    app_log.debug(f"Proxy mappath: {mappath}")
 
-    # Try to determine if we are launched by a JupyterHub via environment variables.
-    # See jupyterhub/spawner.py#L1035
-    if overwrite_authentication is not None:
-        base = (
-            StandaloneHubProxyHandler
-            if overwrite_authentication is True
-            else StandaloneProxyHandler
-        )
-    elif "JUPYTERHUB_API_TOKEN" in os.environ and "JUPYTERHUB_API_URL" in os.environ:
-        base = StandaloneHubProxyHandler
-    else:
-        base = StandaloneProxyHandler
-
-    class _Proxy(base):
+    base = StandaloneProxyHandler if skip_authentication else StandaloneHubProxyHandler
+    class Proxy(base):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.name = command[0]
+            self.name = f"{command[0]!r} Process"
             self.proxy_base = command[0]
             self.requested_port = port
+            self.requested_unix_socket = unix_socket
             self.mappath = mappath
             self.command = command
             self.environment = environment
             self.timeout = timeout
 
-    return _Proxy
-
-
-def make_app(
-    destport,
-    prefix,
-    command,
-    authtype,
-    timeout,
-    debug,
-    logs,
-    progressive,
-    websocket_max_message_size,
-):
-    # ToDo: Environment
-    proxy_handler = _make_native_proxy_handler(
-        command, destport, {}, authtype, {}, timeout
-    )
-
-    options = dict(
+    settings = dict(
         debug=debug,
         # Required for JupyterHub Authentication
         hub_user=os.environ.get("JUPYTERHUB_USER", ""),
@@ -137,7 +122,8 @@ def make_app(
     )
 
     if websocket_max_message_size:
-        options["websocket_max_message_size"] = websocket_max_message_size
+        app_log.debug(f"Restricting WebSocket Messages to {websocket_max_message_size}")
+        settings["websocket_max_message_size"] = websocket_max_message_size
 
     return Application(
         [
@@ -147,7 +133,7 @@ def make_app(
             ),
             (
                 r"^" + re.escape(prefix) + r"/(.*)",
-                proxy_handler,
+                Proxy,
                 dict(
                     state={},
                     # ToDo: progressive=progressive
@@ -159,7 +145,7 @@ def make_app(
                 dict(url=prefix + "/{0}"),
             ),
         ],
-        **options,
+        **settings,
     )
 
 
