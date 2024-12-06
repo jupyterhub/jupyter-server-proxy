@@ -1,0 +1,7 @@
+[project]
+name = "test-jsp-dummyentrypoint"
+version = "0.0.0"
+
+
+[project.entry-points.jupyter_serverproxy_servers]
+test-serverprocessentrypoint = "test_jsp_dummyentrypoint:CustomServerProcessEntryPoint"
