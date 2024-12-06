@@ -5,11 +5,11 @@ from urllib.parse import urlparse
 from jupyterhub import __version__ as __jh_version__
 from jupyterhub.services.auth import HubOAuthCallbackHandler, HubOAuthenticated
 from jupyterhub.utils import make_ssl_context
-from tornado import httpclient
+from tornado import httpclient, web
 from tornado.web import Application, RedirectHandler
 from tornado.websocket import WebSocketHandler
 
-from ..handlers import ProxyHandler, SuperviseAndProxyHandler
+from ..handlers import SuperviseAndProxyHandler
 
 
 def configure_http_client():
@@ -48,7 +48,7 @@ class StandaloneProxyHandler(SuperviseAndProxyHandler):
         return self.timeout
 
 
-class StandaloneHubProxyHandler(StandaloneProxyHandler, HubOAuthenticated):
+class StandaloneHubProxyHandler(HubOAuthenticated, StandaloneProxyHandler):
     """
     Standalone Proxy used when spawned by a JupyterHub.
     Will restrict access to the application by authentication with the JupyterHub API.
@@ -70,9 +70,9 @@ class StandaloneHubProxyHandler(StandaloneProxyHandler, HubOAuthenticated):
             return self.settings["anyone"] == "1"
         return super().allow_all
 
-    def prepare(self, *args, **kwargs):
-        # Enable Authentication Check
-        return ProxyHandler.prepare(self, *args, **kwargs)
+    @web.authenticated
+    async def proxy(self, port, path):
+        return await super().proxy(port, path)
 
     def set_default_headers(self):
         self.set_header("X-JupyterHub-Version", __jh_version__)
@@ -130,12 +130,10 @@ def make_app(
 
     options = dict(
         debug=debug,
-        logs=logs,
+        # Required for JupyterHub Authentication
+        hub_user=os.environ.get("JUPYTERHUB_USER", ""),
+        hub_group=os.environ.get("JUPYTERHUB_GROUP", ""),
         cookie_secret=os.urandom(32),
-        user=os.environ.get("JUPYTERHUB_USER") or "",
-        group=os.environ.get("JUPYTERHUB_GROUP") or "",
-        anyone=os.environ.get("JUPYTERHUB_ANYONE") or "",
-        base_url=prefix,  # This is a confusing name, sorry
     )
 
     if websocket_max_message_size:
