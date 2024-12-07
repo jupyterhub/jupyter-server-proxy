@@ -16,7 +16,7 @@ from traitlets.traitlets import Bool, Int, Unicode, default, validate
 
 from ..config import ServerProcess
 from .activity import start_activity_update
-from .proxy import make_proxy
+from .proxy import make_standalone_proxy
 
 
 class StandaloneProxyServer(TraitletsApplication, ServerProcess):
@@ -128,8 +128,8 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
         # ToDo: Find a better way to do this
         return self.extra_args
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # Flags for CLI
         self.flags = {
@@ -174,7 +174,21 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
             "websocket_max_message_size": "StandaloneProxyServer.websocket_max_message_size",
         }
 
-    def _create_app(self) -> web.Application:
+    def get_proxy_base_class(self) -> tuple[type | None, dict]:
+        cls, kwargs = super().get_proxy_base_class()
+        if cls is None:
+            return None, kwargs
+
+        return make_standalone_proxy(cls, kwargs)
+
+    def get_proxy_attributes(self) -> dict:
+        attributes = super().get_proxy_attributes()
+        attributes["requested_port"] = self.server_port
+        attributes["skip_authentication"] = self.skip_authentication
+
+        return attributes
+
+    def create_app(self) -> web.Application:
         self.log.debug(f"Process will use port = {self.port}")
         self.log.debug(f"Process will use unix_socket = {self.unix_socket}")
         self.log.debug(f"Process environment: {self.environment}")
@@ -196,15 +210,7 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
             settings["websocket_max_message_size"] = self.websocket_max_message_size
 
         # Create the proxy class with out arguments
-        proxy_handler, proxy_kwargs = make_proxy(
-            self.command,
-            self.server_port,
-            self.unix_socket,
-            self.environment,
-            self.mappath,
-            self.timeout,
-            self.skip_authentication,
-        )
+        proxy_handler, proxy_kwargs = self.make_proxy_handler()
 
         base_url = re.escape(self.base_url)
         return web.Application(
@@ -253,7 +259,7 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
         if self.skip_authentication:
             self.log.warn("Disabling Authentication with JuypterHub Server!")
 
-        app = self._create_app()
+        app = self.create_app()
 
         ssl_options = self._configure_ssl()
         http_server = httpserver.HTTPServer(app, ssl_options=ssl_options, xheaders=True)
