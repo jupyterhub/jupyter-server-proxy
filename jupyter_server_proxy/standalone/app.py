@@ -7,11 +7,11 @@ import ssl
 from textwrap import dedent
 from urllib.parse import urlparse
 
+from jupyter_core.application import JupyterApp
 from jupyterhub.services.auth import HubOAuthCallbackHandler
 from jupyterhub.utils import make_ssl_context
 from tornado import httpclient, httpserver, ioloop, web
 from tornado.web import RedirectHandler
-from traitlets.config import Application as TraitletsApplication
 from traitlets.traitlets import Bool, Int, Unicode, default, validate
 
 from ..config import ServerProcess
@@ -19,7 +19,7 @@ from .activity import start_activity_update
 from .proxy import make_standalone_proxy
 
 
-class StandaloneProxyServer(TraitletsApplication, ServerProcess):
+class StandaloneProxyServer(JupyterApp, ServerProcess):
     name = "jupyter-standalone-proxy"
     description = """
     Wrap an arbitrary web service so it can be used in place of 'jupyterhub-singleuser' 
@@ -27,12 +27,9 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
     
     Usage: jupyter standaloneproxy [options] -- <command>
     
-    The <command> will be executed to start the web service once the proxy receives the first request. The command can
-    contain the placeholders '{{port}}', '{{unix_socket}}' and '{{base_url}}', which will be replaced with the 
-    appropriate values once the application starts.
-    
     For more details, see the jupyter-server-proxy documentation.  
     """
+    examples = "jupyter standaloneproxy -- voila --port={port} --no-browser /path/to/notebook.ipynb"
 
     base_url = Unicode(
         help="""
@@ -152,6 +149,7 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
         # exeptions we do not need, for easier use of the CLI
         # We don't need "command" here, as we will take it from the extra_args
         ignore_traits = [
+            "name",
             "launcher_entry",
             "new_browser_tab",
             "rewrite_response",
@@ -159,12 +157,13 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
             "command",
         ]
         server_process_aliases = {
-            trait: f"ServerProcess.{trait}"
+            trait: f"StandaloneProxyServer.{trait}"
             for trait in ServerProcess.class_traits(config=True)
             if trait not in ignore_traits and trait not in self.flags
         }
 
         self.aliases = {
+            **super().aliases,
             **server_process_aliases,
             "base_url": "StandaloneProxyServer.base_url",
             "address": "StandaloneProxyServer.address",
@@ -173,6 +172,17 @@ class StandaloneProxyServer(TraitletsApplication, ServerProcess):
             "activity_interval": "StandaloneProxyServer.activity_interval",
             "websocket_max_message_size": "StandaloneProxyServer.websocket_max_message_size",
         }
+
+    def emit_alias_help(self):
+        yield from super().emit_alias_help()
+        yield ""
+
+        # Manually yield the help for command, which we will get from extra_args
+        command_help = StandaloneProxyServer.class_get_trait_help(
+            ServerProcess.command
+        ).split("\n")
+        yield command_help[0].replace("--StandaloneProxyServer.command", "command")
+        yield from command_help[1:]
 
     def get_proxy_base_class(self) -> tuple[type | None, dict]:
         cls, kwargs = super().get_proxy_base_class()

@@ -58,6 +58,29 @@ not trigger the login process when accessing the application.
 especially on multi-user systems.
 ```
 
+### Configuration via traitlets
+
+Instead of using the commandline, a standalone proxy can also be configured via a `traitlets` configuration file.
+The configuration file can be loaded by running `jupyter standaloneproxy --config path/to/config.py`.
+
+The options mentioned above can also be configured in the config file:
+
+```python
+# Specify the command to execute
+c.StandaloneProxyServer.command = [
+    "voila", "--no-browser", "--port={port}", "/path/to/some/Notebook.ipynb"
+]
+
+# Specify address and port
+c.StandaloneProxyServer.address = "localhost"
+c.StandaloneProxyServer.port = 8000
+
+# Disable authentication
+c.StandaloneProxyServer.skip_authentication = True
+```
+
+A default config file can be emitted by running `jupyter standaloneproxy --generate-config`
+
 ## Usage with JupyterHub
 
 To launch a standalone proxy with JupyterHub, you need to customize the `Spawner` inside the configuration
