@@ -77,7 +77,6 @@ def a_server(
     # prepare some URLss
     url = f"http://127.0.0.1:{an_unused_port}/"
     canary_url = f"{url}favicon.ico"
-    shutdown_url = f"{url}api/shutdown?token={a_token}"
 
     wait_until_urlopen(canary_url)
 
@@ -87,8 +86,7 @@ def a_server(
 
     # clean up after server is no longer needed
     print(f"{a_server_cmd} shutting down...", flush=True)
-    wait_until_urlopen(shutdown_url, data=[])
-    server_proc.wait()
+    server_proc.terminate()
     print(f"{a_server_cmd} is stopped", flush=True)
 
 
