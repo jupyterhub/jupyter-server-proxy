@@ -19,6 +19,7 @@ from traitlets import (
     Callable,
     Dict,
     Float,
+    HasTraits,
     Instance,
     Int,
     List,
@@ -35,7 +36,7 @@ from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxy
 from .rawsocket import RawSocketHandler, SuperviseAndRawSocketHandler
 
 
-class LauncherEntry(Configurable):
+class LauncherEntry(HasTraits):
     enabled = Bool(
         True,
         help="""
@@ -76,7 +77,7 @@ class LauncherEntry(Configurable):
 
 
 class ServerProcess(Configurable):
-    name = Unicode(help="Name of the server").tag(config=True)
+    name = Unicode(help="Name of the server")
 
     command = Union(
         [List(Unicode()), Callable()],
@@ -92,7 +93,7 @@ class ServerProcess(Configurable):
         process is assumed to be started ahead of time and already available
         to be proxied to.
     """,
-    ).tag(config=True)
+    )
 
     environment = Union(
         [Dict(Unicode()), Callable()],
@@ -115,14 +116,14 @@ class ServerProcess(Configurable):
         Proxy requests default to being rewritten to ``/``. If this is True,
         the absolute URL will be sent to the backend instead.
     """,
-    ).tag(config=True)
+    )
 
     port = Int(
         0,
         help="""
         Set the port that the service will listen on. The default is to automatically select an unused port.
     """,
-    ).tag(config=True)
+    )
 
     unix_socket = Union(
         [Bool(False), Unicode()],
@@ -135,7 +136,7 @@ class ServerProcess(Configurable):
 
         Proxying websockets over a Unix socket requires Tornado >= 6.3.
     """,
-    ).tag(config=True)
+    )
 
     mappath = Union(
         [Dict(Unicode()), Callable()],
@@ -145,15 +146,15 @@ class ServerProcess(Configurable):
         Either a dictionary of request paths to proxied paths,
         or a callable that takes parameter ``path`` and returns the proxied path.
     """,
-    ).tag(config=True)
+    )
 
     launcher_entry = Union(
         [Instance(LauncherEntry), Dict()],
         allow_none=False,
         help="""
-        A dictionary of various options for entries in classic notebook / jupyterlab launchers.
+        Specify various options for entries in classic notebook / jupyterlab launchers.
 
-        Keys recognized are:
+        Must be an instance of ``LauncherEntry`` or a dictionary with the following keys:
 
             ``enabled``
                 Set to True (default) to make an entry in the launchers. Set to False to have no
@@ -174,13 +175,18 @@ class ServerProcess(Configurable):
                 The category for the launcher item. Currently only used by the JupyterLab launcher.
                 By default it is "Notebook".
     """,
-    ).tag(config=True)
+    )
 
     @validate("launcher_entry")
     def _validate_launcher_entry(self, proposal):
-        kwargs = {"title": self.name, "path_info": self.name + "/"}
-        kwargs.update(proposal["value"])
-        return LauncherEntry(**kwargs)
+        if isinstance(proposal["value"], LauncherEntry):
+            proposal["value"].title = self.name
+            proposal["value"].path_info = self.name + "/"
+            return proposal["value"]
+        else:
+            kwargs = {"title": self.name, "path_info": self.name + "/"}
+            kwargs.update(proposal["value"])
+            return LauncherEntry(**kwargs)
 
     @default("launcher_entry")
     def _default_launcher_entry(self):
@@ -201,7 +207,7 @@ class ServerProcess(Configurable):
         A dictionary of additional HTTP headers for the proxy request. As with
         the command traitlet, ``{port}``, ``{unix_socket}`` and ``{base_url}`` will be substituted.
     """,
-    ).tag(config=True)
+    )
 
     rewrite_response = Union(
         [Callable(), List(Callable())],
@@ -260,7 +266,7 @@ class ServerProcess(Configurable):
         similar to running a websockify layer (https://github.com/novnc/websockify).
         All other HTTP requests return 405 (and thus this will also bypass rewrite_response).
     """,
-    ).tag(config=True)
+    )
 
     def get_proxy_base_class(self) -> tuple[type | None, dict]:
         """
@@ -341,8 +347,8 @@ class ServerProcess(Configurable):
         return _Proxy, proxy_kwargs
 
 
-def get_entrypoint_server_processes(serverproxy_config):
-    sps = []
+def get_entrypoint_server_processes():
+    processes = []
     for entry_point in entry_points(group="jupyter_serverproxy_servers"):
         name = entry_point.name
         try:
@@ -350,8 +356,8 @@ def get_entrypoint_server_processes(serverproxy_config):
         except Exception as e:
             warn(f"entry_point {name} was unable to be loaded: {str(e)}")
             continue
-        sps.append(make_server_process(name, server_process_config, serverproxy_config))
-    return sps
+        processes.append(ServerProcess(name=name, **server_process_config))
+    return processes
 
 
 def make_handlers(base_url: str, server_processes: list[ServerProcess]):
@@ -384,19 +390,35 @@ def _serverproxy_servers_help():
 
 class ServerProxy(Configurable):
     servers = Dict(
-        {},
+        key_trait=Unicode(),
+        value_trait=Union([Dict(), Instance(ServerProcess)]),
         help="""
         Dictionary of processes to supervise & proxy.
 
         Key should be the name of the process. This is also used by default as
         the URL prefix, and all requests matching this prefix are routed to this process.
 
-        Value should be a dictionary with the following keys:
+        Value should be an instance of ``ServerProcess`` or a dictionary with the following keys:
 
         """
         + indent(_serverproxy_servers_help(), "        "),
         config=True,
     )
+
+    @validate("servers")
+    def _validate_servers(self, proposal):
+        servers = {}
+
+        for name, server_process in proposal["value"].items():
+            if isinstance(server_process, ServerProcess):
+                server_process.name = server_process.name or name
+                servers[name] = server_process
+            else:
+                kwargs = {"name": name}
+                kwargs.update(**server_process)
+                servers[name] = ServerProcess(**kwargs)
+
+        return servers
 
     non_service_rewrite_response = Union(
         default_value=tuple(),
