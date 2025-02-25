@@ -16,6 +16,7 @@ from traitlets import (
     Bool,
     Callable,
     Dict,
+    Float,
     Instance,
     Int,
     List,
@@ -106,8 +107,8 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
-    timeout = Int(
-        5, help="Timeout in seconds for the process to become ready, default 5s."
+    timeout = Float(
+        5.0, help="Timeout in seconds for the process to become ready, default 5s."
     ).tag(config=True)
 
     absolute_url = Bool(
