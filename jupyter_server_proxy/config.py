@@ -16,6 +16,7 @@ from traitlets import (
     Bool,
     Callable,
     Dict,
+    HasTraits,
     Instance,
     Int,
     List,
@@ -32,7 +33,7 @@ from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxy
 from .rawsocket import RawSocketHandler, SuperviseAndRawSocketHandler
 
 
-class LauncherEntry(Configurable):
+class LauncherEntry(HasTraits):
     enabled = Bool(
         True,
         help="""
@@ -76,7 +77,7 @@ class LauncherEntry(Configurable):
     )
 
 
-class ServerProcess(Configurable):
+class ServerProcess(HasTraits):
     name = Unicode(help="Name of the server").tag(config=True)
 
     command = Union(
@@ -179,9 +180,13 @@ class ServerProcess(Configurable):
 
     @validate("launcher_entry")
     def _validate_launcher_entry(self, proposal):
-        kwargs = {"title": self.name}
-        kwargs.update(proposal["value"])
-        return LauncherEntry(**kwargs)
+        if isinstance(proposal["value"], LauncherEntry):
+            proposal["value"].title = self.name
+            return proposal["value"]
+        else:
+            kwargs = {"title": self.name}
+            kwargs.update(proposal["value"])
+            return LauncherEntry(**kwargs)
 
     @default("launcher_entry")
     def _default_launcher_entry(self):
@@ -319,8 +324,8 @@ def _make_proxy_handler(sp: ServerProcess):
     return _Proxy
 
 
-def get_entrypoint_server_processes(serverproxy_config):
-    sps = []
+def get_entrypoint_server_processes():
+    processes = []
     for entry_point in entry_points(group="jupyter_serverproxy_servers"):
         name = entry_point.name
         try:
@@ -328,8 +333,8 @@ def get_entrypoint_server_processes(serverproxy_config):
         except Exception as e:
             warn(f"entry_point {name} was unable to be loaded: {str(e)}")
             continue
-        sps.append(make_server_process(name, server_process_config, serverproxy_config))
-    return sps
+        processes.append(ServerProcess(name=name, **server_process_config))
+    return processes
 
 
 def make_handlers(base_url, server_processes):
@@ -346,10 +351,6 @@ def make_handlers(base_url, server_processes):
     return handlers
 
 
-def make_server_process(name, server_process_config, serverproxy_config):
-    return ServerProcess(name=name, **server_process_config)
-
-
 def _serverproxy_servers_help():
     serverprocess_help = ""
     for k, v in ServerProcess.class_traits().items():
@@ -362,19 +363,35 @@ def _serverproxy_servers_help():
 
 class ServerProxy(Configurable):
     servers = Dict(
-        {},
+        key_trait=Unicode(),
+        value_trait=Union([Dict(), Instance(ServerProcess)]),
         help="""
         Dictionary of processes to supervise & proxy.
 
         Key should be the name of the process. This is also used by default as
         the URL prefix, and all requests matching this prefix are routed to this process.
 
-        Value should be a dictionary with the following keys:
+        Value should be an instance of ``ServerProxy`` or a dictionary with the following keys:
 
         """
         + indent(_serverproxy_servers_help(), "        "),
         config=True,
     )
+
+    @validate("servers")
+    def _validate_servers(self, proposal):
+        servers = {}
+
+        for name, server_process in proposal["value"].items():
+            if isinstance(server_process, ServerProcess):
+                server_process.name = server_process.name or name
+                servers[name] = server_process
+            else:
+                kwargs = {"name": name}
+                kwargs.update(**server_process)
+                servers[name] = ServerProcess(**kwargs)
+
+        return servers
 
     non_service_rewrite_response = Union(
         default_value=tuple(),
