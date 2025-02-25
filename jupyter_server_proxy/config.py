@@ -79,8 +79,8 @@ class LauncherEntry(Configurable):
 class ServerProcess(Configurable):
     name = Unicode(help="Name of the server").tag(config=True)
 
-    command = List(
-        Unicode(),
+    command = Union(
+        [List(Unicode()), Callable()],
         help="""
         An optional list of strings that should be the full command to be executed.
         The optional template arguments ``{port}``, ``{unix_socket}`` and ``{base_url}``
@@ -195,8 +195,8 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
-    request_headers_override = Dict(
-        Unicode(),
+    request_headers_override = Union(
+        [Dict(Unicode()), Callable()],
         default_value={},
         help="""
         A dictionary of additional HTTP headers for the proxy request. As with
