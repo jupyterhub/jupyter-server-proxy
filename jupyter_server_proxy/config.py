@@ -63,10 +63,6 @@ class LauncherEntry(Configurable):
     """,
     )
 
-    @default("path_info")
-    def _default_path_info(self):
-        return self.title + "/"
-
     category = Unicode(
         "Notebook",
         help="""
@@ -179,13 +175,13 @@ class ServerProcess(Configurable):
 
     @validate("launcher_entry")
     def _validate_launcher_entry(self, proposal):
-        kwargs = {"title": self.name}
+        kwargs = {"title": self.name, "path_info": self.name + "/"}
         kwargs.update(proposal["value"])
         return LauncherEntry(**kwargs)
 
     @default("launcher_entry")
     def _default_launcher_entry(self):
-        return LauncherEntry(title=self.name)
+        return LauncherEntry(title=self.name, path_info=self.name + "/")
 
     new_browser_tab = Bool(
         True,
