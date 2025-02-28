@@ -1,4 +1,4 @@
-(standanlone)=
+(standalone)=
 
 # Spawning and proxying a web service from JupyterHub
 
@@ -160,7 +160,7 @@ client accessing any path of our server will be redirected to the JupyterHub API
 After a client has been authenticated with the JupyterHub API, they will be redirected back to our server.
 This redirect will be received on the `/oauth_callback` path, from where we need to redirect the client back to the
 root of the application.
-We use the [HubOAuthCallbackHander](https://github.com/jupyterhub/jupyterhub/blob/5.0.0/jupyterhub/services/auth.py#L1547),
+We use the [HubOAuthCallbackHandler](https://github.com/jupyterhub/jupyterhub/blob/5.0.0/jupyterhub/services/auth.py#L1547),
 another handler from the JupyterHub package, for this.
 It will also cache the received OAuth state from the login so that we can skip authentication for the next requests
 and do not need to go through the whole login process for each request.
@@ -183,12 +183,12 @@ configuration of this JupyterHub.
 JupyterHub uses a lot of environment variables to specify how the launched app should be run.
 This list is a small overview of all used variables and what they contain and are used for.
 
-| Variable                                                                        | Explanation                                                                                                                                                                           | Typical Value                              |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `JUPYTERHUB_SERVICE_URL`                                                        | URL where the server should be listening. Used to find the Address and Port to start the server on.                                                                                   | `http://127.0.0.1:5555`                    |
-| `JUPYTERHUB_SERVICE_PREFIX`                                                     | An URL Prefix where the root of the launched application should be hosted. E.g., when set to `/user/name/`, then the root of the proxied aplication should be `/user/name/index.html` | `/services/service-name/` or `/user/name/` |
-| `JUPYTERHUB_ACTIVITY_URL`                                                       | URL where to send activity notifications to.                                                                                                                                          | `$JUPYTERHUB_API_URL/user/name/activity`   |
-| `JUPYTERHUB_API_TOKEN`                                                          | Authorization Token for requests to the JupyterHub API.                                                                                                                               |                                            |
-| `JUPYTERHUB_SERVER_NAME`                                                        | A name given to all apps launched by the JupyterHub.                                                                                                                                  |                                            |
-| `JUPYTERHUB_SSL_KEYFILE`, `JUPYTERHUB_SSL_CERTFILE`, `JUPYTERHUB_SSL_CLIENT_CA` | Paths to keyfile, certfile and client CA for the SSL configuration                                                                                                                    |                                            |
-| `JUPYTERHUB_USER`, `JUPYTERHUB_GROUP`                                           | Name and Group of the user for this application. Required for Authentication                                                                                                          |
+| Variable                                                                        | Explanation                                                                                                                                                                            | Typical Value                              |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `JUPYTERHUB_SERVICE_URL`                                                        | URL where the server should be listening. Used to find the Address and Port to start the server on.                                                                                    | `http://127.0.0.1:5555`                    |
+| `JUPYTERHUB_SERVICE_PREFIX`                                                     | An URL Prefix where the root of the launched application should be hosted. E.g., when set to `/user/name/`, then the root of the proxied application should be `/user/name/index.html` | `/services/service-name/` or `/user/name/` |
+| `JUPYTERHUB_ACTIVITY_URL`                                                       | URL where to send activity notifications to.                                                                                                                                           | `$JUPYTERHUB_API_URL/user/name/activity`   |
+| `JUPYTERHUB_API_TOKEN`                                                          | Authorization Token for requests to the JupyterHub API.                                                                                                                                |                                            |
+| `JUPYTERHUB_SERVER_NAME`                                                        | A name given to all apps launched by the JupyterHub.                                                                                                                                   |                                            |
+| `JUPYTERHUB_SSL_KEYFILE`, `JUPYTERHUB_SSL_CERTFILE`, `JUPYTERHUB_SSL_CLIENT_CA` | Paths to keyfile, certfile and client CA for the SSL configuration                                                                                                                     |                                            |
+| `JUPYTERHUB_USER`, `JUPYTERHUB_GROUP`                                           | Name and Group of the user for this application. Required for Authentication                                                                                                           |

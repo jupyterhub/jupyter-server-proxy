@@ -35,7 +35,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         help="""
         Base URL where Requests will be received and proxied. Usually taken from the 
         "JUPYTERHUB_SERVICE_PREFIX" environment variable (or "/" when not set). 
-        Set to overwrite.
+        Set to override.
 
         When setting to "/foo/bar", only incoming requests starting with this prefix will
         be answered by the server and proxied to the proxied app. Any other requests will
@@ -43,11 +43,11 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         """,
     ).tag(config=True)
 
-    @default("prefix")
+    @default("base_url")
     def _default_prefix(self):
         return os.environ.get("JUPYTERHUB_SERVICE_PREFIX", "/").removesuffix("/")
 
-    @validate("prefix")
+    @validate("base_url")
     def _validate_prefix(self, proposal):
         return proposal["value"].removesuffix("/")
 
@@ -65,7 +65,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
     address = Unicode(
         help="""
         The address where the proxy server can be accessed. The address is usually taken from the `JUPYTERHUB_SERVICE_URL`
-        environment variable or will default to `127.0.0.1`. Used to explicitely overwrite the address of the server.
+        environment variable or will default to `127.0.0.1`. Used to explicitly override the address of the server.
         """
     ).tag(config=True)
 
@@ -81,7 +81,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
     port = Int(
         help="""
         The port where the proxy server can be accessed. The port is usually taken from the `JUPYTERHUB_SERVICE_URL`
-        environment variable or will default to `8888`. Used to explicitely overwrite the port of the server.
+        environment variable or will default to `8888`. Used to explicitly override the port of the server.
         """
     ).tag(config=True)
 
@@ -104,7 +104,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
     activity_interval = Int(
         default_value=300,
         help="""
-        Specify an interval to send regulat activity updated to the JupyterHub (in Seconds). 
+        Specify an interval to send regular activity updates to the JupyterHub (in seconds). 
         When enabled, the StandaloneProxy will try to send a POST request to the JupyterHub API
         containing a timestamp and the name of the server.
         The URL for the activity Endpoint needs to be specified in the "JUPYTERHUB_ACTIVITY_URL"
@@ -146,7 +146,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         }
 
         # Create an Alias to all Traits defined in ServerProcess, with some
-        # exeptions we do not need, for easier use of the CLI
+        # exceptions we do not need, for easier use of the CLI
         # We don't need "command" here, as we will take it from the extra_args
         ignore_traits = [
             "name",
@@ -219,7 +219,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
             )
             settings["websocket_max_message_size"] = self.websocket_max_message_size
 
-        # Create the proxy class with out arguments
+        # Create the proxy class without arguments
         proxy_handler, proxy_kwargs = self.make_proxy_handler()
 
         base_url = re.escape(self.base_url)
@@ -282,7 +282,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         # Periodically send JupyterHub Notifications, that we are still running
         if self.activity_interval > 0:
             self.log.info(
-                f"Sending Acitivity Notivication to JupyterHub with interval={self.activity_interval}s"
+                f"Sending Activity Notification to JupyterHub with interval={self.activity_interval}s"
             )
             start_activity_update(self.activity_interval)
 
