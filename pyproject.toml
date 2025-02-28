@@ -52,6 +52,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
+    "jupyter-server-proxy[standalone]",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
@@ -61,6 +62,9 @@ test = [
 acceptance = [
     "jupyter-server-proxy[test]",
     "robotframework-jupyterlibrary >=0.4.2",
+]
+standalone = [
+    "jupyterhub"
 ]
 classic = [
     "jupyter-server <2",
@@ -78,6 +82,9 @@ lab = [
 Documentation = "https://jupyter-server-proxy.readthedocs.io"
 Source = "https://github.com/jupyterhub/jupyter-server-proxy"
 Tracker = "https://github.com/jupyterhub/jupyter-server-proxy/issues"
+
+[project.scripts]
+jupyter-standaloneproxy = "jupyter_server_proxy.standalone:main"
 
 
 # hatch ref: https://hatch.pypa.io/latest/
