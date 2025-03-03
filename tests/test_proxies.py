@@ -34,6 +34,12 @@ PARAMETERIZED_SERVER_PROCESS_PATHS = [
         ),
     ),
     pytest.param(
+        "/python-unix-socket-callable/",
+        marks=pytest.mark.skipif(
+            sys.platform == "win32", reason="Unix socket not supported on Windows"
+        ),
+    ),
+    pytest.param(
         "/python-unix-socket-file/",
         marks=pytest.mark.skipif(
             sys.platform == "win32", reason="Unix socket not supported on Windows"
@@ -279,6 +285,18 @@ def test_server_proxy_port_non_service_rewrite_response(
     assert s.startswith("GET /foo?token=")
 
 
+def test_server_proxy_command_callable(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, "/python-http-callable-command/abc", TOKEN)
+    assert r.code == 200
+    s = r.read().decode("ascii")
+    assert s.startswith("GET /abc?token=")
+    assert "X-Forwarded-Context: /python-http-callable-command\n" in s
+    assert "X-Proxycontextpath: /python-http-callable-command\n" in s
+
+
 @pytest.mark.parametrize(
     "requestpath,expected",
     [
@@ -311,26 +329,46 @@ def test_server_proxy_mappath_callable(
     requestpath, expected, a_server_port_and_token: Tuple[int, str]
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
-    r = request_get(PORT, "/python-http-mappathf" + requestpath, TOKEN)
+    r = request_get(PORT, "/python-http-callable-mappath" + requestpath, TOKEN)
     assert r.code == 200
     s = r.read().decode("ascii")
     assert s.startswith("GET " + expected)
-    assert "X-Forwarded-Context: /python-http-mappathf\n" in s
-    assert "X-Proxycontextpath: /python-http-mappathf\n" in s
+    assert "X-Forwarded-Context: /python-http-callable-mappath\n" in s
+    assert "X-Proxycontextpath: /python-http-callable-mappath\n" in s
+
+
+@pytest.mark.parametrize(
+    "name", ["python-http-environment", "python-http-callable-environment"]
+)
+def test_server_proxy_environment(
+    name: str, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, f"/{name}/test", TOKEN)
+    assert r.code == 200
+    s = r.read().decode("ascii")
+    assert s.startswith("GET /test?token=")
+    assert f"X-Forwarded-Context: /{name}\n" in s
+    assert f"X-Proxycontextpath: /{name}\n" in s
+
+
+@pytest.mark.parametrize(
+    "name", ["python-http-request-headers", "python-http-callable-request-headers"]
+)
+def test_server_proxy_request_headers(
+    name, a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    r = request_get(PORT, f"/{name}/", TOKEN, host="127.0.0.1")
+    assert r.code == 200
+    s = r.read().decode("ascii")
+    assert "X-Custom-Header: pytest-23456\n" in s
 
 
 def test_server_proxy_remote(a_server_port_and_token: Tuple[int, str]) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/newproxy", TOKEN, host="127.0.0.1")
     assert r.code == 200
-
-
-def test_server_request_headers(a_server_port_and_token: Tuple[int, str]) -> None:
-    PORT, TOKEN = a_server_port_and_token
-    r = request_get(PORT, "/python-request-headers/", TOKEN, host="127.0.0.1")
-    assert r.code == 200
-    s = r.read().decode("ascii")
-    assert "X-Custom-Header: pytest-23456\n" in s
 
 
 def test_server_content_encoding_header(
@@ -496,14 +534,6 @@ def test_bad_server_proxy_url(
     if status >= 400:
         # request should not have been proxied
         assert "X-ProxyContextPath" not in r.headers
-
-
-def test_callable_environment_formatting(
-    a_server_port_and_token: Tuple[int, str]
-) -> None:
-    PORT, TOKEN = a_server_port_and_token
-    r = request_get(PORT, "/python-http-callable-env/test", TOKEN)
-    assert r.code == 200
 
 
 @pytest.mark.parametrize(
