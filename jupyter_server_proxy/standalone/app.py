@@ -45,11 +45,18 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
 
     @default("base_url")
     def _default_prefix(self):
-        return os.environ.get("JUPYTERHUB_SERVICE_PREFIX", "/").removesuffix("/")
+        # Python 3.8 does not support removesuffix
+        prefix = os.environ.get("JUPYTERHUB_SERVICE_PREFIX", "/")
+        if prefix[-1] == "/":
+            prefix = prefix[:-1]
+        return prefix
 
     @validate("base_url")
     def _validate_prefix(self, proposal):
-        return proposal["value"].removesuffix("/")
+        prefix = proposal["value"]
+        if prefix[-1] == "/":
+            prefix = prefix[:-1]
+        return prefix
 
     skip_authentication = Bool(
         default=False,
@@ -277,7 +284,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
 
         self.log.info(f"Starting standaloneproxy on '{self.address}:{self.port}'")
         self.log.info(f"Base URL: {self.base_url!r}")
-        self.log.info(f"Command: {' '.join(self.command)!r}")
+        self.log.info(f"Command: {self.command}")
 
         # Periodically send JupyterHub Notifications, that we are still running
         if self.activity_interval > 0:
