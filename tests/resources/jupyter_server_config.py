@@ -51,6 +51,12 @@ def my_env():
     return {"MYVAR": "String with escaped {{var}}"}
 
 
+# Traitlets configuration for test-serverprocessentrypoint in the dummyentrypoint package
+c.CustomServerProcessEntryPoint.request_headers_override = {
+    "X-Custom-Header": "custom-configurable"
+}
+
+
 c.ServerProxy.servers = {
     "python-http": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],

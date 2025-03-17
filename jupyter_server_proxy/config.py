@@ -73,7 +73,7 @@ class LauncherEntry(Configurable):
     )
 
 
-class ServerProcess(Configurable):
+class _ServerProcess(Configurable):
     name = Unicode(help="Name of the server").tag(config=True)
 
     command = Union(
@@ -261,6 +261,22 @@ class ServerProcess(Configurable):
     ).tag(config=True)
 
 
+class ServerProcess(_ServerProcess):
+    """
+    A configurable server process for single standalone servers.
+    This is separate from ServerProcessEntryPoint so that we can configure it
+    independently of ServerProcessEntryPoint
+    """
+
+
+class ServerProcessEntryPoint(_ServerProcess):
+    """
+    A ServeProcess entrypoint that is a Configurable.
+    This is separate from ServerProcess so that we can configure it
+    independently of ServerProcess
+    """
+
+
 def _make_proxy_handler(sp: ServerProcess):
     """
     Create an appropriate handler with given parameters
@@ -316,16 +332,23 @@ def _make_proxy_handler(sp: ServerProcess):
     return _Proxy
 
 
-def get_entrypoint_server_processes(serverproxy_config):
+def get_entrypoint_server_processes(serverproxy_config, parent):
     sps = []
     for entry_point in entry_points(group="jupyter_serverproxy_servers"):
         name = entry_point.name
         try:
-            server_process_config = entry_point.load()()
+            server_process_callable = entry_point.load()
+            if issubclass(server_process_callable, ServerProcessEntryPoint):
+                server_process = server_process_callable(name=name, parent=parent)
+                sps.append(server_process)
+            else:
+                server_process_config = server_process_callable()
+                sps.append(
+                    make_server_process(name, server_process_config, serverproxy_config)
+                )
         except Exception as e:
             warn(f"entry_point {name} was unable to be loaded: {str(e)}")
             continue
-        sps.append(make_server_process(name, server_process_config, serverproxy_config))
     return sps
 
 

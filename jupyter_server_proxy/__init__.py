@@ -2,6 +2,7 @@ from jupyter_server.utils import url_path_join as ujoin
 
 from ._version import __version__  # noqa
 from .api import IconHandler, ServersInfoHandler
+from .config import ServerProcess, ServerProcessEntryPoint
 from .config import ServerProxy as ServerProxyConfig
 from .config import get_entrypoint_server_processes, make_handlers, make_server_process
 from .handlers import setup_handlers
@@ -45,7 +46,9 @@ def _load_jupyter_server_extension(nbapp):
         make_server_process(name, server_process_config, serverproxy_config)
         for name, server_process_config in serverproxy_config.servers.items()
     ]
-    server_processes += get_entrypoint_server_processes(serverproxy_config)
+    server_processes += get_entrypoint_server_processes(
+        serverproxy_config, parent=nbapp
+    )
     server_handlers = make_handlers(base_url, server_processes)
     nbapp.web_app.add_handlers(".*", server_handlers)
 
@@ -81,3 +84,5 @@ def _load_jupyter_server_extension(nbapp):
 # For backward compatibility
 load_jupyter_server_extension = _load_jupyter_server_extension
 _jupyter_server_extension_paths = _jupyter_server_extension_points
+
+__all__ = ["ServerProcess", "ServerProcessEntryPoint"]

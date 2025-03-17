@@ -167,6 +167,10 @@ jobs:
           jupyter lab extension list
           jupyter lab extension list 2>&1 | grep -iE 'jupyter_server_proxy.*OK.*'
 
+      - name: Install a dummy entrypoint so we can test its loaded correctly
+        run: |
+          pip install ./tests/resources/dummyentrypoint/
+
       # we have installed a pre-built wheel and configured code coverage to
       # inspect "jupyter_server_proxy", by re-locating to another directory,
       # there is no confusion about "jupyter_server_proxy" referring to our
