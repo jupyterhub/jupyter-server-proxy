@@ -200,6 +200,11 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
 
     def get_proxy_attributes(self) -> dict:
         attributes = super().get_proxy_attributes()
+
+        # The ProxyHandler will be listening on "{base_url}/" instead of "{base_url}/{name}".
+        # Needed for correct header generation of "X-Forwarded-Context", etc.
+        attributes["proxy_base"] = "/"
+
         attributes["requested_port"] = self.server_port
         attributes["skip_authentication"] = self.skip_authentication
 
