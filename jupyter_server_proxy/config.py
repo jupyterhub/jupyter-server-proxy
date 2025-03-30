@@ -246,6 +246,27 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
+    progressive = Union(
+        [Bool(), Callable()],
+        default_value=None,
+        allow_none=True,
+        help="""
+        Makes the proxy progressive, meaning it won't buffer any requests from the server.
+        Useful for applications streaming their data, where the buffering of requests can lead
+        to a lagging, e.g. in video streams.
+        
+        Must be either None (default), a bool, or a function. Setting it to a boolean will enable/disable 
+        progressive requests for all requests. Setting to None, jupyter-server-proxy will only enable progressive 
+        for somespecial types, like videos, images and binary data. A function must be taking the "Accept" header of
+        the request from the client as input and returning a bool, whether this request should be made progressive.
+        
+        Note: `progressive` and `rewrite_response` are mutually exclusive on the same request. When rewrite_response
+        is given and progressive is None, the proxying will never be progressive. If progressive is a function,
+        rewrite_response will only be called on requests where it returns False. Progressive takes precedence over
+        rewrite_response when both are given!
+    """,
+    ).tag(config=True)
+
     update_last_activity = Bool(
         True, help="Will cause the proxy to report activity back to jupyter server."
     ).tag(config=True)
@@ -301,6 +322,7 @@ def _make_proxy_handler(sp: ServerProcess):
                 self.unix_socket = sp.unix_socket
             self.mappath = sp.mappath
             self.rewrite_response = sp.rewrite_response
+            self.progressive = sp.progressive
             self.update_last_activity = sp.update_last_activity
 
         def get_request_headers_override(self):
