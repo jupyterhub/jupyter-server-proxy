@@ -16,7 +16,7 @@ import aiohttp
 from jupyter_server.base.handlers import JupyterHandler, utcnow
 from jupyter_server.utils import ensure_async, url_path_join
 from simpervisor import SupervisedProcess
-from tornado import httpclient, httputil, web, websocket
+from tornado import httpclient, httputil, web
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
@@ -171,7 +171,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         raise NotImplementedError(
             "Subclasses of ProxyHandler should implement http_get"
         )
-    
+
     async def get(self, *args, **kwargs):
         return await self.http_get(*args, **kwargs)
 
@@ -338,7 +338,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
         self._record_activity()
 
-        if self.request.method == "GET" and self.request.headers.get("Upgrade", "").lower() == "websocket":
+        if (
+            self.request.method == "GET"
+            and self.request.headers.get("Upgrade", "").lower() == "websocket"
+        ):
             return await ensure_async(self.get_websocket(proxied_path))
 
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
