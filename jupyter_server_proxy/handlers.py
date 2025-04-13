@@ -16,7 +16,7 @@ import aiohttp
 from jupyter_server.base.handlers import JupyterHandler, utcnow
 from jupyter_server.utils import ensure_async, url_path_join
 from simpervisor import SupervisedProcess
-from tornado import httpclient, httputil, web
+from tornado import httpclient, httputil, web, websocket
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
@@ -171,6 +171,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         raise NotImplementedError(
             "Subclasses of ProxyHandler should implement http_get"
         )
+    
+    async def get(self, *args, **kwargs):
+        return await self.http_get(*args, **kwargs)
 
     def post(self, host, port, proxy_path=""):
         raise NotImplementedError(
@@ -333,6 +336,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.",
             )
 
+        self._record_activity()
+
+        if self.request.method == "GET" and self.request.headers.get("Upgrade", "").lower() == "websocket":
+            return await ensure_async(self.get_websocket(proxied_path))
+
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
         # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
         # for more information
@@ -350,16 +358,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         for header_to_remove in hop_by_hop_headers:
             if header_to_remove in self.request.headers:
                 del self.request.headers[header_to_remove]
-
-        self._record_activity()
-
-        if self.request.headers.get("Upgrade", "").lower() == "websocket":
-            # We wanna websocket!
-            # jupyterhub/jupyter-server-proxy@36b3214
-            self.log.info(
-                "we wanna websocket, but we don't define WebSocketProxyHandler"
-            )
-            self.set_status(500)
 
         body = self.request.body
         if not body:
