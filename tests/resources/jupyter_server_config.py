@@ -17,6 +17,9 @@ def mappathf(path):
     p = path + "mapped"
     return p
 
+def mappathf_socket(path):
+    return path + "socket"
+
 
 def translate_ciao(path, host, response, orig_response, port):
     # Assume that the body has not been modified by any previous rewrite
@@ -82,6 +85,10 @@ c.ServerProxy.servers = {
         "request_headers_override": {
             "X-Custom-Header": "pytest-23456",
         },
+    },
+    "python-websocket-mappathf_socket": {
+        "command": [sys.executable, _get_path("websocket.py"), "--port={port}"],
+        "mappath": mappathf_socket,
     },
     "python-eventstream": {
         "command": [sys.executable, _get_path("eventstream.py"), "--port={port}"]
