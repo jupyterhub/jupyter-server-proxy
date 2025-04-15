@@ -17,6 +17,7 @@ def mappathf(path):
     p = path + "mapped"
     return p
 
+
 def mappathf_socket(path):
     return path + "socket"
 
