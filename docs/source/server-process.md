@@ -126,12 +126,12 @@ the following keys:
    JupyterLab launcher, when category is "Notebook" (default) or "Console". Only text-based icon 
    formats, such as SVG, are supported. Using binary-based formats like PNG or JPEG will
    result in an empty icon being displayed in kernels.
-4. **title**
+3. **title**
    Title to be used for the launcher entry. Defaults to the name of the server if missing.
-5. **path_info**
+4. **path_info**
    The trailing path that is appended to the user's server URL to access the proxied server.
    By default it is the name of the server followed by a trailing slash.
-6. **category**
+5. **category**
    The category for the launcher item. Currently only used by the JupyterLab launcher.
    By default it is "Notebook".
 
