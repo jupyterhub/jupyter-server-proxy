@@ -123,7 +123,7 @@ the following keys:
    explicit entry.
 2. **icon_path**
    Full path to an svg icon that could be used with a launcher. Currently only used by the
-   JupyterLab launcher, when category is "Notebook" (default) or "Console". Only text-based icon 
+   JupyterLab launcher, when category is "Notebook" (default) or "Console". Only text-based icon
    formats, such as SVG, are supported. Using binary-based formats like PNG or JPEG will
    result in an empty icon being displayed in kernels.
 3. **title**
