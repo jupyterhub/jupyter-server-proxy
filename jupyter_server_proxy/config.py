@@ -2,6 +2,8 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 
+from __future__ import annotations
+
 import sys
 from textwrap import dedent, indent
 from warnings import warn
@@ -260,60 +262,83 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
+    def get_proxy_base_class(self) -> tuple[type | None, dict]:
+        """
+        Return the appropriate ProxyHandler Subclass and its kwargs
+        """
+        if self.command:
+            return (
+                SuperviseAndRawSocketHandler
+                if self.raw_socket_proxy
+                else SuperviseAndProxyHandler
+            ), dict(state={})
 
-def _make_proxy_handler(sp: ServerProcess):
-    """
-    Create an appropriate handler with given parameters
-    """
-    if sp.command:
-        cls = (
-            SuperviseAndRawSocketHandler
-            if sp.raw_socket_proxy
-            else SuperviseAndProxyHandler
-        )
-        args = dict(state={})
-    elif not (sp.port or isinstance(sp.unix_socket, str)):
-        warn(
-            f"Server proxy {sp.name} does not have a command, port "
-            f"number or unix_socket path. At least one of these is "
-            f"required."
-        )
-        return
-    else:
-        cls = RawSocketHandler if sp.raw_socket_proxy else NamedLocalProxyHandler
-        args = {}
+        if not (self.port or isinstance(self.unix_socket, str)):
+            warn(
+                f"""Server proxy {self.name} does not have a command, port number or unix_socket path. 
+                At least one of these is required."""
+            )
+            return None, dict()
 
-    # FIXME: Set 'name' properly
-    class _Proxy(cls):
-        kwargs = args
+        return (
+            RawSocketHandler if self.raw_socket_proxy else NamedLocalProxyHandler
+        ), dict()
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.name = sp.name
-            self.command = sp.command
-            self.proxy_base = sp.name
-            self.absolute_url = sp.absolute_url
-            if sp.command:
-                self.requested_port = sp.port
-                self.requested_unix_socket = sp.unix_socket
-            else:
-                self.port = sp.port
-                self.unix_socket = sp.unix_socket
-            self.mappath = sp.mappath
-            self.rewrite_response = sp.rewrite_response
-            self.update_last_activity = sp.update_last_activity
+    def get_proxy_attributes(self) -> dict:
+        """
+        Return the required attributes, which will be set on the proxy handler
+        """
+        attributes = {
+            "name": self.name,
+            "command": self.command,
+            "proxy_base": self.name,
+            "absolute_url": self.absolute_url,
+            "mappath": self.mappath,
+            "rewrite_response": self.rewrite_response,
+            "update_last_activity": self.update_last_activity,
+            "request_headers_override": self.request_headers_override,
+        }
 
-        def get_request_headers_override(self):
-            return self._realize_rendered_template(sp.request_headers_override)
+        if self.command:
+            attributes["requested_port"] = self.port
+            attributes["requested_unix_socket"] = self.unix_socket
+            attributes["environment"] = self.environment
+            attributes["timeout"] = self.timeout
+        else:
+            attributes["port"] = self.port
+            attributes["unix_socket"] = self.unix_socket
 
-        # these two methods are only used in supervise classes, but do no harm otherwise
-        def get_env(self):
-            return self._realize_rendered_template(sp.environment)
+        return attributes
 
-        def get_timeout(self):
-            return sp.timeout
+    def make_proxy_handler(self) -> tuple[type | None, dict]:
+        """
+        Create an appropriate handler for this ServerProxy Configuration
+        """
+        cls, proxy_kwargs = self.get_proxy_base_class()
+        if cls is None:
+            return None, proxy_kwargs
 
-    return _Proxy
+        # FIXME: Set 'name' properly
+        attributes = self.get_proxy_attributes()
+
+        class _Proxy(cls):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+                for name, value in attributes.items():
+                    setattr(self, name, value)
+
+            def get_request_headers_override(self):
+                return self._realize_rendered_template(self.request_headers_override)
+
+            # these two methods are only used in supervise classes, but do no harm otherwise
+            def get_env(self):
+                return self._realize_rendered_template(self.environment)
+
+            def get_timeout(self):
+                return self.timeout
+
+        return _Proxy, proxy_kwargs
 
 
 def get_entrypoint_server_processes(serverproxy_config):
@@ -329,21 +354,21 @@ def get_entrypoint_server_processes(serverproxy_config):
     return sps
 
 
-def make_handlers(base_url, server_processes):
+def make_handlers(base_url: str, server_processes: list[ServerProcess]):
     """
     Get tornado handlers for registered server_processes
     """
     handlers = []
-    for sp in server_processes:
-        handler = _make_proxy_handler(sp)
+    for server in server_processes:
+        handler, kwargs = server.make_proxy_handler()
         if not handler:
             continue
-        handlers.append((ujoin(base_url, sp.name, r"(.*)"), handler, handler.kwargs))
-        handlers.append((ujoin(base_url, sp.name), AddSlashHandler))
+        handlers.append((ujoin(base_url, server.name, r"(.*)"), handler, kwargs))
+        handlers.append((ujoin(base_url, server.name), AddSlashHandler))
     return handlers
 
 
-def make_server_process(name, server_process_config, serverproxy_config):
+def make_server_process(name: str, server_process_config: dict, serverproxy_config):
     return ServerProcess(name=name, **server_process_config)
 
 
