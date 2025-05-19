@@ -32,7 +32,7 @@ def make_standalone_proxy(
             super().__init__(*args, **kwargs)
             self.environment = {}
             self.timeout = 60
-            self.skip_authentication = False
+            self.no_authentication = False
 
         @property
         def log(self) -> Logger:
@@ -69,7 +69,7 @@ def make_standalone_proxy(
             return RequestHandler.write_error(self, status_code, **kwargs)
 
         async def proxy(self, port, path):
-            if self.skip_authentication:
+            if self.no_authentication:
                 return await super().proxy(port, path)
             else:
                 return await ensure_async(self.oauth_proxy(port, path))
