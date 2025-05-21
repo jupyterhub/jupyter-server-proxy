@@ -40,7 +40,7 @@ class _TestStandaloneBase(testing.AsyncHTTPTestCase):
     runTest = None  # Required for Tornado 6.1
 
     unix_socket: bool
-    skip_authentication: bool
+    no_authentication: bool
 
     def get_app(self):
         command = [
@@ -55,7 +55,7 @@ class _TestStandaloneBase(testing.AsyncHTTPTestCase):
             base_url="/some/prefix",
             unix_socket=self.unix_socket,
             timeout=60,
-            skip_authentication=self.skip_authentication,
+            no_authentication=self.no_authentication,
             log_level=logging.DEBUG,
         )
 
@@ -69,7 +69,7 @@ class TestStandaloneProxyRedirect(_TestStandaloneBase):
     """
 
     unix_socket = False
-    skip_authentication = True
+    no_authentication = True
 
     def test_add_slash(self):
         response = self.fetch("/some/prefix", follow_redirects=False)
@@ -97,7 +97,7 @@ class TestStandaloneProxyRedirect(_TestStandaloneBase):
 )
 class TestStandaloneProxyWithUnixSocket(_TestStandaloneBase):
     unix_socket = True
-    skip_authentication = True
+    no_authentication = True
 
     def test_with_unix_socket(self):
         response = self.fetch("/some/prefix/")
@@ -115,7 +115,7 @@ class TestStandaloneProxyLogin(_TestStandaloneBase):
     """
 
     unix_socket = False
-    skip_authentication = False
+    no_authentication = False
 
     def test_redirect_to_login_url(self):
         response = self.fetch("/some/prefix/", follow_redirects=False)

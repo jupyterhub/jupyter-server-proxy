@@ -51,7 +51,7 @@ jupyter standaloneproxy --address=localhost --port=8000 ...
 
 ### Disable Authentication
 
-For testing, it can be useful to disable the authentication with JupyterHub. Passing `--skip-authentication` will
+For testing, it can be useful to disable the authentication with JupyterHub. Passing `--no-authentication` will
 not trigger the login process when accessing the application.
 
 ```{warning} Disabling authentication will leave the application open to anyone! Be careful with it,
@@ -76,7 +76,7 @@ c.StandaloneProxyServer.address = "localhost"
 c.StandaloneProxyServer.port = 8000
 
 # Disable authentication
-c.StandaloneProxyServer.skip_authentication = True
+c.StandaloneProxyServer.no_authentication = True
 ```
 
 A default config file can be emitted by running `jupyter standaloneproxy --generate-config`

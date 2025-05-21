@@ -58,7 +58,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
             prefix = prefix[:-1]
         return prefix
 
-    skip_authentication = Bool(
+    no_authentication = Bool(
         default=False,
         help="""
         Do not authenticate access to the server via JupyterHub. When set,
@@ -146,11 +146,16 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
                 {"ServerProcess": {"raw_socket_proxy": True}},
                 dedent(ServerProcess.raw_socket_proxy.help),
             ),
-            "skip-authentication": (
-                {"StandaloneProxyServer": {"skip_authentication": True}},
-                dedent(self.__class__.skip_authentication.help),
+            "no-authentication": (
+                {"StandaloneProxyServer": {"no_authentication": True}},
+                dedent(self.__class__.no_authentication.help),
             ),
         }
+        self.flags.pop("y")
+
+        # Some traits in ServerProcess are not defined to be configurable, but we need that for the standalone proxy
+        for name, trait in ServerProcess.class_own_traits().items():
+            trait.tag(config=True)
 
         # Create an Alias to all Traits defined in ServerProcess, with some
         # exceptions we do not need, for easier use of the CLI
@@ -164,7 +169,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
             "command",
         ]
         server_process_aliases = {
-            trait: f"StandaloneProxyServer.{trait}"
+            trait.replace("_", "-"): f"StandaloneProxyServer.{trait}"
             for trait in ServerProcess.class_traits(config=True)
             if trait not in ignore_traits and trait not in self.flags
         }
@@ -172,12 +177,12 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         self.aliases = {
             **super().aliases,
             **server_process_aliases,
-            "base_url": "StandaloneProxyServer.base_url",
+            "base-url": "StandaloneProxyServer.base_url",
             "address": "StandaloneProxyServer.address",
             "port": "StandaloneProxyServer.port",
-            "server_port": "StandaloneProxyServer.server_port",
-            "activity_interval": "StandaloneProxyServer.activity_interval",
-            "websocket_max_message_size": "StandaloneProxyServer.websocket_max_message_size",
+            "server-port": "StandaloneProxyServer.server_port",
+            "activity-interval": "StandaloneProxyServer.activity_interval",
+            "websocket-max-message-size": "StandaloneProxyServer.websocket_max_message_size",
         }
 
     def emit_alias_help(self):
@@ -206,7 +211,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         attributes["proxy_base"] = "/"
 
         attributes["requested_port"] = self.server_port
-        attributes["skip_authentication"] = self.skip_authentication
+        attributes["no_authentication"] = self.no_authentication
 
         return attributes
 
@@ -278,7 +283,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         return ssl_options
 
     def start(self):
-        if self.skip_authentication:
+        if self.no_authentication:
             self.log.warn("Disabling Authentication with JuypterHub Server!")
 
         app = self.create_app()
