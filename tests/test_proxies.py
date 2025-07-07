@@ -146,7 +146,7 @@ def test_chained_rewrite_response(a_server_port_and_token: Tuple[int, str]) -> N
 
 
 def test_cats_and_dogs_rewrite_response(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-cats-only-rewrite-response/goats", TOKEN)
@@ -197,7 +197,7 @@ def test_server_proxy_requested_port(a_server_port_and_token: Tuple[int, str]) -
 
 
 def test_server_proxy_on_requested_port_no_command(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-proxyto54321-no-command/ghi", TOKEN)
@@ -212,7 +212,7 @@ def test_server_proxy_on_requested_port_no_command(
 
 
 def test_server_proxy_port_non_absolute(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/proxy/54321/jkl", TOKEN)
@@ -234,7 +234,7 @@ def test_server_proxy_port_absolute(a_server_port_and_token: Tuple[int, str]) ->
 
 
 def test_server_proxy_host_non_absolute(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     # note: localhost: is stripped but 127.0.0.1: is not
@@ -268,7 +268,7 @@ def test_server_proxy_host_invalid(
 
 
 def test_server_proxy_port_non_service_rewrite_response(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
 
@@ -334,7 +334,7 @@ def test_server_request_headers(a_server_port_and_token: Tuple[int, str]) -> Non
 
 
 def test_server_content_encoding_header(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-gzipserver/", TOKEN, host="127.0.0.1")
@@ -379,7 +379,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
 
 
 async def test_server_proxy_websocket_messages(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket?token={TOKEN}"
@@ -465,7 +465,7 @@ async def test_server_proxy_websocket_subprotocols(
 
 
 async def test_websocket_no_auth_failure(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT = a_server_port_and_token[0]
     # Intentionally do not pass an appropriate token, which should cause a 403
@@ -499,7 +499,7 @@ def test_bad_server_proxy_url(
 
 
 def test_callable_environment_formatting(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-callable-env/test", TOKEN)
