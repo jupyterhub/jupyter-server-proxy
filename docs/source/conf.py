@@ -3,6 +3,8 @@
 # Configuration reference: https://www.sphinx-doc.org/en/master/usage/configuration.html
 #
 import datetime
+import sys
+from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 # ref: https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -18,11 +20,17 @@ author = "Project Jupyter Contributors"
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 #
+
+# Custom extensions included this repo
+extensions_dir = Path(__file__).absolute().parent.parent / "extensions"
+sys.path.append(str(extensions_dir))
+
 extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinxext.opengraph",
     "sphinxext.rediraffe",
+    "serverprocess_documenter",
 ]
 root_doc = "index"
 source_suffix = [".md"]
