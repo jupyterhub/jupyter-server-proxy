@@ -13,9 +13,27 @@ sys.path.append(_get_path())
 c = get_config()  # noqa
 
 
+def get_command(port):
+    return [sys.executable, _get_path("httpinfo.py"), f"--port={port}"]
+
+
+def get_command_unix_socket(unix_socket):
+    return [sys.executable, _get_path("httpinfo.py"), f"--unix-socket={unix_socket}"]
+
+
+def get_environment(base_url):
+    return {"JUPYTERLAB_BASE_URL": base_url, "MYVAR": "String with escaped {{var}}"}
+
+
 def mappathf(path):
     p = path + "mapped"
     return p
+
+
+def request_headers_overwrite():
+    return {
+        "X-Custom-Header": "pytest-23456",
+    }
 
 
 def translate_ciao(path, host, response, orig_response, port):
@@ -47,10 +65,6 @@ def cats_only(response, path):
         response.body = b"dogs not allowed"
 
 
-def my_env():
-    return {"MYVAR": "String with escaped {{var}}"}
-
-
 c.ServerProxy.servers = {
     "python-http": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
@@ -63,19 +77,39 @@ c.ServerProxy.servers = {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "port": 54321,
     },
+    "python-http-callable-command": {
+        "command": get_command,
+    },
     "python-http-mappath": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "mappath": {
             "/": "/index.html",
         },
     },
-    "python-http-mappathf": {
+    "python-http-callable-mappath": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "mappath": mappathf,
     },
-    "python-http-callable-env": {
+    "python-http-environment": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
-        "environment": my_env,
+        "environment": {
+            "JUPYTERLAB_BASE_URL": "{base_url}",
+            "MYVAR": "String with escaped {{var}}",
+        },
+    },
+    "python-http-callable-environment": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "environment": get_environment,
+    },
+    "python-http-request-headers": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "request_headers_override": {
+            "X-Custom-Header": "pytest-23456",
+        },
+    },
+    "python-http-callable-request-headers": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "request_headers_override": request_headers_overwrite,
     },
     "python-websocket": {
         "command": [sys.executable, _get_path("websocket.py"), "--port={port}"],
@@ -94,6 +128,10 @@ c.ServerProxy.servers = {
         ],
         "unix_socket": True,
     },
+    "python-unix-socket-callable": {
+        "command": get_command_unix_socket,
+        "unix_socket": True,
+    },
     "python-unix-socket-file": {
         "command": [
             sys.executable,
@@ -106,12 +144,6 @@ c.ServerProxy.servers = {
         # this server process can be started earlier by first interacting with
         # python-unix-socket-file
         "unix_socket": "/tmp/jupyter-server-proxy-test-socket",
-    },
-    "python-request-headers": {
-        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
-        "request_headers_override": {
-            "X-Custom-Header": "pytest-23456",
-        },
     },
     "python-gzipserver": {
         "command": [sys.executable, _get_path("gzipserver.py"), "{port}"],
