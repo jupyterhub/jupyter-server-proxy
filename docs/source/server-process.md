@@ -23,7 +23,6 @@ One of:
 
 - A list of strings that is the command used to start the
   process. The following template strings will be replaced:
-
   - `{port}` the port that the process should listen on. This will be 0 if it
     should use a Unix socket instead.
   - `{unix_socket}` the path at which the process should listen on a Unix
