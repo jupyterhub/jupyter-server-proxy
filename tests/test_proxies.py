@@ -359,7 +359,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
     stream_data = []
 
     def streaming_cb(data):
-        nonlocal times_called, last_cb_time, stream_read_intervals
+        nonlocal times_called, last_cb_time
         time_taken = time.perf_counter() - last_cb_time
         last_cb_time = time.perf_counter()
         stream_read_intervals.append(time_taken)
