@@ -236,7 +236,7 @@ of the argument. For example, if your function is:
 
 ```python
 def _openrefine_cmd():
-    return ["openrefine", "-p", "{port}"]
+    return ["refine", "-p", "{port}"]
 ```
 
 The `{port}` will be replaced with the appropriate port before
@@ -262,7 +262,7 @@ if we want tighter control over what process is spawned.
    ```python
    c.ServerProxy.servers = {
       "openrefine": {
-          "command": ["refine", "-p", "{port}"]
+          "command": ["refine", "-p", "{port}", "-H", "*"]
       }
    }
    ```
@@ -270,8 +270,10 @@ if we want tighter control over what process is spawned.
    This will start [OpenRefine](https://openrefine.org/) with the
    `refine` command (which must be in \$PATH) on a randomly
    generated port, and make it available under `/openrefine`
-   in your notebook url. The URL path is specified by the key,
-   but this should be made more configurable in the future.
+   in your notebook url. The URL path is specified by the key.
+   The `-H *` tells OpenRefine to accept requests with any Host
+   header, as `jupyter-server-proxy` will be doing auth checks for
+   it instead.
 
 (server-process:package)=
 
@@ -289,7 +291,7 @@ above.
    ```python
    def setup_openrefine():
       return {
-          "command": ["refine", "-p", "{port}"]
+          "command": ["refine", "-p", "{port}", "-H", "*"]
       }
    ```
 
