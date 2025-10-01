@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           cache: yarn
           node-version: "lts/*"
@@ -119,7 +119,7 @@ jobs:
 
     steps:
       # actions/setup-node creates an .npmrc file that references NODE_AUTH_TOKEN
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "lts/*"
           registry-url: https://registry.npmjs.org
