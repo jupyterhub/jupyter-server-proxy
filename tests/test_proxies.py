@@ -558,3 +558,38 @@ def test_server_proxy_redirect_location_header_rewrite(
     # Should be rewritten to include the proxy prefix
     # The token query parameter should be preserved in the redirect
     assert location == f"/python-redirect/target/path?token={TOKEN}"
+
+
+@pytest.mark.parametrize("a_server", ["notebook", "lab"], indirect=True)
+def test_server_proxy_redirect_location_header_absolute_url(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
+    """
+    Test that Location headers in redirect responses are not rewritten when
+    absolute_url=True is configured.
+
+    When absolute_url=True, the backend server receives the full proxy path
+    (e.g., /python-redirect-abs/mydir instead of just /mydir). The proxy does
+    not rewrite Location headers, passing them through as-is from the backend.
+
+    This means the backend must be aware of the proxy prefix to generate
+    correct redirects, which is the intended behavior of absolute_url=True.
+    """
+    PORT, TOKEN = a_server_port_and_token
+
+    # Test 1: Named server proxy with absolute_url=True, redirect without trailing slash
+    r = request_get(PORT, "/python-redirect-abs/mydir", TOKEN)
+    assert r.code == 301
+    location = r.headers.get("Location")
+    # Location header is not rewritten by proxy, passed through as-is from backend
+    # Backend sees /python-redirect-abs/mydir and adds trailing slash: /python-redirect-abs/mydir/
+    assert location == f"/python-redirect-abs/mydir/?token={TOKEN}"
+
+    # Test 2: Named server proxy with absolute_url=True, verify no rewriting occurs
+    # Request to /python-redirect-abs/abc (without trailing slash)
+    r = request_get(PORT, "/python-redirect-abs/abc", TOKEN)
+    assert r.code == 301
+    location = r.headers.get("Location")
+    # Backend returns whatever it wants, proxy doesn't rewrite it
+    # In this case, backend adds trailing slash to the full path it received
+    assert location == f"/python-redirect-abs/abc/?token={TOKEN}"

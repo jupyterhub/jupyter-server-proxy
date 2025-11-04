@@ -578,13 +578,13 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self._headers = httputil.HTTPHeaders()
             for header, v in rewritten_response.headers.get_all():
                 if header not in ("Content-Length", "Transfer-Encoding", "Connection"):
-                    # Rewrite Location header in redirects to preserve proxy prefix
-                    if header == "Location" and rewritten_response.code in (
-                        301,
-                        302,
-                        303,
-                        307,
-                        308,
+                    # Rewrite Location header in redirects to preserve proxy prefix.
+                    # If absolute_url is True, the backend already sees the
+                    # full path and handles redirects appropriately.
+                    if (
+                        header == "Location"
+                        and not self.absolute_url
+                        and rewritten_response.code in (301, 302, 303, 307, 308)
                     ):
                         v = self._rewrite_location_header(v, host, port, proxied_path)
                     # some header appear multiple times, eg 'Set-Cookie'

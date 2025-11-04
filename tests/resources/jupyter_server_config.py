@@ -146,6 +146,10 @@ c.ServerProxy.servers = {
     "python-redirect": {
         "command": [sys.executable, _get_path("redirectserver.py"), "--port={port}"],
     },
+    "python-redirect-abs": {
+        "command": [sys.executable, _get_path("redirectserver.py"), "--port={port}"],
+        "absolute_url": True,
+    },
 }
 
 c.ServerProxy.non_service_rewrite_response = hello_to_foo
