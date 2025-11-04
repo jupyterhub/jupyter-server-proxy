@@ -4,12 +4,12 @@ Simple webserver that returns 301 redirects to test Location header rewriting.
 
 import argparse
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse
 
 
 class RedirectHandler(BaseHTTPRequestHandler):
     """Handler that returns 301 redirects with relative Location headers."""
-    
+
     def do_GET(self):
         """
         Handle GET requests:
@@ -21,10 +21,10 @@ class RedirectHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         query = parsed.query
-        
+
         if path.startswith("/redirect-to/"):
             # Extract the target path (remove /redirect-to prefix)
-            target = path[len("/redirect-to"):]
+            target = path[len("/redirect-to") :]
             # Preserve query string if present
             if query:
                 target = f"{target}?{query}"
@@ -57,6 +57,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, required=True)
     args = ap.parse_args()
-    
+
     httpd = HTTPServer(("127.0.0.1", args.port), RedirectHandler)
     httpd.serve_forever()
