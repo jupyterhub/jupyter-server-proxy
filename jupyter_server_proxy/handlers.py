@@ -257,6 +257,42 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         else:
             return url_path_join(self.base_url, "proxy", host_and_port)
 
+    def _rewrite_location_header(self, location, host, port, proxied_path):
+        """
+        Rewrite Location header in redirect responses to preserve the proxy prefix.
+
+        When a backend server issues a redirect, the Location header typically contains
+        a path relative to the backend's root. We need to prepend the proxy prefix so
+        the browser navigates to the correct proxied URL.
+
+        For example:
+        - Original Location: /subdir/
+        - Proxy context: /user/{username}/proxy/9000
+        - Rewritten Location: /user/{username}/proxy/9000/subdir/
+        """
+        # Parse the location header
+        parsed = urlparse(location)
+
+        # Only rewrite if the location is a relative path (no scheme or host)
+        if parsed.scheme or parsed.netloc:
+            # Absolute URL - leave as is
+            self.log.debug(f"Not rewriting absolute Location header: {location}")
+            return location
+
+        # Get the proxy context path
+        context_path = self._get_context_path(host, port)
+
+        # Rewrite the path to include the proxy prefix
+        new_path = url_path_join(context_path, parsed.path)
+
+        # Reconstruct the location with the rewritten path
+        rewritten = parsed._replace(path=new_path)
+
+        rewritten_location = urlunparse(rewritten)
+        self.log.info(f"Rewrote Location header: {location} -> {rewritten_location}")
+
+        return rewritten_location
+
     def get_client_uri(self, protocol, host, port, proxied_path):
         if self.absolute_url:
             context_path = self._get_context_path(host, port)
@@ -542,6 +578,15 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self._headers = httputil.HTTPHeaders()
             for header, v in rewritten_response.headers.get_all():
                 if header not in ("Content-Length", "Transfer-Encoding", "Connection"):
+                    # Rewrite Location header in redirects to preserve proxy prefix.
+                    # If absolute_url is True, the backend already sees the
+                    # full path and handles redirects appropriately.
+                    if (
+                        header == "Location"
+                        and not self.absolute_url
+                        and rewritten_response.code in (301, 302, 303, 307, 308)
+                    ):
+                        v = self._rewrite_location_header(v, host, port, proxied_path)
                     # some header appear multiple times, eg 'Set-Cookie'
                     self.add_header(header, v)
 
