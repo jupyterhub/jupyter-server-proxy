@@ -230,3 +230,10 @@ concurrency = [
 
 [tool.coverage.html]
 show_contexts = true
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*,*.svg,*.lock'
+check-hidden = true
+ignore-regex = '\bTE\b'
+# ignore-words-list = ''
