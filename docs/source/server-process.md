@@ -121,10 +121,8 @@ the following keys:
    Set to True (default) to make an entry in the launchers. Set to False to have no
    explicit entry.
 2. **icon_path**
-   Full path to an svg icon that could be used with a launcher. Currently only used by the
-   JupyterLab launcher, when category is "Notebook" (default) or "Console". Only text-based icon
-   formats, such as SVG, are supported. Using binary-based formats like PNG or JPEG will
-   result in an empty icon being displayed in kernels.
+   Full path to an icon file that could be used with a launcher (for example, `.svg` or `.png`).
+   Currently only used by the JupyterLab launcher, when category is "Notebook" (default) or "Console".
 3. **title**
    Title to be used for the launcher entry. Defaults to the name of the server if missing.
 4. **path_info**

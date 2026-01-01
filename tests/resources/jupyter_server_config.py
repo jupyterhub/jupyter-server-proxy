@@ -55,6 +55,18 @@ c.ServerProxy.servers = {
     "python-http": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
     },
+    "python-http-icon-svg": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "launcher_entry": {
+            "icon_path": _get_path("icon.svg"),
+        },
+    },
+    "python-http-icon-png": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "launcher_entry": {
+            "icon_path": _get_path("icon.png"),
+        },
+    },
     "python-http-abs": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "absolute_url": True,

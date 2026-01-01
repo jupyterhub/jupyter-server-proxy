@@ -593,3 +593,31 @@ def test_server_proxy_redirect_location_header_absolute_url(
     # Backend returns whatever it wants, proxy doesn't rewrite it
     # In this case, backend adds trailing slash to the full path it received
     assert location == f"/python-redirect-abs/abc/?token={TOKEN}"
+
+
+def test_server_proxy_icon_handler_svg(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+
+    r = request_get(PORT, "/server-proxy/icon/python-http-icon-svg", TOKEN)
+    assert r.code == 200
+
+    content_type = r.headers.get("Content-Type")
+    assert content_type is not None
+    assert content_type.startswith("image/svg")
+
+    body = r.read().decode("utf-8")
+    assert "<svg" in body
+
+
+def test_server_proxy_icon_handler_png(a_server_port_and_token: Tuple[int, str]) -> None:
+    PORT, TOKEN = a_server_port_and_token
+
+    r = request_get(PORT, "/server-proxy/icon/python-http-icon-png", TOKEN)
+    assert r.code == 200
+
+    content_type = r.headers.get("Content-Type")
+    assert content_type is not None
+    assert content_type.startswith("image/png")
+
+    body = r.read()
+    assert body.startswith(b"\x89PNG\r\n\x1a\n")
