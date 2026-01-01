@@ -595,7 +595,9 @@ def test_server_proxy_redirect_location_header_absolute_url(
     assert location == f"/python-redirect-abs/abc/?token={TOKEN}"
 
 
-def test_server_proxy_icon_handler_svg(a_server_port_and_token: Tuple[int, str]) -> None:
+def test_server_proxy_icon_handler_svg(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
     PORT, TOKEN = a_server_port_and_token
 
     r = request_get(PORT, "/server-proxy/icon/python-http-icon-svg", TOKEN)
@@ -609,7 +611,9 @@ def test_server_proxy_icon_handler_svg(a_server_port_and_token: Tuple[int, str])
     assert "<svg" in body
 
 
-def test_server_proxy_icon_handler_png(a_server_port_and_token: Tuple[int, str]) -> None:
+def test_server_proxy_icon_handler_png(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
     PORT, TOKEN = a_server_port_and_token
 
     r = request_get(PORT, "/server-proxy/icon/python-http-icon-png", TOKEN)
