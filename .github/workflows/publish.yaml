@@ -93,7 +93,7 @@ jobs:
           python-version: "3.12"
 
       - name: Download artifacts from build
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: dist-${{ github.run_attempt }}
           path: dist
@@ -125,7 +125,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Download artifacts from build
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: jsdist-${{ github.run_attempt }}
           path: jsdist

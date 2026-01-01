@@ -121,7 +121,7 @@ jobs:
         run: python -m pip install --upgrade pip
 
       - name: Download built artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: dist-${{ github.run_attempt }}
           path: ./dist
