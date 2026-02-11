@@ -131,7 +131,7 @@ jobs:
           path: jsdist
 
       - run: |
-          npm publish --dry-run ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
+          npm publish --dry-run --tag test ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
 
       - run: |
           npm publish ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
