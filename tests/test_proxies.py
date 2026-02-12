@@ -401,6 +401,19 @@ async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int
     assert headers["X-Custom-Header"] == "pytest-23456"
 
 
+async def test_server_proxy_websocket_messages_mappath(
+    a_server_port_and_token: Tuple[int, str]
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    # Mappath is configured to add "socket" to websocket paths
+    url = f"ws://{LOCALHOST}:{PORT}/python-websocket-mappathf_socket/echo?token={TOKEN}"
+    conn = await websocket_connect(url)
+    expected_msg = "Hello, world!"
+    await conn.write_message(expected_msg)
+    msg = await conn.read_message()
+    assert msg == expected_msg
+
+
 @pytest.mark.parametrize(
     "client_requested,server_received,server_responded,proxy_responded",
     [
