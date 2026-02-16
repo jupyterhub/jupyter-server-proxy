@@ -68,6 +68,6 @@ class IconHandler(JupyterHandler):
         else:
             content_type = "application/octet-stream"
 
-        with open(self.icons[name]) as f:
+        with open(self.icons[name], "rb") as f:
             self.write(f.read())
         self.set_header("Content-Type", content_type)
