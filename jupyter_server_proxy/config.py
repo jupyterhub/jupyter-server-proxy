@@ -400,8 +400,7 @@ class ServerProxy(Configurable):
 
         Value should be an instance of ``ServerProcess`` or a dictionary with the following keys:
 
-        """
-        + indent(_serverproxy_servers_help(), "        "),
+        """ + indent(_serverproxy_servers_help(), "        "),
         config=True,
     )
 

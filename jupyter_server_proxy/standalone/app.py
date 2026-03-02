@@ -69,12 +69,10 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         """,
     ).tag(config=True)
 
-    address = Unicode(
-        help="""
+    address = Unicode(help="""
         The address where the proxy server can be accessed. The address is usually taken from the `JUPYTERHUB_SERVICE_URL`
         environment variable or will default to `127.0.0.1`. Used to explicitly override the address of the server.
-        """
-    ).tag(config=True)
+        """).tag(config=True)
 
     @default("address")
     def _default_address(self):
@@ -85,12 +83,10 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
 
         return "127.0.0.1"
 
-    port = Int(
-        help="""
+    port = Int(help="""
         The port where the proxy server can be accessed. The port is usually taken from the `JUPYTERHUB_SERVICE_URL`
         environment variable or will default to `8888`. Used to explicitly override the port of the server.
-        """
-    ).tag(config=True)
+        """).tag(config=True)
 
     @default("port")
     def _default_port(self):
