@@ -16,7 +16,6 @@ else:  # pragma: no cover
 
 from jupyter_server.utils import url_path_join as ujoin
 from traitlets import (
-    Any,
     Bool,
     Callable,
     Dict,
