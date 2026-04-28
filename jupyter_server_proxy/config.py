@@ -356,7 +356,13 @@ def get_entrypoint_server_processes():
         except Exception as e:
             warn(f"entry_point {name} was unable to be loaded: {str(e)}")
             continue
-        processes.append(ServerProcess(name=name, **server_process_config))
+        try:
+            process = ServerProcess(name=name, **server_process_config)
+        except Exception as e:
+            warn(f"Process for entry_point {name} could not be instantiated: {str(e)}")
+            continue
+
+        processes.append(process)
     return processes
 
 
