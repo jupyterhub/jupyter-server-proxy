@@ -359,7 +359,7 @@ def get_entrypoint_server_processes():
         try:
             process = ServerProcess(name=name, **server_process_config)
         except Exception as e:
-            warn(f"Process for entry_point {name} could not be instantiated: {str(e)}")
+            warn(f"Process for entry_point {name} could not be instantiated: {e}")
             continue
 
         processes.append(process)
