@@ -248,6 +248,11 @@ function newServerProxyWidget(
   });
   content.title.label = text;
   content.title.closable = true;
+  // GHSA-88r2-f378-qwrp
+  if (!["http:", "https:"].includes(new URL(url, baseUrl).protocol)) {
+    console.warn("URL has invalid protocol", url);
+    throw new Error("URL has invalid protocol"); // silently caught by JupyterLab
+  }
   content.url = url;
   content.addClass("jp-ServerProxy");
   content.id = id;
