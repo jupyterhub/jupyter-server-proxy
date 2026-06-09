@@ -170,7 +170,8 @@ async function activate(
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
       const { id, title, url, newBrowserTab } = args as IOpenArgs;
       if (newBrowserTab) {
-        window.open(url, "_blank");
+        // Confine the URL to the server base
+        window.open(confineToBaseUrl(url), "_blank");
         return;
       }
       let widget = tracker.find((widget) => widget.content.id === id);
@@ -235,6 +236,15 @@ async function activate(
 }
 
 /**
+ * GHSA-88r2-f378-qwrp
+ * Prevent `javascript:` and attacker-controlled URIs reaching the iframe src
+ */
+function confineToBaseUrl(url: string): string {
+  const target = new URL(url, baseUrl);
+  return target.href.startsWith(baseUrl) ? target.href : baseUrl;
+}
+
+/**
  * Create a new `iframe`, with a wrapper for including in the main area.
  */
 function newServerProxyWidget(
@@ -248,11 +258,6 @@ function newServerProxyWidget(
   });
   content.title.label = text;
   content.title.closable = true;
-  // GHSA-88r2-f378-qwrp
-  if (!["http:", "https:"].includes(new URL(url, baseUrl).protocol)) {
-    console.warn("URL has invalid protocol", url);
-    throw new Error("URL has invalid protocol"); // silently caught by JupyterLab
-  }
   content.url = url;
   content.addClass("jp-ServerProxy");
   content.id = id;
