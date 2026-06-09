@@ -168,10 +168,16 @@ async function activate(
     execute: (args) => {
       // the syntax below is an example of "destructuring"
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-      const { id, title, url, newBrowserTab } = args as IOpenArgs;
+      const { id, title, url: rawURL, newBrowserTab } = args as IOpenArgs;
+      // GHSA-88r2-f378-qwrp
+      // Prevent `javascript:` and attacker-controlled URIs reaching the iframe src
+      const url = new URL(rawURL, baseUrl).href;
+      if (!url.startsWith(baseUrl)) {
+        console.warn(`URL outside the server base: ${rawURL}`);
+        throw new Error(`URL outside the server base: ${rawURL}`);
+      }
       if (newBrowserTab) {
-        // Confine the URL to the server base
-        window.open(confineToBaseUrl(url), "_blank");
+        window.open(url, "_blank");
         return;
       }
       let widget = tracker.find((widget) => widget.content.id === id);
@@ -233,15 +239,6 @@ async function activate(
       }
     }
   }
-}
-
-/**
- * GHSA-88r2-f378-qwrp
- * Prevent `javascript:` and attacker-controlled URIs reaching the iframe src
- */
-function confineToBaseUrl(url: string): string {
-  const target = new URL(url, baseUrl);
-  return target.href.startsWith(baseUrl) ? target.href : baseUrl;
 }
 
 /**
