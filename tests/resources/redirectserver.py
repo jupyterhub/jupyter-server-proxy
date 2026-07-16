@@ -35,7 +35,8 @@ class RedirectHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Redirecting...\n")
         elif not path.endswith("/"):
             # Add trailing slash, preserve query string
-            new_path = path + "/"
+            # relative redirect (/abs/foo -> foo/)
+            new_path = path.rpartition("/")[-1] + "/"
             if query:
                 new_location = f"{new_path}?{query}"
             else:
