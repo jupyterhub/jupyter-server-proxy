@@ -17,10 +17,12 @@ from traitlets.traitlets import Bool, Int, Unicode, default, validate
 from ..config import ServerProcess
 from .activity import start_activity_update
 from .proxy import make_standalone_proxy
+from .._version import __version__
 
 
 class StandaloneProxyServer(JupyterApp, ServerProcess):
     name = "jupyter-standalone-proxy"
+    version = __version__
     description = """
     Wrap an arbitrary web service so it can be used in place of 'jupyterhub-singleuser' 
     in a JupyterHub setting. 
