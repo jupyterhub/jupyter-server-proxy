@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from jupyterhub.utils import exponential_backoff, isoformat
 from tornado import httpclient, ioloop
@@ -14,7 +14,7 @@ async def notify_activity():
     """
 
     client = httpclient.AsyncHTTPClient()
-    last_activity_timestamp = isoformat(datetime.utcnow())
+    last_activity_timestamp = isoformat(datetime.now(timezone.utc))
     failure_count = 0
 
     activity_url = os.environ.get("JUPYTERHUB_ACTIVITY_URL")
