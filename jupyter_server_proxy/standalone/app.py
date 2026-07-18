@@ -14,10 +14,10 @@ from tornado import httpclient, httpserver, ioloop, web
 from tornado.web import RedirectHandler
 from traitlets.traitlets import Bool, Int, Unicode, default, validate
 
+from .._version import __version__
 from ..config import ServerProcess
 from .activity import start_activity_update
 from .proxy import make_standalone_proxy
-from .._version import __version__
 
 
 class StandaloneProxyServer(JupyterApp, ServerProcess):
