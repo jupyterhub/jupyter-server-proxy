@@ -21,6 +21,8 @@ The primary use cases are:
    extension](https://github.com/dask/dask-labextension) for
    [dask](https://www.dask.org/).
 
+ Watch the JupyterCon 2025 talk [*Not Just for Notebooks: JupyterHub in 2025*](https://youtu.be/-wwia9YzHOE?si=yDtBHPfhVKRdOpf0) to see many examples of Jupyter Server Proxy in action.
+
 ## Contents
 
 ```{toctree}
