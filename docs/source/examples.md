@@ -12,3 +12,18 @@ projects on GitHub, such as:
 
 Projects can also add the `jupyter-server-proxy` topic to the GitHub repository to make it more discoverable:
 [https://github.com/topics/jupyter-server-proxy](https://github.com/topics/jupyter-server-proxy)
+
+# Test the proxy setup
+
+If you just want to test if the proxy config is correct you can put the following into `$HOME/.jupyter/jupyter_server_config.py`:
+```python
+import sys
+c.ServerProxy.servers.update({
+    "pythonweb": {
+    "command": [sys.executable, "-m", "http.server", "{port}"],
+    "port": 9081,
+    "absolute_url": False
+    }
+})
+```
+You should then get a new button in the launcher. Putting it into `/etc/jupyter/` will make it available to all users.
