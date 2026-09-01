@@ -161,10 +161,29 @@ One of:
 Whether to report activity from the proxy to Jupyter Server. If _True_, Jupyter Server
 will be notified of new activity. This is primarily used by JupyterHub for idle detection and culling.
 
-Useful if you want to have a seperate way of determining activity through a
+Useful if you want to have a separate way of determining activity through a
 proxied application.
 
 Defaults to _True_.
+
+```{versionchanged} 4.6.0
+`update_last_activity` may be a callable, given the current RequestHandler,
+which should return True or False to track the current handler.
+```
+
+### `exclude_last_activity_patterns`
+
+```{versionadded} 4.6.0
+
+```
+
+Specify a list of regular expressions (patterns as strings, or compiled regular expression objects)
+to _not_ be registered as activity.
+Patterns are tested on the path of the request (e.g. `[".*/proxy/123/some-endpoint$"]` would match `/user/name/proxy/123/some-endpoint`).
+
+Useful if a proxied application makes certain polling requests constantly, even when idle,
+to avoid those requests keeping an actually idle server from appearing to be busy.
+An example being RStudio's `.../rstudio/events/get_events`.
 
 (server-process:callable-arguments)=
 
