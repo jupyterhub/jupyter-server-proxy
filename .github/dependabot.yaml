@@ -20,3 +20,17 @@ updates:
       interval: monthly
     cooldown:
       default-days: 7
+  - package-ecosystem: npm
+    directory: /labextension
+    groups:
+      # one big pull request for minor bumps
+      npm-minor:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
