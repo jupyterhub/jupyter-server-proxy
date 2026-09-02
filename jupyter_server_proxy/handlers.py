@@ -119,10 +119,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         )
         self._requested_subprotocols = None
         self.update_last_activity = kwargs.pop("update_last_activity", True)
-        self.exclude_last_activity_patterns = [
-            re.compile(pattern)
-            for pattern in kwargs.pop("exclude_last_activity_patterns", [])
-        ]
+        self.exclude_last_activity_patterns = kwargs.pop(
+            "exclude_last_activity_patterns", []
+        )
         super().__init__(*args, **kwargs)
 
     # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
