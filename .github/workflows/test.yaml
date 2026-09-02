@@ -164,7 +164,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          pytest -c ../pyproject.toml ../tests
+          pytest -vs -c ../pyproject.toml ../tests
 
       - name: Upload test reports
         if: always()
