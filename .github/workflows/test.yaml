@@ -73,36 +73,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022]
-        python-version: ["3.8", "3.12"]
+        os: [ubuntu-24.04, windows-2022]
+        python-version: ["3.10", "3.14"]
         pip-extras: [lab, classic]
         pip-install-constraints: [""]
         exclude:
           # windows should work for all test variations, but a limited selection
           # is run to avoid doubling the amount of test runs
           - os: windows-2022
-            python-version: "3.12"
+            python-version: "3.14"
             pip-extras: classic
           - os: windows-2022
-            python-version: "3.8"
+            python-version: "3.10"
             pip-extras: lab
 
           # pip-extras classic (notebook v6) isn't working with python 3.12 or
           # later, so we exclude it here and then include it below to run with
           # python 3.11 instead.
           - os: ubuntu-22.04
-            python-version: "3.12"
+            python-version: "3.14"
             pip-extras: classic
         include:
-          # Compensates for an excluded test case above
-          - os: ubuntu-22.04
-            python-version: "3.11"
-            pip-extras: classic
-
           # this test is manually updated to reflect the lower bounds of
           # versions from dependencies
           - os: ubuntu-22.04
-            python-version: "3.8"
+            python-version: "3.10"
             pip-extras: classic
             pip-install-constraints: >-
               jupyter-server==1.24.0
