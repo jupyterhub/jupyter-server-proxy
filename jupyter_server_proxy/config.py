@@ -5,14 +5,9 @@ Traitlets based configuration for jupyter_server_proxy
 from __future__ import annotations
 
 import pathlib
-import sys
+from importlib.metadata import entry_points
 from textwrap import dedent, indent
 from warnings import warn
-
-if sys.version_info < (3, 10):  # pragma: no cover
-    from importlib_metadata import entry_points
-else:  # pragma: no cover
-    from importlib.metadata import entry_points
 
 from jupyter_server.utils import url_path_join as ujoin
 from traitlets import (
