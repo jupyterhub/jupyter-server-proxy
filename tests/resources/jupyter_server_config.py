@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 
@@ -49,6 +50,13 @@ def cats_only(response, path):
 
 def my_env():
     return {"MYVAR": "String with escaped {{var}}"}
+
+
+def last_activity_param(request):
+    if request.get_argument("ignore_activity", None):
+        return False
+    else:
+        return True
 
 
 c.ServerProxy.servers = {
@@ -124,6 +132,21 @@ c.ServerProxy.servers = {
         "request_headers_override": {
             "X-Custom-Header": "pytest-23456",
         },
+    },
+    "disable-last-activity": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "update_last_activity": False,
+    },
+    "callable-last-activity": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "update_last_activity": last_activity_param,
+    },
+    "exclude-last-activity": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "exclude_last_activity_patterns": [
+            r".*/ignore-me$",
+            re.compile(".*/ignored/.*"),
+        ],
     },
     "python-gzipserver": {
         "command": [sys.executable, _get_path("gzipserver.py"), "{port}"],
