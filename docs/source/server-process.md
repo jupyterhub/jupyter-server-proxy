@@ -23,7 +23,6 @@ One of:
 
 - A list of strings that is the command used to start the
   process. The following template strings will be replaced:
-
   - `{port}` the port that the process should listen on. This will be 0 if it
     should use a Unix socket instead.
   - `{unix_socket}` the path at which the process should listen on a Unix
@@ -122,8 +121,8 @@ the following keys:
    Set to True (default) to make an entry in the launchers. Set to False to have no
    explicit entry.
 2. **icon_path**
-   Full path to an svg icon that could be used with a launcher. Currently only used by the
-   JupyterLab launcher, when category is "Notebook" (default) or "Console".
+   Full path to an icon file that could be used with a launcher (for example, `.svg` or `.png`).
+   Currently only used by the JupyterLab launcher, when category is "Notebook" (default) or "Console".
 3. **title**
    Title to be used for the launcher entry. Defaults to the name of the server if missing.
 4. **path_info**
@@ -235,7 +234,7 @@ of the argument. For example, if your function is:
 
 ```python
 def _openrefine_cmd():
-    return ["openrefine", "-p", "{port}"]
+    return ["refine", "-p", "{port}"]
 ```
 
 The `{port}` will be replaced with the appropriate port before
@@ -261,7 +260,7 @@ if we want tighter control over what process is spawned.
    ```python
    c.ServerProxy.servers = {
       "openrefine": {
-          "command": ["refine", "-p", "{port}"]
+          "command": ["refine", "-p", "{port}", "-H", "*"]
       }
    }
    ```
@@ -269,8 +268,10 @@ if we want tighter control over what process is spawned.
    This will start [OpenRefine](https://openrefine.org/) with the
    `refine` command (which must be in \$PATH) on a randomly
    generated port, and make it available under `/openrefine`
-   in your notebook url. The URL path is specified by the key,
-   but this should be made more configurable in the future.
+   in your notebook url. The URL path is specified by the key.
+   The `-H *` tells OpenRefine to accept requests with any Host
+   header, as `jupyter-server-proxy` will be doing auth checks for
+   it instead.
 
 (server-process:package)=
 
@@ -288,7 +289,7 @@ above.
    ```python
    def setup_openrefine():
       return {
-          "command": ["refine", "-p", "{port}"]
+          "command": ["refine", "-p", "{port}", "-H", "*"]
       }
    ```
 

@@ -27,23 +27,26 @@ on:
       - "*"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          python-version: "3.12"
-
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          cache: yarn
-          node-version: "lts/*"
+          python-version: "3.13"
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
           registry-url: https://registry.npmjs.org
-          cache-dependency-path: labextension/yarn.lock
 
       - name: Update root build packages
         run: |
@@ -68,14 +71,14 @@ jobs:
           sha256sum * | tee SHA256SUMS
 
       - name: Upload Python artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: dist-${{ github.run_attempt }}
           path: dist
           if-no-files-found: error
 
       - name: Upload Javascript artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: jsdist-${{ github.run_attempt }}
           path: jsdist
@@ -83,17 +86,18 @@ jobs:
 
   # https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
   publish-pypi:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: release
     needs:
       - build
+    permissions:
+      id-token: write
 
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Download artifacts from build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist-${{ github.run_attempt }}
           path: dist
@@ -107,34 +111,34 @@ jobs:
 
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_PASSWORD }}
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
 
   # https://docs.github.com/en/actions/language-and-framework-guides/publishing-nodejs-packages#publishing-packages-to-the-npm-registry
   publish-npm:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/')
     needs:
       - build
+    environment:
+      name: release
+    permissions:
+      id-token: write
 
     steps:
-      # actions/setup-node creates an .npmrc file that references NODE_AUTH_TOKEN
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
-          node-version: "lts/*"
+          node-version: "24"
+          package-manager-cache: false
           registry-url: https://registry.npmjs.org
 
       - name: Download artifacts from build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: jsdist-${{ github.run_attempt }}
           path: jsdist
 
       - run: |
-          npm publish --dry-run ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
+          npm publish --dry-run --tag test ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
 
       - run: |
           npm publish ./jsdist/jupyterhub-jupyter-server-proxy-*.tgz
-        if: startsWith(github.ref, 'refs/tags')
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

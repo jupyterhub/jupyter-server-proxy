@@ -152,7 +152,7 @@ def test_chained_rewrite_response(a_server_port_and_token: Tuple[int, str]) -> N
 
 
 def test_cats_and_dogs_rewrite_response(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-cats-only-rewrite-response/goats", TOKEN)
@@ -203,7 +203,7 @@ def test_server_proxy_requested_port(a_server_port_and_token: Tuple[int, str]) -
 
 
 def test_server_proxy_on_requested_port_no_command(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-proxyto54321-no-command/ghi", TOKEN)
@@ -218,7 +218,7 @@ def test_server_proxy_on_requested_port_no_command(
 
 
 def test_server_proxy_port_non_absolute(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/proxy/54321/jkl", TOKEN)
@@ -240,7 +240,7 @@ def test_server_proxy_port_absolute(a_server_port_and_token: Tuple[int, str]) ->
 
 
 def test_server_proxy_host_non_absolute(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     # note: localhost: is stripped but 127.0.0.1: is not
@@ -274,7 +274,7 @@ def test_server_proxy_host_invalid(
 
 
 def test_server_proxy_port_non_service_rewrite_response(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
 
@@ -372,7 +372,7 @@ def test_server_proxy_remote(a_server_port_and_token: Tuple[int, str]) -> None:
 
 
 def test_server_content_encoding_header(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-gzipserver/", TOKEN, host="127.0.0.1")
@@ -397,7 +397,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
     stream_data = []
 
     def streaming_cb(data):
-        nonlocal times_called, last_cb_time, stream_read_intervals
+        nonlocal times_called, last_cb_time
         time_taken = time.perf_counter() - last_cb_time
         last_cb_time = time.perf_counter()
         stream_read_intervals.append(time_taken)
@@ -417,7 +417,7 @@ async def test_eventstream(a_server_port_and_token: Tuple[int, str]) -> None:
 
 
 async def test_server_proxy_websocket_messages(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket/echosocket?token={TOKEN}"
@@ -503,7 +503,7 @@ async def test_server_proxy_websocket_subprotocols(
 
 
 async def test_websocket_no_auth_failure(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT = a_server_port_and_token[0]
     # Intentionally do not pass an appropriate token, which should cause a 403
@@ -558,3 +558,100 @@ async def test_server_proxy_rawsocket(
         await conn.write_message(msg)
         res = await conn.read_message()
         assert res == msg.swapcase()
+
+
+def test_server_proxy_redirect_location_header_rewrite(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
+    """
+    Test that Location headers in redirect responses are rewritten to include
+    the proxy prefix.
+
+    This can happen when servers like python's http.server issue 301
+    redirects with absolute path Location headers (e.g., /subdir/) that don't
+    include the proxy prefix, causing 404 errors.
+    """
+    PORT, TOKEN = a_server_port_and_token
+
+    # Test 1: Named server proxy - redirect without trailing slash
+    r = request_get(PORT, "/python-redirect/mydir", TOKEN)
+    assert r.code == 301
+    location = r.headers.get("Location")
+    # this redirect is relative and should NOT be rewritten
+    # The token query parameter should be preserved in the redirect
+    assert location == f"mydir/?token={TOKEN}"
+
+    # Test 2: Named server proxy - explicit redirect-to endpoint
+    r = request_get(PORT, "/python-redirect/redirect-to/target/path", TOKEN)
+    assert r.code == 301
+    location = r.headers.get("Location")
+    # Should be rewritten to include the proxy prefix
+    # The token query parameter should be preserved in the redirect
+    assert location == f"/python-redirect/target/path?token={TOKEN}"
+
+
+@pytest.mark.parametrize("a_server", ["notebook", "lab"], indirect=True)
+def test_server_proxy_redirect_location_header_absolute_url(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
+    """
+    Test that Location headers in redirect responses are not rewritten when
+    absolute_url=True is configured.
+
+    When absolute_url=True, the backend server receives the full proxy path
+    (e.g., /python-redirect-abs/mydir instead of just /mydir). The proxy does
+    not rewrite Location headers, passing them through as-is from the backend.
+
+    This means the backend must be aware of the proxy prefix to generate
+    correct redirects, which is the intended behavior of absolute_url=True.
+    """
+    PORT, TOKEN = a_server_port_and_token
+
+    # Test 1: Named server proxy with absolute_url=True, redirect without trailing slash
+    r = request_get(PORT, "/python-redirect-abs/mydir", TOKEN)
+    assert r.code == 301
+    location = r.headers.get("Location")
+    # Location header is not rewritten by proxy, passed through as-is from backend
+    # Backend sees /python-redirect-abs/mydir and adds trailing slash: /python-redirect-abs/mydir/
+    assert location == f"/python-redirect-abs/mydir/?token={TOKEN}"
+
+    # Test 2: Named server proxy with absolute_url=True, verify no rewriting occurs
+    # Request to /python-redirect-abs/abc (without trailing slash)
+    r = request_get(PORT, "/python-redirect-abs/abc", TOKEN)
+    assert r.code == 301
+    location = r.headers.get("Location")
+    # Backend returns whatever it wants, proxy doesn't rewrite it
+    # In this case, backend adds trailing slash to the full path it received
+    assert location == f"/python-redirect-abs/abc/?token={TOKEN}"
+
+
+def test_server_proxy_icon_handler_svg(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+
+    r = request_get(PORT, "/server-proxy/icon/python-http-icon-svg", TOKEN)
+    assert r.code == 200
+
+    content_type = r.headers.get("Content-Type")
+    assert content_type is not None
+    assert content_type.startswith("image/svg")
+
+    body = r.read().decode("utf-8")
+    assert "<svg" in body
+
+
+def test_server_proxy_icon_handler_png(
+    a_server_port_and_token: Tuple[int, str],
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+
+    r = request_get(PORT, "/server-proxy/icon/python-http-icon-png", TOKEN)
+    assert r.code == 200
+
+    content_type = r.headers.get("Content-Type")
+    assert content_type is not None
+    assert content_type.startswith("image/png")
+
+    body = r.read()
+    assert body.startswith(b"\x89PNG\r\n\x1a\n")

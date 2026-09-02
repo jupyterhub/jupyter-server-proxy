@@ -1,5 +1,47 @@
 # Changelog
 
+## 4.5
+
+### v4.5.0 - 2026-03-31
+
+#### New features added
+
+- Integrating native-proxy [#501](https://github.com/jupyterhub/jupyter-server-proxy/pull/501) ([@jwindgassen](https://github.com/jwindgassen), [@aktech](https://github.com/aktech), [@jhgoebbert](https://github.com/jhgoebbert), [@manics](https://github.com/manics), [@ryanlovett](https://github.com/ryanlovett))
+
+#### Enhancements made
+
+- Make ServerProcess.timeout a Float [#523](https://github.com/jupyterhub/jupyter-server-proxy/pull/523) ([@jwindgassen](https://github.com/jwindgassen), [@jhgoebbert](https://github.com/jhgoebbert), [@manics](https://github.com/manics))
+
+#### Bugs fixed
+
+- fix: serve launcher icons for svg and png [#548](https://github.com/jupyterhub/jupyter-server-proxy/pull/548) ([@chengs](https://github.com/chengs), [@jnywong](https://github.com/jnywong))
+- Rewrite Location header in redirect responses. [#544](https://github.com/jupyterhub/jupyter-server-proxy/pull/544) ([@ryanlovett](https://github.com/ryanlovett), [@manics](https://github.com/manics))
+- Wrong path_info generation in LauncherEntry [#522](https://github.com/jupyterhub/jupyter-server-proxy/pull/522) ([@jwindgassen](https://github.com/jwindgassen), [@manics](https://github.com/manics))
+- Allow ServerProcess.command to be a callable [#519](https://github.com/jupyterhub/jupyter-server-proxy/pull/519) ([@jwindgassen](https://github.com/jwindgassen), [@manics](https://github.com/manics))
+
+#### Maintenance and upkeep improvements
+
+- Make ServerProcess and LauncherEntry a HasTraits, update CLI flags for consistency [#521](https://github.com/jupyterhub/jupyter-server-proxy/pull/521) ([@jwindgassen](https://github.com/jwindgassen), [@manics](https://github.com/manics), [@minrk](https://github.com/minrk))
+- Make config.ServerProcess into a Configurable [#507](https://github.com/jupyterhub/jupyter-server-proxy/pull/507) ([@manics](https://github.com/manics), [@jhgoebbert](https://github.com/jhgoebbert), [@jwindgassen](https://github.com/jwindgassen), [@ryanlovett](https://github.com/ryanlovett))
+- Remove utils.Callable [#506](https://github.com/jupyterhub/jupyter-server-proxy/pull/506) ([@manics](https://github.com/manics), [@yuvipanda](https://github.com/yuvipanda))
+
+#### Documentation improvements
+
+- Fix openrefine example commands [#532](https://github.com/jupyterhub/jupyter-server-proxy/pull/532) ([@yuvipanda](https://github.com/yuvipanda))
+- Add icon type description for the `icon_path` property under ServerProxy.servers [#527](https://github.com/jupyterhub/jupyter-server-proxy/pull/527) ([@chengs](https://github.com/chengs), [@yuvipanda](https://github.com/yuvipanda))
+- fix: update links [#559](https://github.com/jupyterhub/jupyter-server-proxy/pull/559) ([@jnywong](https://github.com/jnywong))
+
+#### Continuous integration improvements
+
+- npm publish --dry-run --tag test [#554](https://github.com/jupyterhub/jupyter-server-proxy/pull/554) ([@manics](https://github.com/manics))
+- test config: use path relative to file [#495](https://github.com/jupyterhub/jupyter-server-proxy/pull/495) ([@manics](https://github.com/manics), [@yuvipanda](https://github.com/yuvipanda))
+
+#### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2024-08-29&to=2026-03-31&type=c))
+
+[@aktech](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aaktech+updated%3A2024-08-29..2026-03-31&type=Issues) | [@chengs](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Achengs+updated%3A2024-08-29..2026-03-31&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3AconsideRatio+updated%3A2024-08-29..2026-03-31&type=Issues) | [@jhgoebbert](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajhgoebbert+updated%3A2024-08-29..2026-03-31&type=Issues) | [@jnywong](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajnywong+updated%3A2024-08-29..2026-03-31&type=Issues) | [@jwindgassen](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajwindgassen+updated%3A2024-08-29..2026-03-31&type=Issues) | [@manics](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2024-08-29..2026-03-31&type=Issues) | [@minrk](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aminrk+updated%3A2024-08-29..2026-03-31&type=Issues) | [@ryanlovett](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2024-08-29..2026-03-31&type=Issues) | [@yuvipanda](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ayuvipanda+updated%3A2024-08-29..2026-03-31&type=Issues)
+
 ## 4.4
 
 ### v4.4.0 - 2024-08-29
@@ -20,7 +62,7 @@
 
 - Document unix_socket as a parameter for callables in config [#497](https://github.com/jupyterhub/jupyter-server-proxy/pull/497) ([@takluyver](https://github.com/takluyver))
 
-## Contributors to this release
+#### Contributors to this release
 
 ([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2024-07-01&to=2024-08-29&type=c))
 
@@ -55,7 +97,7 @@
 #### Contributors to this release
 
 The following people contributed discussions, new ideas, code and documentation contributions, and review.
-See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
 
 ([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2024-06-11&to=2024-07-01&type=c))
 
@@ -121,7 +163,7 @@ The security patch is also available in version 3.2.3.
 #### Contributors to this release
 
 The following people contributed discussions, new ideas, code and documentation contributions, and review.
-See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
 
 ([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2023-09-25&to=2024-03-13&type=c))
 
@@ -152,7 +194,7 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 #### Contributors to this release
 
 The following people contributed discussions, new ideas, code and documentation contributions, and review.
-See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/#how-does-this-tool-define-contributions-in-the-reports).
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
 
 ([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2023-04-20&to=2023-09-25&type=c))
 

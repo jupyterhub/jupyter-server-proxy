@@ -2,6 +2,9 @@
 Traitlets based configuration for jupyter_server_proxy
 """
 
+from __future__ import annotations
+
+import pathlib
 import sys
 from textwrap import dedent, indent
 from warnings import warn
@@ -16,6 +19,8 @@ from traitlets import (
     Bool,
     Callable,
     Dict,
+    Float,
+    HasTraits,
     Instance,
     Int,
     List,
@@ -32,7 +37,7 @@ from .handlers import AddSlashHandler, NamedLocalProxyHandler, SuperviseAndProxy
 from .rawsocket import RawSocketHandler, SuperviseAndRawSocketHandler
 
 
-class LauncherEntry(Configurable):
+class LauncherEntry(HasTraits):
     enabled = Bool(
         True,
         help="""
@@ -41,13 +46,21 @@ class LauncherEntry(Configurable):
     """,
     )
 
-    icon_path = Unicode(
-        "",
+    icon_path = Union(
+        [
+            Unicode(),
+            Instance(pathlib.Path),
+        ],
+        default_value="",
         help="""
         Full path to an svg icon that could be used with a launcher. Currently only used by the
         JupyterLab launcher
     """,
     )
+
+    @validate("icon_path")
+    def _validate_icon_path(self, proposal):
+        return str(proposal["value"])
 
     title = Unicode(
         allow_none=False,
@@ -63,10 +76,6 @@ class LauncherEntry(Configurable):
     """,
     )
 
-    @default("path_info")
-    def _default_path_info(self):
-        return self.title + "/"
-
     category = Unicode(
         "Notebook",
         help="""
@@ -77,7 +86,7 @@ class LauncherEntry(Configurable):
 
 
 class ServerProcess(Configurable):
-    name = Unicode(help="Name of the server").tag(config=True)
+    name = Unicode(help="Name of the server")
 
     command = Union(
         [List(Unicode()), Callable()],
@@ -93,7 +102,7 @@ class ServerProcess(Configurable):
         process is assumed to be started ahead of time and already available
         to be proxied to.
     """,
-    ).tag(config=True)
+    )
 
     environment = Union(
         [Dict(Unicode()), Callable()],
@@ -106,8 +115,8 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
-    timeout = Int(
-        5, help="Timeout in seconds for the process to become ready, default 5s."
+    timeout = Float(
+        5.0, help="Timeout in seconds for the process to become ready, default 5s."
     ).tag(config=True)
 
     absolute_url = Bool(
@@ -116,14 +125,14 @@ class ServerProcess(Configurable):
         Proxy requests default to being rewritten to ``/``. If this is True,
         the absolute URL will be sent to the backend instead.
     """,
-    ).tag(config=True)
+    )
 
     port = Int(
         0,
         help="""
         Set the port that the service will listen on. The default is to automatically select an unused port.
     """,
-    ).tag(config=True)
+    )
 
     unix_socket = Union(
         [Bool(False), Unicode()],
@@ -136,7 +145,7 @@ class ServerProcess(Configurable):
 
         Proxying websockets over a Unix socket requires Tornado >= 6.3.
     """,
-    ).tag(config=True)
+    )
 
     mappath = Union(
         [Dict(Unicode()), Callable()],
@@ -146,15 +155,15 @@ class ServerProcess(Configurable):
         Either a dictionary of request paths to proxied paths,
         or a callable that takes parameter ``path`` and returns the proxied path.
     """,
-    ).tag(config=True)
+    )
 
     launcher_entry = Union(
         [Instance(LauncherEntry), Dict()],
         allow_none=False,
         help="""
-        A dictionary of various options for entries in classic notebook / jupyterlab launchers.
+        Specify various options for entries in classic notebook / jupyterlab launchers.
 
-        Keys recognized are:
+        Must be an instance of ``LauncherEntry`` or a dictionary with the following keys:
 
             ``enabled``
                 Set to True (default) to make an entry in the launchers. Set to False to have no
@@ -175,17 +184,22 @@ class ServerProcess(Configurable):
                 The category for the launcher item. Currently only used by the JupyterLab launcher.
                 By default it is "Notebook".
     """,
-    ).tag(config=True)
+    )
 
     @validate("launcher_entry")
     def _validate_launcher_entry(self, proposal):
-        kwargs = {"title": self.name}
-        kwargs.update(proposal["value"])
-        return LauncherEntry(**kwargs)
+        if isinstance(proposal["value"], LauncherEntry):
+            proposal["value"].title = self.name
+            proposal["value"].path_info = self.name + "/"
+            return proposal["value"]
+        else:
+            kwargs = {"title": self.name, "path_info": self.name + "/"}
+            kwargs.update(proposal["value"])
+            return LauncherEntry(**kwargs)
 
     @default("launcher_entry")
     def _default_launcher_entry(self):
-        return LauncherEntry(title=self.name)
+        return LauncherEntry(title=self.name, path_info=self.name + "/")
 
     new_browser_tab = Bool(
         True,
@@ -202,7 +216,7 @@ class ServerProcess(Configurable):
         A dictionary of additional HTTP headers for the proxy request. As with
         the command traitlet, ``{port}``, ``{unix_socket}`` and ``{base_url}`` will be substituted.
     """,
-    ).tag(config=True)
+    )
 
     rewrite_response = Union(
         [Callable(), List(Callable())],
@@ -261,66 +275,89 @@ class ServerProcess(Configurable):
         similar to running a websockify layer (https://github.com/novnc/websockify).
         All other HTTP requests return 405 (and thus this will also bypass rewrite_response).
     """,
-    ).tag(config=True)
+    )
+
+    def get_proxy_base_class(self) -> tuple[type | None, dict]:
+        """
+        Return the appropriate ProxyHandler Subclass and its kwargs
+        """
+        if self.command:
+            return (
+                SuperviseAndRawSocketHandler
+                if self.raw_socket_proxy
+                else SuperviseAndProxyHandler
+            ), dict(state={})
+
+        if not (self.port or isinstance(self.unix_socket, str)):
+            warn(
+                f"""Server proxy {self.name} does not have a command, port number or unix_socket path. 
+                At least one of these is required."""
+            )
+            return None, dict()
+
+        return (
+            RawSocketHandler if self.raw_socket_proxy else NamedLocalProxyHandler
+        ), dict()
+
+    def get_proxy_attributes(self) -> dict:
+        """
+        Return the required attributes, which will be set on the proxy handler
+        """
+        attributes = {
+            "name": self.name,
+            "command": self.command,
+            "proxy_base": self.name,
+            "absolute_url": self.absolute_url,
+            "mappath": self.mappath,
+            "rewrite_response": self.rewrite_response,
+            "update_last_activity": self.update_last_activity,
+            "request_headers_override": self.request_headers_override,
+        }
+
+        if self.command:
+            attributes["requested_port"] = self.port
+            attributes["requested_unix_socket"] = self.unix_socket
+            attributes["environment"] = self.environment
+            attributes["timeout"] = self.timeout
+        else:
+            attributes["port"] = self.port
+            attributes["unix_socket"] = self.unix_socket
+
+        return attributes
+
+    def make_proxy_handler(self) -> tuple[type | None, dict]:
+        """
+        Create an appropriate handler for this ServerProxy Configuration
+        """
+        cls, proxy_kwargs = self.get_proxy_base_class()
+        if cls is None:
+            return None, proxy_kwargs
+
+        # FIXME: Set 'name' properly
+        attributes = self.get_proxy_attributes()
+
+        class _Proxy(cls):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+                for name, value in attributes.items():
+                    setattr(self, name, value)
+
+            def get_request_headers_override(self):
+                return self._realize_rendered_template(self.request_headers_override)
+
+            # these two methods are only used in supervise classes, but do no harm otherwise
+            def get_env(self):
+                return self._realize_rendered_template(self.environment)
+
+            def get_timeout(self):
+                return self.timeout
+
+        return _Proxy, proxy_kwargs
 
 
-def _make_proxy_handler(sp: ServerProcess):
-    """
-    Create an appropriate handler with given parameters
-    """
-    if sp.command:
-        cls = (
-            SuperviseAndRawSocketHandler
-            if sp.raw_socket_proxy
-            else SuperviseAndProxyHandler
-        )
-        args = dict(state={})
-    elif not (sp.port or isinstance(sp.unix_socket, str)):
-        warn(
-            f"Server proxy {sp.name} does not have a command, port "
-            f"number or unix_socket path. At least one of these is "
-            f"required."
-        )
-        return
-    else:
-        cls = RawSocketHandler if sp.raw_socket_proxy else NamedLocalProxyHandler
-        args = {}
-
-    # FIXME: Set 'name' properly
-    class _Proxy(cls):
-        kwargs = args
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.name = sp.name
-            self.command = sp.command
-            self.proxy_base = sp.name
-            self.absolute_url = sp.absolute_url
-            if sp.command:
-                self.requested_port = sp.port
-                self.requested_unix_socket = sp.unix_socket
-            else:
-                self.port = sp.port
-                self.unix_socket = sp.unix_socket
-            self.mappath = sp.mappath
-            self.rewrite_response = sp.rewrite_response
-            self.update_last_activity = sp.update_last_activity
-
-        def get_request_headers_override(self):
-            return self._realize_rendered_template(sp.request_headers_override)
-
-        # these two methods are only used in supervise classes, but do no harm otherwise
-        def get_env(self):
-            return self._realize_rendered_template(sp.environment)
-
-        def get_timeout(self):
-            return sp.timeout
-
-    return _Proxy
-
-
-def get_entrypoint_server_processes(serverproxy_config):
-    sps = []
+def get_entrypoint_server_processes():
+    processes = []
     for entry_point in entry_points(group="jupyter_serverproxy_servers"):
         name = entry_point.name
         try:
@@ -328,25 +365,31 @@ def get_entrypoint_server_processes(serverproxy_config):
         except Exception as e:
             warn(f"entry_point {name} was unable to be loaded: {str(e)}")
             continue
-        sps.append(make_server_process(name, server_process_config, serverproxy_config))
-    return sps
+        try:
+            process = ServerProcess(name=name, **server_process_config)
+        except Exception as e:
+            warn(f"Process for entry_point {name} could not be instantiated: {e}")
+            continue
+
+        processes.append(process)
+    return processes
 
 
-def make_handlers(base_url, server_processes):
+def make_handlers(base_url: str, server_processes: list[ServerProcess]):
     """
     Get tornado handlers for registered server_processes
     """
     handlers = []
-    for sp in server_processes:
-        handler = _make_proxy_handler(sp)
+    for server in server_processes:
+        handler, kwargs = server.make_proxy_handler()
         if not handler:
             continue
-        handlers.append((ujoin(base_url, sp.name, r"(.*)"), handler, handler.kwargs))
-        handlers.append((ujoin(base_url, sp.name), AddSlashHandler))
+        handlers.append((ujoin(base_url, server.name, r"(.*)"), handler, kwargs))
+        handlers.append((ujoin(base_url, server.name), AddSlashHandler))
     return handlers
 
 
-def make_server_process(name, server_process_config, serverproxy_config):
+def make_server_process(name: str, server_process_config: dict, serverproxy_config):
     return ServerProcess(name=name, **server_process_config)
 
 
@@ -362,19 +405,34 @@ def _serverproxy_servers_help():
 
 class ServerProxy(Configurable):
     servers = Dict(
-        {},
+        key_trait=Unicode(),
+        value_trait=Union([Dict(), Instance(ServerProcess)]),
         help="""
         Dictionary of processes to supervise & proxy.
 
         Key should be the name of the process. This is also used by default as
         the URL prefix, and all requests matching this prefix are routed to this process.
 
-        Value should be a dictionary with the following keys:
+        Value should be an instance of ``ServerProcess`` or a dictionary with the following keys:
 
-        """
-        + indent(_serverproxy_servers_help(), "        "),
+        """ + indent(_serverproxy_servers_help(), "        "),
         config=True,
     )
+
+    @validate("servers")
+    def _validate_servers(self, proposal):
+        servers = {}
+
+        for name, server_process in proposal["value"].items():
+            if isinstance(server_process, ServerProcess):
+                server_process.name = server_process.name or name
+                servers[name] = server_process
+            else:
+                kwargs = {"name": name}
+                kwargs.update(**server_process)
+                servers[name] = ServerProcess(**kwargs)
+
+        return servers
 
     non_service_rewrite_response = Union(
         default_value=tuple(),

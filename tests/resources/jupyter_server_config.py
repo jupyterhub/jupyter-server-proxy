@@ -69,6 +69,18 @@ c.ServerProxy.servers = {
     "python-http": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
     },
+    "python-http-icon-svg": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "launcher_entry": {
+            "icon_path": _get_path("icon.svg"),
+        },
+    },
+    "python-http-icon-png": {
+        "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
+        "launcher_entry": {
+            "icon_path": _get_path("icon.png"),
+        },
+    },
     "python-http-abs": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
         "absolute_url": True,
@@ -174,6 +186,13 @@ c.ServerProxy.servers = {
         "command": [sys.executable, _get_path("rawsocket.py"), "{unix_socket}"],
         "unix_socket": True,
         "raw_socket_proxy": True,
+    },
+    "python-redirect": {
+        "command": [sys.executable, _get_path("redirectserver.py"), "--port={port}"],
+    },
+    "python-redirect-abs": {
+        "command": [sys.executable, _get_path("redirectserver.py"), "--port={port}"],
+        "absolute_url": True,
     },
 }
 
