@@ -254,7 +254,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 if pattern.match(path):
                     return
         if update_last_activity:
-            self.settings["api_last_activity"] = utcnow()
+            # Jupyter Server uses this dictionary to collect activity times from extensions
+            # but don't assume it exists (e.g. standalone server)
+            last_activity_times = self.settings.setdefault("last_activity_times", {})
+            last_activity_times["jupyter-server-proxy"] = utcnow()
 
     def _get_context_path(self, host, port):
         """
