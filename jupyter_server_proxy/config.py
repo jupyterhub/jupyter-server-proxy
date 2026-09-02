@@ -4,6 +4,7 @@ Traitlets based configuration for jupyter_server_proxy
 
 from __future__ import annotations
 
+import pathlib
 import sys
 from textwrap import dedent, indent
 from warnings import warn
@@ -45,13 +46,21 @@ class LauncherEntry(HasTraits):
     """,
     )
 
-    icon_path = Unicode(
-        "",
+    icon_path = Union(
+        [
+            Unicode(),
+            Instance(pathlib.Path),
+        ],
+        default_value="",
         help="""
         Full path to an svg icon that could be used with a launcher. Currently only used by the
         JupyterLab launcher
     """,
     )
+
+    @validate("icon_path")
+    def _validate_icon_path(self, proposal):
+        return str(proposal["value"])
 
     title = Unicode(
         allow_none=False,
