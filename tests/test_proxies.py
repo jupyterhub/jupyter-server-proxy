@@ -286,7 +286,7 @@ def test_server_proxy_port_non_service_rewrite_response(
 
 
 def test_server_proxy_command_callable(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     r = request_get(PORT, "/python-http-callable-command/abc", TOKEN)
