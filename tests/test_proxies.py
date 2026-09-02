@@ -538,7 +538,7 @@ def test_server_proxy_redirect_location_header_rewrite(
     the proxy prefix.
 
     This can happen when servers like python's http.server issue 301
-    redirects with relative Location headers (e.g., /subdir/) that don't
+    redirects with absolute path Location headers (e.g., /subdir/) that don't
     include the proxy prefix, causing 404 errors.
     """
     PORT, TOKEN = a_server_port_and_token
@@ -547,9 +547,9 @@ def test_server_proxy_redirect_location_header_rewrite(
     r = request_get(PORT, "/python-redirect/mydir", TOKEN)
     assert r.code == 301
     location = r.headers.get("Location")
-    # Should be rewritten to include the proxy prefix
+    # this redirect is relative and should NOT be rewritten
     # The token query parameter should be preserved in the redirect
-    assert location == f"/python-redirect/mydir/?token={TOKEN}"
+    assert location == f"mydir/?token={TOKEN}"
 
     # Test 2: Named server proxy - explicit redirect-to endpoint
     r = request_get(PORT, "/python-redirect/redirect-to/target/path", TOKEN)

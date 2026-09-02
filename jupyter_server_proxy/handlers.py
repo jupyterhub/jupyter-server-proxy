@@ -273,10 +273,14 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         # Parse the location header
         parsed = urlparse(location)
 
-        # Only rewrite if the location is a relative path (no scheme or host)
+        # Only rewrite if the location is an absolute path (no scheme or host, not a relative path)
         if parsed.scheme or parsed.netloc:
             # Absolute URL - leave as is
-            self.log.debug(f"Not rewriting absolute Location header: {location}")
+            self.log.debug(f"Not rewriting full URL Location header: {location}")
+            return location
+        # Relative paths should work file
+        if not location.startswith("/"):
+            self.log.debug(f"Not rewriting relative Location header: {location}")
             return location
 
         # Get the proxy context path
