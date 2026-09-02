@@ -2,7 +2,6 @@ import gzip
 import json
 import sys
 import time
-from datetime import datetime
 from functools import partial
 from http.client import HTTPConnection
 from io import BytesIO
@@ -653,7 +652,7 @@ def test_last_activity(
         body = r.read().decode("utf8", "replace")
         assert r.code == 200
         status = json.loads(body)
-        return datetime.fromisoformat(status["last_activity"])
+        return status["last_activity"]
 
     before = get_activity()
     # assumes request takes a measurable amount of time,
