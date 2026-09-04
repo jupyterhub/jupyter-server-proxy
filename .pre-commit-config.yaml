@@ -69,6 +69,15 @@ repos:
     hooks:
       - id: flake8
 
+  # Lint: Typos
+  - repo: https://github.com/codespell-project/codespell
+    # Configuration for codespell is in pyproject.toml
+    rev: v2.2.6
+    hooks:
+    - id: codespell
+      additional_dependencies:
+      - tomli
+
 # pre-commit.ci config reference: https://pre-commit.ci/#configuration
 ci:
   autoupdate_schedule: monthly
