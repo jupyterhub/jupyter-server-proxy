@@ -16,6 +16,15 @@ ${CSS_LAUNCHER_CARD}   css:.jp-LauncherCard-label
 Lab Loads
     Capture Page Screenshot    00-smoke.png
 
+Custom Category Icon
+    ${selector} =    Set Variable    css:.jp-LauncherCard[title^="foo"] .jp-LauncherCard-icon > *
+    Wait Until Element Is Visible    ${selector}    timeout=10s
+    ${item} =    Get WebElement    ${selector}
+    ${background_image} =    Execute Javascript
+    ...    return window.getComputedStyle(arguments[0]).backgroundImage;
+    ...    ARGUMENTS    ${item}
+    Should Contain    ${background_image}    /server-proxy/icon/foo
+
 Launch Browser Tab
     Click Launcher    foo
     Wait Until Keyword Succeeds    3x    0.5s    Switch Window    title:Hello World
