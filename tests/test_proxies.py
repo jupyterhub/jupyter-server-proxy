@@ -2,6 +2,7 @@ import gzip
 import json
 import sys
 import time
+from functools import partial
 from http.client import HTTPConnection
 from io import BytesIO
 from typing import Tuple
@@ -538,7 +539,7 @@ def test_server_proxy_redirect_location_header_rewrite(
     the proxy prefix.
 
     This can happen when servers like python's http.server issue 301
-    redirects with relative Location headers (e.g., /subdir/) that don't
+    redirects with absolute path Location headers (e.g., /subdir/) that don't
     include the proxy prefix, causing 404 errors.
     """
     PORT, TOKEN = a_server_port_and_token
@@ -547,9 +548,9 @@ def test_server_proxy_redirect_location_header_rewrite(
     r = request_get(PORT, "/python-redirect/mydir", TOKEN)
     assert r.code == 301
     location = r.headers.get("Location")
-    # Should be rewritten to include the proxy prefix
+    # this redirect is relative and should NOT be rewritten
     # The token query parameter should be preserved in the redirect
-    assert location == f"/python-redirect/mydir/?token={TOKEN}"
+    assert location == f"mydir/?token={TOKEN}"
 
     # Test 2: Named server proxy - explicit redirect-to endpoint
     r = request_get(PORT, "/python-redirect/redirect-to/target/path", TOKEN)
@@ -625,3 +626,41 @@ def test_server_proxy_icon_handler_png(
 
     body = r.read()
     assert body.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+@pytest.mark.parametrize(
+    "url, expect_activity",
+    [
+        ("/disable-last-activity/anything", False),
+        ("/callable-last-activity/tracked", True),
+        ("/callable-last-activity/tracked?ignore_activity=1", False),
+        ("/exclude-last-activity/tracked", True),
+        ("/exclude-last-activity/something/ignore-me", False),
+        ("/exclude-last-activity/ignored/something", False),
+    ],
+)
+def test_last_activity(
+    a_server_port_and_token: Tuple[int, str],
+    url,
+    expect_activity,
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    get = partial(request_get, PORT, token=TOKEN)
+
+    def get_activity():
+        r = get("/api/status")
+        body = r.read().decode("utf8", "replace")
+        assert r.code == 200
+        status = json.loads(body)
+        return status["last_activity"]
+
+    before = get_activity()
+    # assumes request takes a measurable amount of time,
+    # may need to add a sleep if there are low-resolution timers
+    r = get(url)
+    assert r.code == 200
+    after = get_activity()
+    if expect_activity:
+        assert after > before
+    else:
+        assert after == before

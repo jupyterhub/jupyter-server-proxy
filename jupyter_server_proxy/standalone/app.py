@@ -59,7 +59,7 @@ class StandaloneProxyServer(JupyterApp, ServerProcess):
         return prefix
 
     no_authentication = Bool(
-        default=False,
+        False,
         help="""
         Do not authenticate access to the server via JupyterHub. When set,
         incoming requests will not be authenticated and anyone can access the
