@@ -5,6 +5,7 @@ Traitlets based configuration for jupyter_server_proxy
 from __future__ import annotations
 
 import pathlib
+import re
 from importlib.metadata import entry_points
 from textwrap import dedent, indent
 from warnings import warn
