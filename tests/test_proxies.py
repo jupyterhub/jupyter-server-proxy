@@ -2,6 +2,7 @@ import gzip
 import json
 import sys
 import time
+from functools import partial
 from http.client import HTTPConnection
 from io import BytesIO
 from typing import Tuple
@@ -625,3 +626,41 @@ def test_server_proxy_icon_handler_png(
 
     body = r.read()
     assert body.startswith(b"\x89PNG\r\n\x1a\n")
+
+
+@pytest.mark.parametrize(
+    "url, expect_activity",
+    [
+        ("/disable-last-activity/anything", False),
+        ("/callable-last-activity/tracked", True),
+        ("/callable-last-activity/tracked?ignore_activity=1", False),
+        ("/exclude-last-activity/tracked", True),
+        ("/exclude-last-activity/something/ignore-me", False),
+        ("/exclude-last-activity/ignored/something", False),
+    ],
+)
+def test_last_activity(
+    a_server_port_and_token: Tuple[int, str],
+    url,
+    expect_activity,
+) -> None:
+    PORT, TOKEN = a_server_port_and_token
+    get = partial(request_get, PORT, token=TOKEN)
+
+    def get_activity():
+        r = get("/api/status")
+        body = r.read().decode("utf8", "replace")
+        assert r.code == 200
+        status = json.loads(body)
+        return status["last_activity"]
+
+    before = get_activity()
+    # assumes request takes a measurable amount of time,
+    # may need to add a sleep if there are low-resolution timers
+    r = get(url)
+    assert r.code == 200
+    after = get_activity()
+    if expect_activity:
+        assert after > before
+    else:
+        assert after == before

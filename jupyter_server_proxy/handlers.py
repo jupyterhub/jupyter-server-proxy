@@ -119,6 +119,9 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         )
         self._requested_subprotocols = None
         self.update_last_activity = kwargs.pop("update_last_activity", True)
+        self.exclude_last_activity_patterns = kwargs.pop(
+            "exclude_last_activity_patterns", []
+        )
         super().__init__(*args, **kwargs)
 
     # Support/use jupyter_server config arguments allow_origin and allow_origin_pat
@@ -236,8 +239,24 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         avoids proxied traffic being ignored by the notebook's
         internal idle-shutdown mechanism
         """
-        if self.update_last_activity:
-            self.settings["api_last_activity"] = utcnow()
+        update_last_activity = self.update_last_activity
+        if not update_last_activity:
+            return
+        # allow update_last_activity to be a callable
+        if callable(update_last_activity):
+            update_last_activity = update_last_activity(self)
+        else:
+            # allow excluding traffic that can still happen on 'idle',
+            # such as RStudio's `get_events` endpoint
+            path = self.request.path
+            for pattern in self.exclude_last_activity_patterns:
+                if pattern.match(path):
+                    return
+        if update_last_activity:
+            # Jupyter Server uses this dictionary to collect activity times from extensions
+            # but don't assume it exists (e.g. standalone server)
+            last_activity_times = self.settings.setdefault("last_activity_times", {})
+            last_activity_times["jupyter-server-proxy"] = utcnow()
 
     def _get_context_path(self, host, port):
         """

@@ -5,6 +5,7 @@ Traitlets based configuration for jupyter_server_proxy
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 from textwrap import dedent, indent
 from warnings import warn
@@ -263,9 +264,46 @@ class ServerProcess(Configurable):
     """,
     ).tag(config=True)
 
-    update_last_activity = Bool(
-        True, help="Will cause the proxy to report activity back to jupyter server."
+    update_last_activity = Union(
+        [Bool(), Callable()],
+        default_value=True,
+        help="""
+        Should proxied activity be considered activity on the server?
+
+        If True (default), any request to the proxied application will be considered activity on the server,
+        which is used when calculating 'idleness' for the purposes of automatic shutdown, etc.
+
+        If Callable, will be called with the Request as the only argument,
+        and must return True (update last_activity) or False (don't update last_activity).
+
+        .. versionadded:: 4.6
+        
+            callable support added.
+
+        """,
     ).tag(config=True)
+
+    exclude_last_activity_patterns = List(
+        Union([Unicode(), Instance(re.Pattern)]),
+        help="""
+        List of regular expressions (pattern strings or already compiled) of request paths to be excluded from activity tracking.
+
+        Pattern is only applied to the path (not the full URL).
+
+        This allows excluding URL patterns that tend to get requests when an application is actually idle,
+        e.g. background polling requests that still occur while a user is not 'actively' using the application.
+
+        Only considered if `update_last_activity` is True,
+        has no effect if `update_last_activity` is False or a callable.
+
+        .. versionadded:: 4.6
+        """,
+    ).tag(config=True)
+
+    @validate("exclude_last_activity_patterns")
+    def _compile_last_activity_patterns(self, proposal):
+        # re.compile is a no-op on re.Pattern, so don't need to check
+        return [re.compile(pattern) for pattern in proposal.value]
 
     raw_socket_proxy = Bool(
         False,
@@ -311,6 +349,7 @@ class ServerProcess(Configurable):
             "mappath": self.mappath,
             "rewrite_response": self.rewrite_response,
             "update_last_activity": self.update_last_activity,
+            "exclude_last_activity_patterns": self.exclude_last_activity_patterns,
             "request_headers_override": self.request_headers_override,
         }
 
