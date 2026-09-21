@@ -122,7 +122,7 @@ c.ServerProxy.servers = {
         ],
         # use relative path to isolate between fixtures (lab/notebook),
         # and to workaround macos' 104b limit on socket paths
-        "unix_socket": "test.sock"
+        "unix_socket": "test.sock",
     },
     "python-unix-socket-file-no-command": {
         # this server process can be started earlier by first interacting with
