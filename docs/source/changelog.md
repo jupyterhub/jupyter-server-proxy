@@ -1,5 +1,44 @@
 # Changelog
 
+## 4.6
+
+### 4.6.0 - 2026-09-21
+
+4.6.0 requires Python >=3.10.
+
+([full changelog](https://github.com/jupyterhub/jupyter-server-proxy/compare/v4.5.0...v4.6.0))
+
+#### New features added
+
+- Add exclude_last_activity_patterns to prevent some requests from keeping server alive [#609](https://github.com/jupyterhub/jupyter-server-proxy/pull/609) ([@minrk](https://github.com/minrk), [@ryanlovett](https://github.com/ryanlovett), [@shaneknapp](https://github.com/shaneknapp))
+- Support both Unicode and Path for icon_path. [#575](https://github.com/jupyterhub/jupyter-server-proxy/pull/575) ([@ryanlovett](https://github.com/ryanlovett), [@manics](https://github.com/manics), [@minrk](https://github.com/minrk))
+
+#### Bugs fixed
+
+- don't rewrite relative paths in Location [#592](https://github.com/jupyterhub/jupyter-server-proxy/pull/592) ([@minrk](https://github.com/minrk), [@ryanlovett](https://github.com/ryanlovett))
+- fix: add error handling for process instantiation [#577](https://github.com/jupyterhub/jupyter-server-proxy/pull/577) ([@agoose77](https://github.com/agoose77), [@ryanlovett](https://github.com/ryanlovett))
+
+#### Maintenance and upkeep improvements
+
+- update typescript, rimraf, @jupyter/builder [#616](https://github.com/jupyterhub/jupyter-server-proxy/pull/616) ([@minrk](https://github.com/minrk))
+- labextension: update yarn.lock [#614](https://github.com/jupyterhub/jupyter-server-proxy/pull/614) ([@minrk](https://github.com/minrk))
+- group npm PRs from dependabot [#613](https://github.com/jupyterhub/jupyter-server-proxy/pull/613) ([@minrk](https://github.com/minrk))
+- require Python 3.10, update project metadata [#610](https://github.com/jupyterhub/jupyter-server-proxy/pull/610) ([@minrk](https://github.com/minrk), [@ryanlovett](https://github.com/ryanlovett))
+- enable trusted publishing [#568](https://github.com/jupyterhub/jupyter-server-proxy/pull/568) ([@minrk](https://github.com/minrk), [@ryanlovett](https://github.com/ryanlovett))
+
+#### Documentation improvements
+
+- Add link to Yuvi's JupyterCon 2025 talk [#595](https://github.com/jupyterhub/jupyter-server-proxy/pull/595) ([@jasongrout](https://github.com/jasongrout), [@minrk](https://github.com/minrk), [@ryanlovett](https://github.com/ryanlovett))
+
+#### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2026-04-01&to=2026-09-21&type=c))
+
+@agoose77 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aagoose77+updated%3A2026-04-01..2026-09-21&type=Issues)) | @jasongrout ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajasongrout+updated%3A2026-04-01..2026-09-21&type=Issues)) | @jwindgassen ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ajwindgassen+updated%3A2026-04-01..2026-09-21&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2026-04-01..2026-09-21&type=Issues)) | @minrk ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aminrk+updated%3A2026-04-01..2026-09-21&type=Issues)) | @ryanlovett ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2026-04-01..2026-09-21&type=Issues)) | @shaneknapp ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Ashaneknapp+updated%3A2026-04-01..2026-09-21&type=Issues))
+
 ## 4.5
 
 ### v4.5.0 - 2026-03-31
