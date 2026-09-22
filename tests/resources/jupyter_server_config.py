@@ -120,12 +120,16 @@ c.ServerProxy.servers = {
             _get_path("httpinfo.py"),
             "--unix-socket={unix_socket}",
         ],
-        "unix_socket": "/tmp/jupyter-server-proxy-test-socket",
+        # use relative path to isolate between fixtures (lab/notebook),
+        # and to workaround macos' 104b limit on socket paths
+        "unix_socket": "test.sock",
     },
     "python-unix-socket-file-no-command": {
         # this server process can be started earlier by first interacting with
         # python-unix-socket-file
-        "unix_socket": "/tmp/jupyter-server-proxy-test-socket",
+        # use relative path to isolate between fixtures (lab/notebook),
+        # and to workaround macos' 104b limit on socket paths
+        "unix_socket": "test.sock"
     },
     "python-request-headers": {
         "command": [sys.executable, _get_path("httpinfo.py"), "--port={port}"],
