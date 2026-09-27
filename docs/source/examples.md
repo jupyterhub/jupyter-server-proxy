@@ -9,6 +9,7 @@ projects on GitHub, such as:
 - [jupyter-pluto-proxy](https://github.com/illumidesk/jupyter-pluto-proxy): Run [Pluto.jl](https://github.com/fonsp/Pluto.jl) (notebooks for Julia)
 - [jupyterserverproxy-openrefine](https://github.com/psychemedia/jupyterserverproxy-openrefine): Run [OpenRefine](https://openrefine.org/) (tool for working with messy data)
 - [gator](https://github.com/mamba-org/gator): Run the Mamba Navigator (JupyterLab-based standalone application)
+- [selkies](https://github.com/selkies-project/selkies): Run a Linux desktop over a Unix socket, in a browser tab of its own (low-latency remote desktop streaming with audio and GPU encoding)
 
 Projects can also add the `jupyter-server-proxy` topic to the GitHub repository to make it more discoverable:
 [https://github.com/topics/jupyter-server-proxy](https://github.com/topics/jupyter-server-proxy)
