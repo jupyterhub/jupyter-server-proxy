@@ -42,6 +42,10 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Needed to ensure package.json:packageManager is respected
+      - name: Enable Corepack
+        run: corepack enable
+
       - uses: actions/setup-node@v6
         with:
           cache: yarn
