@@ -4,7 +4,9 @@
       "foo": {
         "command": ["python", "-m", "http.server", "{port}"],
         "launcher_entry": {
-          "title": "foo"
+          "title": "foo",
+          "category": "Other",
+          "icon_path": "icon.svg"
         }
       },
       "bar": {
