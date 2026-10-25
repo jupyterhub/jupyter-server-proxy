@@ -18,6 +18,7 @@ from jupyter_server.utils import ensure_async, url_path_join
 from simpervisor import SupervisedProcess
 from tornado import httpclient, httputil, web
 from tornado.simple_httpclient import SimpleAsyncHTTPClient
+from tornado.websocket import WebSocketClosedError
 from traitlets import Bytes, Dict, Instance, Integer, Unicode, Union, default, observe
 from traitlets.traitlets import HasTraits
 
@@ -205,7 +206,11 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         """
         self._record_activity()
         if hasattr(self, "ws"):
-            self.ws.write_message(message, binary=isinstance(message, bytes))
+            try:
+                self.ws.write_message(message, binary=isinstance(message, bytes))
+            except WebSocketClosedError:
+                # The backend closed its side before this message arrived.
+                self.close()
 
     def on_ping(self, data):
         """
@@ -660,7 +665,12 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             if message is None:
                 self.close()
             else:
-                self.write_message(message, binary=isinstance(message, bytes))
+                try:
+                    self.write_message(message, binary=isinstance(message, bytes))
+                except WebSocketClosedError:
+                    # The client went away before the backend's last message
+                    # arrived, e.g. when the browser tab was closed.
+                    self.close()
 
         def ping_cb(data):
             """
