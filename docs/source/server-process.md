@@ -122,7 +122,7 @@ the following keys:
    explicit entry.
 2. **icon_path**
    Full path to an icon file that could be used with a launcher (for example, `.svg` or `.png`).
-   Currently only used by the JupyterLab launcher, when category is "Notebook" (default) or "Console".
+   Currently only used by the JupyterLab launcher and the Notebook 7 Servers menu.
 3. **title**
    Title to be used for the launcher entry. Defaults to the name of the server if missing.
 4. **path_info**
