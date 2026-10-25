@@ -43,6 +43,10 @@
     "deduplicate": "yarn-deduplicate -s fewer --fail",
     "lint:prettier": "prettier --write \"../.github/**/*.yaml\" \"../*.{yaml,yml,md}\" \"../docs/**/*.md\" \"src/**/*.{tsx,ts}\" \"./*.{yml,json,md}\""
   },
+  "packageManager": "yarn@3.5.0",
+  "//": {
+    "packageManager": "This must be set to `jlpm --version` to ensure dependabot updates yarn.lock in a way that complies with the --immutable check"
+  },
   "dependencies": {
     "@jupyterlab/application": "^3.0 || ^4.0",
     "@jupyterlab/filebrowser": "^3.0 || ^4.0",
