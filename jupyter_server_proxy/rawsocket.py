@@ -72,6 +72,16 @@ class RawSocketHandler(NamedLocalProxyHandler):
         self._record_activity()
         self.log.info(f"RawSocket {self.name} connected")
 
+        # Start periodic websocket keepalive pings to avoid idle timeout by intermediates.
+        # Browser will respond with pong automatically, which counts as activity on many proxies.
+        try:
+            self._keepalive_task = asyncio.create_task(self._ws_keepalive())
+        except Exception as exc:
+            # If scheduling keepalive fails, log but continue; data traffic will still keep connection alive.
+            self.log.warning(
+                f"RawSocket {self.name} failed to start keepalive task: {exc}"
+            )
+
     def on_message(self, message):
         "Send websocket messages as stream writes, encoding if necessary."
         self._record_activity()
@@ -85,9 +95,39 @@ class RawSocketHandler(NamedLocalProxyHandler):
         "No-op"
         self._record_activity()
 
+    async def _ws_keepalive(self):
+        """
+        Periodically send websocket ping frames to keep the connection alive.
+        Many reverse proxies/load balancers close idle websockets (~60s) without traffic.
+        """
+        # Default to 30s; adjust if your environment has stricter idle policies.
+        interval_seconds = 30
+        try:
+            while True:
+                await asyncio.sleep(interval_seconds)
+                # Send a small ping payload; browsers reply with pong automatically.
+                self._record_activity()
+                try:
+                    self.ping(b"keepalive")
+                except Exception as exc:
+                    # If ping fails (connection closed), exit loop.
+                    self.log.debug(
+                        f"RawSocket {self.name} keepalive ping failed: {exc}"
+                    )
+                    break
+        except asyncio.CancelledError:
+            # Task cancelled during handler close; swallow exception.
+            pass
+
     def on_close(self):
         "Close the backend connection."
         self.log.info(f"RawSocket {self.name} connection closed")
+        # Stop keepalive task if running
+        if hasattr(self, "_keepalive_task") and self._keepalive_task:
+            try:
+                self._keepalive_task.cancel()
+            except Exception:
+                pass
         if hasattr(self, "ws_transp"):
             self.ws_transp.close()
 
