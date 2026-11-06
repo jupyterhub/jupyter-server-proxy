@@ -139,6 +139,7 @@ async function activate(
   // load and trust the JSON as a type of data described by the `IServersInfo` interface
   // TODO: consider adding JSON schema-derived types
   const data = (await response.json()) as IServersInfo;
+  const launcherIconClasses = addLauncherIconStyles(data.server_processes);
 
   // handle restoring persistent JupyterLab workspace widgets on page reload
   // this is created even in the Notebook `tree` page to reduce complexity below
@@ -162,6 +163,7 @@ async function activate(
   const { commands, shell } = app;
   commands.addCommand(CommandIDs.open, {
     label: (args) => (args as IOpenArgs).title,
+    iconClass: (args) => launcherIconClasses.get((args as IOpenArgs).id) || "",
     describedBy: async () => {
       return { args: argSchema };
     },
@@ -232,6 +234,36 @@ async function activate(
       }
     }
   }
+}
+
+function addLauncherIconStyles(
+  serverProcesses: IServerProcess[],
+): Map<string, string> {
+  const iconClasses = new Map<string, string>();
+  const entries = serverProcesses.filter(
+    ({ launcher_entry }) => launcher_entry.icon_url,
+  );
+
+  if (!entries.length) {
+    return iconClasses;
+  }
+
+  const style = document.createElement("style");
+  style.dataset.serverProxyLauncherIcons = "";
+  document.head.appendChild(style);
+
+  for (const [index, { launcher_entry, name }] of entries.entries()) {
+    const className = `jp-ServerProxyIcon-${index}`;
+    const ruleIndex = style.sheet!.insertRule(`.${className} {}`);
+    const rule = style.sheet!.cssRules[ruleIndex] as CSSStyleRule;
+    rule.style.backgroundImage = `url(${JSON.stringify(launcher_entry.icon_url)})`;
+    rule.style.backgroundPosition = "center";
+    rule.style.backgroundRepeat = "no-repeat";
+    rule.style.backgroundSize = "contain";
+    iconClasses.set(`${NS}:${name}`, className);
+  }
+
+  return iconClasses;
 }
 
 /**
