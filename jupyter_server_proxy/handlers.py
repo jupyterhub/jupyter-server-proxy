@@ -372,6 +372,10 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         return req
 
     def _check_host_allowlist(self, host):
+        # host may have originally been %encoded in a path so re-validate host
+        # \w also allows _ but there's no other easy way to allow all unicode word chars
+        if not re.match(r"[\w\-\.]+$", host):
+            return False
         if callable(self.host_allowlist):
             return self.host_allowlist(self, host)
         else:
