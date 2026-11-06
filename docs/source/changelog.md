@@ -2,6 +2,39 @@
 
 ## 4.6
 
+### v4.6.1 - 2026-11-TODO
+
+This release includes security fixes for
+[CVE-2026-54744](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-88r2-f378-qwrp)
+and
+[CVE-2026-95840](https://github.com/jupyterhub/jupyter-server-proxy/security/advisories/GHSA-569q-87m2-93rh)
+
+([full changelog](https://github.com/jupyterhub/jupyter-server-proxy/compare/v4.6.0...v4.6.1))
+
+## Bugs fixed
+
+- Use relative per-fixture socket path. [#619](https://github.com/jupyterhub/jupyter-server-proxy/pull/619) ([@ryanlovett](https://github.com/ryanlovett), [@manics](https://github.com/manics))
+
+## Documentation improvements
+
+- docs: list selkies among the example projects [#620](https://github.com/jupyterhub/jupyter-server-proxy/pull/620) ([@ehfd](https://github.com/ehfd), [@manics](https://github.com/manics))
+
+## Continuous integration improvements
+
+- Bump pypa/gh-action-pypi-publish from 1.14.2 to 1.14.3 [#635](https://github.com/jupyterhub/jupyter-server-proxy/pull/635) ([@manics](https://github.com/manics))
+- Bump actions/setup-python from 6 to 7 in the actions group [#634](https://github.com/jupyterhub/jupyter-server-proxy/pull/634) ([@manics](https://github.com/manics))
+- Bump the actions group across 1 directory with 2 updates [#633](https://github.com/jupyterhub/jupyter-server-proxy/pull/633) ([@manics](https://github.com/manics))
+- Set packageManager to get around yarn CI attempting to modify package.json [#624](https://github.com/jupyterhub/jupyter-server-proxy/pull/624) ([@manics](https://github.com/manics))
+
+## Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyter-server-proxy/graphs/contributors?from=2026-09-21&to=2026-11-06&type=c))
+
+@ehfd ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aehfd+updated%3A2026-09-21..2026-11-06&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Amanics+updated%3A2026-09-21..2026-11-06&type=Issues)) | @ryanlovett ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyter-server-proxy+involves%3Aryanlovett+updated%3A2026-09-21..2026-11-06&type=Issues))
+
 ### 4.6.0 - 2026-09-21
 
 4.6.0 requires Python >=3.10.
