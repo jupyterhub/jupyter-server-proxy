@@ -34,13 +34,13 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
 
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       # Needed to ensure package.json:packageManager is respected
       - name: Enable Corepack
@@ -78,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-24.04
+          - ubuntu-26.04
           - windows-2022
         python-version:
           - "3.10"
@@ -94,7 +94,7 @@ jobs:
             pip-extras: classic
           # this test is manually updated to reflect the lower bounds of
           # versions from dependencies
-          - os: ubuntu-22.04
+          - os: ubuntu-26.04
             python-version: "3.10"
             pip-extras: classic
             pip-install-constraints: >-
