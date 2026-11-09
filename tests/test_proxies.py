@@ -389,8 +389,9 @@ async def test_server_proxy_websocket_messages(
     msg = await conn.read_message()
     assert msg == expected_msg
 
+
 async def test_server_proxy_websocket_messages_requested_port(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/python-websocket-port55321/echosocket?token={TOKEN}"
@@ -400,8 +401,9 @@ async def test_server_proxy_websocket_messages_requested_port(
     msg = await conn.read_message()
     assert msg == expected_msg
 
+
 async def test_server_proxy_websocket_messages_port_non_absolute(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     url = f"ws://{LOCALHOST}:{PORT}/proxy/55321/echosocket?token={TOKEN}"
@@ -410,6 +412,7 @@ async def test_server_proxy_websocket_messages_port_non_absolute(
     await conn.write_message(expected_msg)
     msg = await conn.read_message()
     assert msg == expected_msg
+
 
 async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int, str]):
     PORT, TOKEN = a_server_port_and_token
@@ -423,7 +426,7 @@ async def test_server_proxy_websocket_headers(a_server_port_and_token: Tuple[int
 
 
 async def test_server_proxy_websocket_messages_mappath(
-    a_server_port_and_token: Tuple[int, str]
+    a_server_port_and_token: Tuple[int, str],
 ) -> None:
     PORT, TOKEN = a_server_port_and_token
     # Mappath is configured to add "socket" to websocket paths
