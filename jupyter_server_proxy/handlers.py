@@ -172,9 +172,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             "Subclasses of ProxyHandler should implement http_get"
         )
 
-    async def get(self, *args, **kwargs):
-        return await self.http_get(*args, **kwargs)
-
     def post(self, host, port, proxy_path=""):
         raise NotImplementedError(
             "Subclasses of ProxyHandler should implement this post"
@@ -337,12 +334,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             )
 
         self._record_activity()
-
-        if (
-            self.request.method == "GET"
-            and self.request.headers.get("Upgrade", "").lower() == "websocket"
-        ):
-            return await ensure_async(self.get_websocket(proxied_path))
 
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
         # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
@@ -803,7 +794,7 @@ class NamedLocalProxyHandler(LocalProxyHandler):
             attribute = call_with_asked_args(attribute, self.process_args)
         return self._render_template(attribute)
 
-    async def proxy(self, port, path):
+    def _map_path(self, path):
         if not path.startswith("/"):
             path = "/" + path
         if self.mappath:
@@ -811,14 +802,16 @@ class NamedLocalProxyHandler(LocalProxyHandler):
                 path = call_with_asked_args(self.mappath, {"path": path})
             else:
                 path = self.mappath.get(path, path)
+        return path
 
-        return await ensure_async(super().proxy(port, path))
+    async def proxy(self, port, path):
+        return await ensure_async(super().proxy(port, self._map_path(path)))
 
     async def http_get(self, path):
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
-        return await super().open(self.port, path)
+        return await super().open(self.port, self._map_path(path))
 
     def post(self, path):
         return self.proxy(self.port, path)
