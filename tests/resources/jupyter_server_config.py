@@ -87,6 +87,10 @@ c.ServerProxy.servers = {
             "X-Custom-Header": "pytest-23456",
         },
     },
+    "python-websocket-port55321": {
+        "command": [sys.executable, _get_path("websocket.py"), "--port={port}"],
+        "port": 55321,
+    },
     "python-websocket-mappathf_socket": {
         "command": [sys.executable, _get_path("websocket.py"), "--port={port}"],
         "mappath": mappathf_socket,
