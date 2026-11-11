@@ -19,12 +19,12 @@ on:
 
 jobs:
   linkcheck:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install deps
         run: pip install -r docs/requirements.txt
