@@ -122,3 +122,23 @@ class TestStandaloneProxyLogin(_TestStandaloneBase):
 
         assert response.code == 302
         assert "Location" in response.headers
+
+
+class TestStandaloneProxyWebsocketAuth(_TestStandaloneBase):
+    """
+    Ensure WebSocket-upgrade requests are authenticated when authentication is
+    enabled. Regression test: an anonymous WebSocket upgrade must be rejected
+    rather than proxied to the backend.
+    """
+
+    unix_socket = False
+    no_authentication = False
+
+    def test_anonymous_websocket_upgrade_is_rejected(self):
+        response = self.fetch(
+            "/some/prefix/socket",
+            headers={"Upgrade": "websocket", "Connection": "Upgrade"},
+            follow_redirects=False,
+        )
+
+        assert response.code == 403

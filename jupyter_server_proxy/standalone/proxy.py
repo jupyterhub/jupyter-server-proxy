@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from logging import Logger
 
-from jupyter_server.utils import ensure_async
 from jupyterhub import __version__ as __jh_version__
 from jupyterhub.services.auth import HubOAuthenticated
 from tornado import web
@@ -53,8 +52,23 @@ def make_standalone_proxy(
         def set_default_headers(self):
             self.set_header("X-JupyterHub-Version", __jh_version__)
 
-        def prepare(self, *args, **kwargs):
-            pass
+        async def prepare(self, *args, **kwargs):
+            # Authenticate *all* requests, including the WebSocket-upgrade GET,
+            # unless authentication has been explicitly disabled. This mirrors
+            # ProxyHandler.prepare in the in-server extension: anonymous WebSocket
+            # upgrades get a 403, while other anonymous requests are redirected to
+            # the Hub login. Without this, the WebSocket path (open() ->
+            # proxy_open()) is reachable without any authentication.
+            if self.no_authentication:
+                return
+            if (
+                self.request.method == "GET"
+                and self.request.headers.get("Upgrade", "").lower() == "websocket"
+            ):
+                if not self.current_user:
+                    raise web.HTTPError(403)
+            else:
+                web.authenticated(lambda request_handler: None)(self)
 
         def check_origin(self, origin: str = None):
             # Skip JupyterHandler.check_origin
@@ -67,15 +81,5 @@ def make_standalone_proxy(
         def write_error(self, status_code: int, **kwargs):
             # ToDo: Return proper error page, like in jupyter-server/JupyterHub
             return RequestHandler.write_error(self, status_code, **kwargs)
-
-        async def proxy(self, port, path):
-            if self.no_authentication:
-                return await super().proxy(port, path)
-            else:
-                return await ensure_async(self.oauth_proxy(port, path))
-
-        @web.authenticated
-        async def oauth_proxy(self, port, path):
-            return await super().proxy(port, path)
 
     return StandaloneHubProxyHandler, proxy_kwargs
