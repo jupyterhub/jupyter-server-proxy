@@ -396,6 +396,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 "See https://jupyter-server-proxy.readthedocs.io/en/latest/arbitrary-ports-hosts.html for info.",
             )
 
+        self._record_activity()
+
         # Remove hop-by-hop headers that don't necessarily apply to the request we are making
         # to the backend. See https://github.com/jupyterhub/jupyter-server-proxy/pull/328
         # for more information
@@ -413,16 +415,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         for header_to_remove in hop_by_hop_headers:
             if header_to_remove in self.request.headers:
                 del self.request.headers[header_to_remove]
-
-        self._record_activity()
-
-        if self.request.headers.get("Upgrade", "").lower() == "websocket":
-            # We wanna websocket!
-            # jupyterhub/jupyter-server-proxy@36b3214
-            self.log.info(
-                "we wanna websocket, but we don't define WebSocketProxyHandler"
-            )
-            self.set_status(500)
 
         body = self.request.body
         if not body:
@@ -874,7 +866,7 @@ class NamedLocalProxyHandler(LocalProxyHandler):
             attribute = call_with_asked_args(attribute, self.process_args)
         return self._render_template(attribute)
 
-    async def proxy(self, port, path):
+    def _map_path(self, path):
         if not path.startswith("/"):
             path = "/" + path
         if self.mappath:
@@ -882,14 +874,16 @@ class NamedLocalProxyHandler(LocalProxyHandler):
                 path = call_with_asked_args(self.mappath, {"path": path})
             else:
                 path = self.mappath.get(path, path)
+        return path
 
-        return await ensure_async(super().proxy(port, path))
+    async def proxy(self, port, path):
+        return await ensure_async(super().proxy(port, self._map_path(path)))
 
     async def http_get(self, path):
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
-        return await super().open(self.port, path)
+        return await super().open(self.port, self._map_path(path))
 
     def post(self, path):
         return self.proxy(self.port, path)
